@@ -1,5 +1,5 @@
 # Thermal
-Thermal Emulator (esc/pos) built in Rust.
+Thermal Emulator (esc/pos) built in Rust. Inspired by the php lib (https://github.com/receipt-print-hq/escpos-tools)
 
 This is a work in progress and should not in any way be used right now.
 
