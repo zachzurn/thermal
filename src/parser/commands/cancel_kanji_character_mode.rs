@@ -8,10 +8,10 @@ impl CommandHandler for Handler {}
 
 pub fn new() -> Command {
   Command::new(
-    "Set Code Table",
-    vec![ESC, 't' as u8], 
+    "Cancel Kanji Character Mode",
+    vec![FS, '.' as u8], 
     CommandType::TextContext,
-    DataType::Single,
+    DataType::Empty,
     Arc::new(Mutex::new(Handler{}))
   )
 }

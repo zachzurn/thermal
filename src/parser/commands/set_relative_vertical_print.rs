@@ -8,10 +8,10 @@ impl CommandHandler for Handler {}
 
 pub fn new() -> Command {
   Command::new(
-    "Set Code Table",
-    vec![ESC, 't' as u8], 
+    "Set Relative Vertical Print",
+    vec![GS, '\\' as u8], 
     CommandType::TextContext,
-    DataType::Single,
+    DataType::Double,
     Arc::new(Mutex::new(Handler{}))
   )
 }

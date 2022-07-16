@@ -10,12 +10,12 @@ impl CommandHandler for Handler {
   }
 }
 
-pub fn command() -> Command {
+pub fn new() -> Command {
   Command::new(
     "Line Feed",
     vec![LF], 
     CommandType::Text,
     DataType::Empty,
-    Arc::new(Handler{})
+    Arc::new(Mutex::new(Handler{}))
   )
 }

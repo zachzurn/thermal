@@ -8,9 +8,9 @@ impl CommandHandler for Handler {}
 
 pub fn new() -> Command {
   Command::new(
-    "Set Code Table",
-    vec![ESC, 't' as u8], 
-    CommandType::TextContext,
+    "Set Smoothing",
+    vec![GS, 'b' as u8], 
+    CommandType::GraphicsContext,
     DataType::Single,
     Arc::new(Mutex::new(Handler{}))
   )

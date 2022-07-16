@@ -6,12 +6,12 @@ struct Handler;
 
 impl CommandHandler for Handler {}
 
-pub fn command() -> Command {
+pub fn new() -> Command {
   Command::new(
     "Initialize",
     vec![ESC, '@' as u8], 
     CommandType::Control,
     DataType::Empty,
-    Arc::new(Handler{})
+    Arc::new(Mutex::new(Handler{}))
   )
 }

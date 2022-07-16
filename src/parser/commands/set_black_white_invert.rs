@@ -8,8 +8,8 @@ impl CommandHandler for Handler {}
 
 pub fn new() -> Command {
   Command::new(
-    "Set Code Table",
-    vec![ESC, 't' as u8], 
+    "Set Black White Invert",
+    vec![GS, 'B' as u8], 
     CommandType::TextContext,
     DataType::Single,
     Arc::new(Mutex::new(Handler{}))

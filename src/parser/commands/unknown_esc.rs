@@ -6,12 +6,12 @@ struct Handler;
 
 impl CommandHandler for Handler {}
 
-pub fn command() -> Command {
+pub fn new() -> Command {
   Command::new(
     "Unknown ESC Command",
     vec![ESC], 
     CommandType::Unknown,
     DataType::Unknown,
-    Arc::new(Handler{})
+    Arc::new(Mutex::new(Handler{}))
   )
 }

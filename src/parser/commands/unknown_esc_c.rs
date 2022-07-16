@@ -8,9 +8,9 @@ impl CommandHandler for Handler {}
 
 pub fn new() -> Command {
   Command::new(
-    "Set Code Table",
-    vec![ESC, 't' as u8], 
-    CommandType::TextContext,
+    "Unknown ESC C command",
+    vec![ESC, 'c' as u8], 
+    CommandType::Unknown,
     DataType::Single,
     Arc::new(Mutex::new(Handler{}))
   )

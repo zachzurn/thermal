@@ -17,12 +17,12 @@ impl CommandHandler for Handler {
   }
 }
 
-pub fn command() -> Command {
+pub fn new() -> Command {
   Command::new(
     "Text",
     vec![], 
     CommandType::Text,
     DataType::Text,
-    Arc::new(Handler{})
+    Arc::new(Mutex::new(Handler{}))
   )
 }

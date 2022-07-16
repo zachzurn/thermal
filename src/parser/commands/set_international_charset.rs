@@ -6,12 +6,12 @@ struct Handler;
 
 impl CommandHandler for Handler {}
 
-pub fn command() -> Command {
+pub fn new() -> Command {
   Command::new(
     "Set International Character Set",
     vec![ESC, 'R' as u8], 
     CommandType::TextContext,
     DataType::Single,
-    Arc::new(Handler{})
+    Arc::new(Mutex::new(Handler{}))
   )
 }

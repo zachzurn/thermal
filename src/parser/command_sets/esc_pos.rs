@@ -2,67 +2,66 @@ use crate::parser::command_sets::CommandSet;
 use crate::parser::commands::*;
 use std::sync::Arc;
 
-
-// pub mod initialize;
-// pub mod cancel;
-
-// pub mod text;
-// pub mod horizontal_tab;
-// pub mod linefeed;
-// pub mod carriage_return;
-// pub mod set_justification;
-
-// pub mod default_line_spacing;
-// pub mod enable_upside_down;
-// pub mod set_line_spacing;
-
-// pub mod bit_image;
-
-// pub mod unknown_dle;
-// pub mod unknown_esc;
-// pub mod unknown_fs;
-// pub mod unknown_gs;
-
-pub fn get() -> CommandSet{
+//These should always be in alphabetical order
+pub fn new() -> CommandSet{
   let commands = vec![
-    bitmap::command(),
-    cancel::command(),
-    carriage_return::command(),
-    default_line_spacing::command(),
-    formfeed::command(),
-    horizontal_tab::command(),
-    initialize::command(),
-    linefeed::command(),
-    paper_end_sensor::command(),
-    print_and_feed_lines::command(),
-    print_and_feed::command(),
-    print_and_reverse_feed_lines::command(),
-    print_stop_sensor::command(),
-    pulse::command(),
-    set_absolute_print_pos::command(),
-    set_alt_color::command(),
-    set_code_table::command(),
-    set_double_strike::command(),
-    set_emphasis::command(),
-    set_font::command(),
-    set_international_charset::command(),
-    set_justification::command(),
-    set_line_spacing::command(),
-    set_panel_buttons::command(),
-    set_peripheral_device::command(),
-    set_print_mode::command(),
-    set_underline::command(),
-    set_upside_down::command(),
-    unknown_a::command(),
-    unknown_b::command(),
-    unknown_dle::command(),
-    unknown_esc::command(),
-    unknown_fs::command(),
-    unknown_gs::command()
+    barcode::new(),
+    bitmap::new(),
+    cancel_kanji_character_mode::new(),
+    cancel::new(),
+    carriage_return::new(),
+    qr_code::new(),
+    default_line_spacing::new(),
+    feed_and_cut::new(),
+    formfeed::new(),
+    graphics::new(),
+    horizontal_tab::new(),
+    initialize::new(),
+    large_bitmap::new(),
+    large_graphics::new(),
+    linefeed::new(),
+    paper_end_sensor::new(),
+    print_and_feed_lines::new(),
+    print_and_feed::new(),
+    print_and_reverse_feed_lines::new(),
+    print_stop_sensor::new(),
+    pulse::new(),
+    request_response_transmission::new(),
+    set_absolute_print_pos::new(),
+    set_alt_color::new(),
+    set_barcode_height::new(),
+    set_barcode_width::new(),
+    set_black_white_invert::new(),
+    set_character_size::new(),
+    set_code_table::new(),
+    set_double_strike::new(),
+    set_emphasis::new(),
+    set_font::new(),
+    set_graphics_x_y::new(),
+    set_hri_print_pos::new(),
+    set_international_charset::new(),
+    set_justification::new(),
+    set_kanji_character_code::new(),
+    set_line_spacing::new(),
+    set_panel_buttons::new(),
+    set_peripheral_device::new(),
+    set_print_mode::new(),
+    set_relative_vertical_print::new(),
+    set_smoothing::new(),
+    set_underline::new(),
+    set_upside_down::new(),
+    transmit_printer_id::new(),
+    unknown_data_command::new(),
+    unknown_dle::new(),
+    unknown_esc_c::new(),
+    unknown_esc::new(),
+    unknown_fs::new(),
+    unknown_gs_graphics::new(),
+    unknown_gs::new()
   ];
 
   CommandSet {
-    default: text::command(),
+    default: text::new(),
     commands: Arc::from(commands)
   }
 }
