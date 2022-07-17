@@ -1,6 +1,13 @@
 extern crate barcoders;
 
 use barcoders::sym::code128::Code128;
+use barcoders::sym::codabar::Codabar;
+use barcoders::sym::code39::Code39;
+use barcoders::sym::code93::Code93;
+use barcoders::sym::ean13::EAN13;
+use barcoders::sym::ean13::UPCA;
+use barcoders::sym::ean8::EAN8;
+
 use std::str::from_utf8;
 
 use crate::parser::{*, graphics::Barcode};
@@ -102,19 +109,40 @@ impl CommandHandler for BarcodeHandler {
   }
 
   fn get_graphics(&self, command: &Command) -> Option<GraphicsCommand> {
+    let data = from_utf8(&command.data as &[u8]).unwrap_or("");
+
     match self.kind {
       BarcodeType::Code128 => {
-        let data = from_utf8(&command.data as &[u8]).unwrap_or("");
-        if let Ok(barcode) = Code128::new(data.to_string()) {
-          return Some(GraphicsCommand::Barcode(Barcode{
-            points: barcode.encode(),
-            text: data.to_string()
-          }));
-        } 
-        return None;
+        if let Ok(barcode) = Code128::new(data.to_string()) { 
+          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
+      }
+      BarcodeType::Nw7Codabar => {
+        if let Ok(barcode) = Codabar::new(data.to_string()) { 
+          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
+      }
+      BarcodeType::Code39 => {
+        if let Ok(barcode) = Code39::new(data.to_string()) { 
+          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
+      }
+      BarcodeType::Code93 => {
+        if let Ok(barcode) = Code93::new(data.to_string()) { 
+          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
+      }
+      BarcodeType::Ean13 => {
+        if let Ok(barcode) = EAN13::new(data.to_string()) { 
+          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
+      }
+      BarcodeType::UpcA => {
+        if let Ok(barcode) = UPCA::new(data.to_string()) { 
+          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
+      }
+      BarcodeType::Ean8 => {
+        if let Ok(barcode) = EAN8::new(data.to_string()) { 
+          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
       }
       _ => return None
     }
+    None
   }
 
   fn debug(&self, command: &Command) -> String {
