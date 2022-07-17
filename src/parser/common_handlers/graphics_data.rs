@@ -1,7 +1,6 @@
-use std::sync::{ Arc, Mutex };
-
 use crate::parser::{ CommandHandler, Command};
 
+#[derive(Clone)]
 pub enum GraphicsDataType {
   PrintGraphics,
   StoreGraphics,
@@ -9,6 +8,7 @@ pub enum GraphicsDataType {
   Unknown
 }
 
+#[derive(Clone)]
 struct DataHandler{
   kind: GraphicsDataType,
   is_large: bool,
@@ -98,13 +98,13 @@ impl CommandHandler for DataHandler {
   }
 }
 
-pub fn new(is_large: bool) -> Arc<Mutex<dyn CommandHandler>> {
-  Arc::new(Mutex::new(DataHandler{
+pub fn new(is_large: bool) -> Box<dyn CommandHandler> {
+  Box::new(DataHandler{
     kind: GraphicsDataType::Unknown,
     is_large,
     m: 0,
     function: 0,
     capacity: 0,
     accept_data: false,
-  }))
+  })
 }

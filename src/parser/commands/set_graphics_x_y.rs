@@ -1,5 +1,6 @@
 use crate::parser::*;
 
+#[derive(Clone)]
 struct Handler;
 
 impl CommandHandler for Handler {
@@ -12,6 +13,6 @@ pub fn new() -> Command {
     vec![GS, 'P' as u8], 
     CommandType::GraphicsContext,
     DataType::Double,
-    Arc::new(Mutex::new(Handler{}))
+    Box::new(Handler{})
   )
 }

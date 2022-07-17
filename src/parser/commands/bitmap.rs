@@ -1,7 +1,6 @@
-use std::sync::Arc;
-
 use crate::parser::*;
 
+#[derive(Clone)]
 struct Handler{
   width: usize,
   height: usize,
@@ -71,7 +70,7 @@ pub fn new() -> Command {
     vec![ESC, '*' as u8], 
     CommandType::Image,
     DataType::Custom,
-    Arc::new(Mutex::new(Handler{
+    Box::new(Handler{
       width: 0,
       height: 0,
       capacity: 0,
@@ -79,6 +78,6 @@ pub fn new() -> Command {
       is_bit_image: false,
       buffer: 0,
       accept_data: false
-    }))
+    })
   )
 }

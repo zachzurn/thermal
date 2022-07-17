@@ -1,7 +1,6 @@
-use std::sync::Arc;
-
 use crate::parser::*;
 
+#[derive(Clone)]
 struct Handler;
 
 impl CommandHandler for Handler {}
@@ -12,7 +11,7 @@ pub fn new() -> Command {
     vec![DLE], 
     CommandType::Unknown,
     DataType::Unknown,
-    Arc::new(Mutex::new(Handler{}))
+    Box::new(Handler{})
   )
 }
 

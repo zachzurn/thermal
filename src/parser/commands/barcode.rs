@@ -1,12 +1,13 @@
-use std::sync::Arc;
-
 use crate::parser::*;
 
+#[derive(Clone)]
 enum BarcodeType {
   A,
   B,
   Unknown
 }
+
+#[derive(Clone)]
 struct BarcodeHandler{
   kind: BarcodeType,
   capacity: u8,
@@ -56,11 +57,11 @@ pub fn new() -> Command {
     vec![GS, 'k' as u8], 
     CommandType::Graphics,
     DataType::Custom,
-    Arc::new(Mutex::new(BarcodeHandler{
+    Box::new(BarcodeHandler{
       kind: BarcodeType::Unknown,
       capacity: 0,
       has_capacity: false,
       accept_data: false
-    }))
+    })
   )
 }

@@ -9,6 +9,6 @@ fn main() {
     let commands = esc_pos.parse(&bytes); 
 
     for command in commands {
-        println!("-- {}", command.get_handler().debug(&command));
+        println!("{}", command.handler.debug(&command));
     }
 }

@@ -1,8 +1,8 @@
-use std::sync::Arc;
 use std::str::from_utf8;
 
 use crate::parser::*;
 
+#[derive(Clone)]
 struct Handler;
 
 impl CommandHandler for Handler {
@@ -26,6 +26,6 @@ pub fn new() -> Command {
     vec![], 
     CommandType::Text,
     DataType::Text,
-    Arc::new(Mutex::new(Handler{}))
+    Box::new(Handler{})
   )
 }

@@ -1,6 +1,7 @@
 use crate::parser::*;
 use crate::parser::common_handlers::graphics_data;
 
+#[derive(Clone)]
 struct Handler;
 
 impl CommandHandler for Handler {

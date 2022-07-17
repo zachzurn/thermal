@@ -1,7 +1,6 @@
-use std::sync::Arc;
-
 use crate::parser::*;
 
+#[derive(Clone)]
 struct Handler{
   width: usize,
   height: usize,
@@ -42,11 +41,11 @@ pub fn new() -> Command {
     vec![GS, 'v' as u8, '0' as u8], 
     CommandType::Graphics,
     DataType::Custom,
-    Arc::new(Mutex::new(Handler{
+    Box::new(Handler{
         width: 0,
         height: 0,
         capacity: 0,
         accept_data: false
-    }))
+    })
   )
 }

@@ -3,8 +3,6 @@ pub mod commands;
 pub mod command_sets;
 pub mod common_handlers;
 
-use std::sync::{Arc, Mutex, MutexGuard};
-
 pub static ESC: u8 = 0x1B;
 pub static HT: u8 = 0x09;
 pub static LF: u8 = 0x0A;
@@ -37,21 +35,18 @@ pub enum DataType {
   Unknown
 }
 
+#[derive(Clone)]
 pub struct Command {
     pub commands: Vec<u8>,
     pub name: String,
     pub data: Vec<u8>,
     pub kind: CommandType,
     pub data_kind: DataType,
-    pub handler: Arc<Mutex<dyn CommandHandler>>
+    pub handler: Box<dyn CommandHandler>
 }
 
-
 impl Command {
-    pub fn get_handler(&self) -> MutexGuard<dyn CommandHandler + 'static>{
-      self.handler.lock().unwrap()
-    }
-    pub fn new(name_str: &str, commands: Vec<u8>, kind: CommandType, data_kind: DataType, handler: Arc<Mutex<dyn CommandHandler>>) -> Self {
+    pub fn new(name_str: &str, commands: Vec<u8>, kind: CommandType, data_kind: DataType, handler: Box<dyn CommandHandler>) -> Self {
         let data: Vec<u8> = vec![];
         let name: String = name_str.to_string();
         Self { commands, name, data, kind, data_kind, handler }
@@ -63,7 +58,7 @@ impl Command {
 
         match self.data_kind {
             DataType::Custom => { 
-              return self.handler.lock().unwrap().push(&mut self.data, byte)
+              return self.handler.push(&mut self.data, byte)
             },
             DataType::Empty => return false,
             DataType::Single => if data_len >= 1 { return false },
@@ -76,8 +71,28 @@ impl Command {
     }
 }
 
+//This seems insane, not quite sure how this actually works
+//These next 3 traits/impl make the Box<dyn CommandHandler> cloneable
+pub trait CloneCommandHandler {
+  fn clone_command_handler<'a>(&self) -> Box<dyn CommandHandler>;
+}
 
-pub trait CommandHandler {
+impl<T> CloneCommandHandler for T
+where
+    T: CommandHandler + Clone + 'static,
+{
+    fn clone_command_handler(&self) -> Box<dyn CommandHandler> {
+        Box::new(self.clone())
+    }
+}
+
+impl Clone for Box<dyn CommandHandler> {
+    fn clone(&self) -> Self {
+        self.clone_command_handler()
+    }
+}
+
+pub trait CommandHandler: CloneCommandHandler {
   fn get_text(&self, _command: &Command) -> Option<String>{ 
     None 
   }
