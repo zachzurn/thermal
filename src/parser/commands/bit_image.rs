@@ -66,7 +66,7 @@ impl CommandHandler for Handler {
 
 pub fn new() -> Command {
   Command::new(
-    "Image",
+    "Bit Image",
     vec![ESC, '*' as u8], 
     CommandType::Image,
     DataType::Custom,

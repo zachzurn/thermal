@@ -1,5 +1,7 @@
 use crate::parser::{ CommandHandler, Command};
 
+use super::as_pbm;
+
 #[derive(Clone)]
 pub enum GraphicsDataType {
   PrintGraphics,
@@ -18,16 +20,6 @@ struct DataHandler{
   accept_data: bool
 }
 
-//maybe can be done better
-fn capacity_4(b1: &u8, b2: &u8, b3: &u8, b4: &u8) -> u32 {
-  *b1 as u32 + *b2 as u32 * 256 + *b3 as u32 * 65536 + *b4 as u32 * 16777216
-}
-
-//maybe can be done better
-fn capacity_2(b1: &u8, b2: &u8) -> u32 {
-  *b1 as u32 + *b2 as u32 * 256
-}
-
 impl DataHandler {
   fn detect_kind(&mut self){
     match self.function {
@@ -41,7 +33,7 @@ impl DataHandler {
     let data_len = data.len();
 
     if data_len == 4{
-      self.capacity = capacity_2(data.get(0).unwrap(), data.get(1).unwrap());
+      self.capacity = u16::from_le_bytes([data[0], data[1]]) as u32;
       self.capacity -= 2;
       self.m = *data.get(2).unwrap();
       self.function = *data.get(3).unwrap();
@@ -49,7 +41,7 @@ impl DataHandler {
     }
 
     if data_len == 6 {
-      self.capacity = capacity_4(data.get(0).unwrap(), data.get(1).unwrap(), data.get(2).unwrap(), data.get(3).unwrap());
+      self.capacity = u32::from_le_bytes([data[0], data[1], data[2], data[3]]);
       self.capacity -= 2;
       self.m = *data.get(4).unwrap();
       self.function = *data.get(5).unwrap();
@@ -62,6 +54,27 @@ impl DataHandler {
 }
 
 impl CommandHandler for DataHandler {
+  fn get_image_pbm(&self, _command: &Command) -> Option<Vec<u8>> { 
+    if matches!(self.kind, GraphicsDataType::StoreGraphics) {
+      //calculate meta
+      let _tone = _command.data.get(0).unwrap();
+      let _color = _command.data.get(1).unwrap();
+      let _width_mult = _command.data.get(2).unwrap();
+      let _heigh_mult = _command.data.get(3).unwrap();
+      let x1 = _command.data.get(4).unwrap();
+      let x2 = _command.data.get(5).unwrap();
+      let y1 = _command.data.get(6).unwrap();
+      let y2 = _command.data.get(7).unwrap();
+      let width = *x1 as u32 + *x2 as u32 * 256;
+      let height = *y1 as u32 + *y2 as u32 * 256;
+
+      let mut imagedata = _command.data.clone();
+      imagedata.drain(0..8);
+
+      return Some(as_pbm(width, height, &imagedata));
+    }
+    None
+  }
   fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool{ 
     let data_len = data.len();
 
@@ -82,6 +95,7 @@ impl CommandHandler for DataHandler {
       data.push(byte); 
       return true;
     }
+
     false
   }
   fn debug(&self, command: &Command) -> String {
@@ -93,8 +107,10 @@ impl CommandHandler for DataHandler {
       GraphicsDataType::Unknown => sub_description = "Unknown"
     }
 
-    format!("{} {} m({}) fun({}) capacity({})", command.name, sub_description, self.m, self.function, self.capacity)
-    //format!("{} {} m({}) fun({}) capacity({}) {:02X?}", command.name, sub_description, self.m, self.function, self.capacity, command.data)
+    if matches!(self.kind, GraphicsDataType::Unknown){
+      return format!("{} {} m({}) fun({}) capacity({}) {:02X?}", command.name, sub_description, self.m, self.function, self.capacity, command.data);
+    }
+    format!("{} {} with {} pixels", command.name, sub_description, self.capacity)
   }
 }
 

@@ -6,7 +6,7 @@ use std::sync::Arc;
 pub fn new() -> CommandSet{
   let commands = vec![
     barcode::new(),
-    bitmap::new(),
+    bit_image::new(),
     cancel_kanji_character_mode::new(),
     cancel::new(),
     carriage_return::new(),
@@ -17,7 +17,6 @@ pub fn new() -> CommandSet{
     graphics::new(),
     horizontal_tab::new(),
     initialize::new(),
-    large_bitmap::new(),
     large_graphics::new(),
     linefeed::new(),
     paper_end_sensor::new(),
@@ -26,6 +25,7 @@ pub fn new() -> CommandSet{
     print_and_reverse_feed_lines::new(),
     print_stop_sensor::new(),
     pulse::new(),
+    raster_bit_image::new(),
     request_response_transmission::new(),
     set_absolute_print_pos::new(),
     set_alt_color::new(),

@@ -1,6 +1,6 @@
 //These should always be in alphabetical order
 pub mod barcode;
-pub mod bitmap;
+pub mod bit_image;
 pub mod cancel_kanji_character_mode;
 pub mod cancel;
 pub mod carriage_return;
@@ -11,7 +11,7 @@ pub mod formfeed;
 pub mod graphics;
 pub mod horizontal_tab;
 pub mod initialize;
-pub mod large_bitmap;
+pub mod raster_bit_image;
 pub mod large_graphics;
 pub mod linefeed;
 pub mod paper_end_sensor;
