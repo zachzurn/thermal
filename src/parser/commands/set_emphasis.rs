@@ -9,7 +9,7 @@ pub fn new() -> Command {
   Command::new(
     "Enable Emphasis",
     vec![ESC, 'E' as u8], 
-    CommandType::TextContext,
+    CommandType::Context,
     DataType::Single,
     Box::new(Handler{})
   )

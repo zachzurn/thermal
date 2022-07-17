@@ -1,17 +1,28 @@
 use crate::parser::*;
+use crate::parser::graphics::*;
 
 #[derive(Clone)]
 struct Handler{
-  width: usize,
-  height: usize,
-  capacity: usize,
-  size: usize,
+  width: u32,
+  height: u32,
+  capacity: u32,
+  size: u32,
   is_bit_image: bool,
   buffer: u8,
   accept_data: bool
 }
 
 impl CommandHandler for Handler {
+  fn get_graphics(&self, command: &Command) -> Option<GraphicsCommand> {
+    let pixtype = if self.is_bit_image { PixelType::Bit } else { PixelType::Byte };  
+    Some(GraphicsCommand::Image(Image{
+        pixels: command.data.clone(),
+        width: self.width,
+        height: self.height,
+        pixel_type: pixtype,
+        storage_id: None,
+    }))
+  }
   fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool{ 
     let data_len = data.len();
 
@@ -44,9 +55,9 @@ impl CommandHandler for Handler {
       return true;
     } 
 
-    let m = *data.get(0).unwrap() as usize;
-    let p1 = *data.get(1).unwrap() as usize;
-    let p2 = byte as usize;
+    let m = *data.get(0).unwrap() as u32;
+    let p1 = *data.get(1).unwrap() as u32;
+    let p2 = byte as u32;
 
     self.width = p1 + p2 * 256;
 
@@ -68,7 +79,7 @@ pub fn new() -> Command {
   Command::new(
     "Bit Image",
     vec![ESC, '*' as u8], 
-    CommandType::Image,
+    CommandType::Graphics,
     DataType::Custom,
     Box::new(Handler{
       width: 0,

@@ -10,7 +10,7 @@ pub fn new() -> Command {
   Command::new(
     "Set Hri Print POS",
     vec![GS, 'H' as u8], 
-    CommandType::GraphicsContext,
+    CommandType::Context,
     DataType::Single,
     Box::new(Handler{})
   )

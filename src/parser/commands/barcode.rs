@@ -3,7 +3,7 @@ extern crate barcoders;
 use barcoders::sym::code128::Code128;
 use std::str::from_utf8;
 
-use crate::parser::*;
+use crate::parser::{*, graphics::Barcode};
 
 #[derive(Clone)]
 enum BarcodeType {
@@ -101,26 +101,19 @@ impl CommandHandler for BarcodeHandler {
     }
   }
 
-
-  fn get_barcode(&self, command: &Command) -> Option<AbstractBarcode> {
-    from_utf8(&command.data as &[u8]).unwrap_or("[No Data]");
-
+  fn get_graphics(&self, command: &Command) -> Option<GraphicsCommand> {
     match self.kind {
-        BarcodeType::Code128 => {
-          //TODO ask the maintainers of the barcoders project if there is a better way to do this by passing in the native string with commands
-          //It seems there is an existing control character for switching command pages which differs from what the maintainers implemented
-          //but I actually have no idea what is right here
-          let data = from_utf8(&command.data as &[u8]).unwrap_or("");
-          if let Ok(barcode) = Code128::new(data.to_string()) {
-            return Some(AbstractBarcode{
-              lines: barcode.encode(),
-              text: data.to_string()
-            });
-          } else {
-            return None
-          }
-        }
-        _ => return None
+      BarcodeType::Code128 => {
+        let data = from_utf8(&command.data as &[u8]).unwrap_or("");
+        if let Ok(barcode) = Code128::new(data.to_string()) {
+          return Some(GraphicsCommand::Barcode(Barcode{
+            points: barcode.encode(),
+            text: data.to_string()
+          }));
+        } 
+        return None;
+      }
+      _ => return None
     }
   }
 

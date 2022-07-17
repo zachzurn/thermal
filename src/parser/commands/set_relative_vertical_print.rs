@@ -9,7 +9,7 @@ pub fn new() -> Command {
   Command::new(
     "Set Relative Vertical Print",
     vec![GS, '\\' as u8], 
-    CommandType::TextContext,
+    CommandType::Context,
     DataType::Double,
     Box::new(Handler{})
   )

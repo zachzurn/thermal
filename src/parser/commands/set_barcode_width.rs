@@ -9,7 +9,7 @@ pub fn new() -> Command {
   Command::new(
     "Set Barcode Width",
     vec![GS, 'w' as u8], 
-    CommandType::GraphicsContext,
+    CommandType::Context,
     DataType::Single,
     Box::new(Handler{})
   )

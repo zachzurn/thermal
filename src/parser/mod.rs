@@ -2,6 +2,10 @@
 pub mod commands;
 pub mod command_sets;
 pub mod common_handlers;
+pub mod graphics;
+pub mod context;
+
+use crate::parser::graphics::GraphicsCommand;
 
 pub static ESC: u8 = 0x1B;
 pub static HT: u8 = 0x09;
@@ -17,10 +21,8 @@ pub static CAN: u8 = 0x18;
 pub enum CommandType {
   Control,
   Text,
-  TextContext,
-  Image,
   Graphics,
-  GraphicsContext,
+  Context,
   Unknown
 }
 
@@ -93,9 +95,10 @@ impl Clone for Box<dyn CommandHandler> {
 }
 
 pub trait CommandHandler: CloneCommandHandler {
+  //Might need to add various encoding support for the get_text method  
   fn get_text(&self, _command: &Command) -> Option<String>{ None }
-  fn get_image_pbm(&self, _command: &Command) -> Option<Vec<u8>> { None }
-  fn get_barcode(&self, _command: &Command) -> Option<AbstractBarcode> { None }
+  fn get_graphics(&self, _command: &Command) -> Option<GraphicsCommand> { None }
+  fn apply_context(&self, _command: &Command){}
   
   fn debug(&self, _command: &Command) -> String { 
     if _command.data.is_empty() { return format!("{}", _command.name.to_string()) }
@@ -105,11 +108,4 @@ pub trait CommandHandler: CloneCommandHandler {
   fn push(&mut self, _command: &mut Vec<u8>, _byte: u8) -> bool{ 
     return false 
   }
-  //fn get image
-  //fn get graphicscommands
-}
-
-pub struct AbstractBarcode {
-  pub lines: Vec<u8>,
-  pub text: String,
 }

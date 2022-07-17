@@ -1,4 +1,5 @@
-use crate::parser::{ CommandHandler, Command};
+use crate::parser::{ CommandHandler, Command };
+use crate::parser::graphics::*;
 
 use super::as_pbm;
 
@@ -54,27 +55,40 @@ impl DataHandler {
 }
 
 impl CommandHandler for DataHandler {
-  fn get_image_pbm(&self, _command: &Command) -> Option<Vec<u8>> { 
-    if matches!(self.kind, GraphicsDataType::StoreGraphics) {
-      //calculate meta
-      let _tone = _command.data.get(0).unwrap();
-      let _color = _command.data.get(1).unwrap();
-      let _width_mult = _command.data.get(2).unwrap();
-      let _heigh_mult = _command.data.get(3).unwrap();
-      let x1 = _command.data.get(4).unwrap();
-      let x2 = _command.data.get(5).unwrap();
-      let y1 = _command.data.get(6).unwrap();
-      let y2 = _command.data.get(7).unwrap();
-      let width = *x1 as u32 + *x2 as u32 * 256;
-      let height = *y1 as u32 + *y2 as u32 * 256;
+  fn get_graphics(&self, _command: &Command) -> Option<GraphicsCommand> {
+    match self.kind {
+        GraphicsDataType::PrintGraphics => {
+          return Some(GraphicsCommand::ImageRef(ImageRef{
+            storage_id: self.m,
+        }));
+        },
+        GraphicsDataType::StoreGraphics => {
+          //calculate meta
+          let _tone = _command.data.get(0).unwrap();
+          let _color = _command.data.get(1).unwrap();
+          let _width_mult = _command.data.get(2).unwrap();
+          let _heigh_mult = _command.data.get(3).unwrap();
+          let x1 = _command.data.get(4).unwrap();
+          let x2 = _command.data.get(5).unwrap();
+          let y1 = _command.data.get(6).unwrap();
+          let y2 = _command.data.get(7).unwrap();
 
-      let mut imagedata = _command.data.clone();
-      imagedata.drain(0..8);
+          let mut imagedata = _command.data.clone();
+          imagedata.drain(0..8);
 
-      return Some(as_pbm(width, height, &imagedata));
+          return Some(GraphicsCommand::Image(Image{
+            pixels: imagedata,
+            width: *x1 as u32 + *x2 as u32 * 256,
+            height: *y1 as u32 + *y2 as u32 * 256,
+            pixel_type: PixelType::Byte,
+            storage_id: Some(self.m),
+          }))
+        },
+        GraphicsDataType::StoreColumnFmt => { return None },
+        GraphicsDataType::Unknown => { return None },
     }
-    None
   }
+
   fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool{ 
     let data_len = data.len();
 

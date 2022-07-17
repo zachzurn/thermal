@@ -9,7 +9,7 @@ pub fn new() -> Command {
   Command::new(
     "Set Smoothing",
     vec![GS, 'b' as u8], 
-    CommandType::GraphicsContext,
+    CommandType::Context,
     DataType::Single,
     Box::new(Handler{})
   )

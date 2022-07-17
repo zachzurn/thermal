@@ -1,4 +1,5 @@
-use crate::parser::{*, common_handlers::as_pbm};
+use crate::parser::graphics::{PixelType, Image, GraphicsCommand};
+use crate::parser::*;
 
 #[derive(Clone)]
 struct Handler{
@@ -33,8 +34,14 @@ impl CommandHandler for Handler {
     data.push(byte);
     true
   }
-  fn get_image_pbm(&self, _command: &Command) -> Option<Vec<u8>> {
-    Some(as_pbm(self.width, self.height, &_command.data.to_owned()))
+  fn get_graphics(&self, command: &Command) -> Option<GraphicsCommand> {
+      Some(GraphicsCommand::Image(Image{
+        pixels: command.data.clone(),
+        width: self.width,
+        height: self.height,
+        pixel_type: PixelType::Byte,
+        storage_id: None
+      }))
   }
 }
 
@@ -42,7 +49,7 @@ pub fn new() -> Command {
   Command::new(
     "Raster Bit Image",
     vec![GS, 'v' as u8, '0' as u8], 
-    CommandType::Image,
+    CommandType::Graphics,
     DataType::Custom,
     Box::new(Handler{
         width: 0,

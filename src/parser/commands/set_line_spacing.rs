@@ -9,7 +9,7 @@ pub fn new() -> Command {
   Command::new(
     "Set Line Spacing",
     vec![ESC, '3' as u8], 
-    CommandType::TextContext,
+    CommandType::Context,
     DataType::Single,
     Box::new(Handler{})
   )

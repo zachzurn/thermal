@@ -9,7 +9,7 @@ pub fn new() -> Command {
   Command::new(
     "Set Alernate Color",
     vec![ESC, 'r' as u8], 
-    CommandType::TextContext,
+    CommandType::Context,
     DataType::Single,
     Box::new(Handler{})
   )

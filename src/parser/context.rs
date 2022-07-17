@@ -3,7 +3,7 @@ pub static TEXT_CENTER: u8 = 1;
 pub static TEXT_RIGHT: u8 = 2;
 
 
-pub struct TextContext {
+pub struct Context {
   justify: u8,
   font: u8,
   bold: bool,
@@ -14,9 +14,9 @@ pub struct TextContext {
   height_multiplier: u16
 }
 
-impl TextContext {
-  pub fn new() -> TextContext {
-    TextContext { 
+impl Context {
+  pub fn new() -> Context {
+    Context { 
       justify: TEXT_LEFT,
       font: 0,
       bold: false,

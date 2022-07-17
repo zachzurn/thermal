@@ -10,7 +10,7 @@ pub fn new() -> Command {
   Command::new(
     "Set Character Size",
     vec![GS, '!' as u8], 
-    CommandType::TextContext,
+    CommandType::Context,
     DataType::Single,
     Box::new(Handler{})
   )
