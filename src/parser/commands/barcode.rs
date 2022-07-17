@@ -1,3 +1,6 @@
+extern crate barcoders;
+
+use barcoders::sym::code128::Code128;
 use std::str::from_utf8;
 
 use crate::parser::*;
@@ -47,27 +50,27 @@ impl CommandHandler for BarcodeHandler {
     if !self.accept_data {
       self.kind_id = byte;
       self.kind = match self.kind_id {
-        0x00 => BarcodeType::UpcA,
-        0x01 => BarcodeType::UpcE,
-        0x02 => BarcodeType::Ean13,
-        0x03 => BarcodeType::Ean8,
-        0x04 => BarcodeType::Code39,
-        0x05 => BarcodeType::Itf,
-        0x06 => BarcodeType::Nw7Codabar,
-        0x48 => BarcodeType::Code93,
-        0x49 => BarcodeType::Code128,
-        0x50 => BarcodeType::Gs1128,
-        0x51 => BarcodeType::Gs1DatabarOmni,
-        0x52 => BarcodeType::Gs1DatabarTruncated,
-        0x53 => BarcodeType::Gs1DatabarLimited,
-        0x54 => BarcodeType::Gs1DatabarExpanded,
-        0x55 => BarcodeType::Code128Auto,
+        0 => BarcodeType::UpcA,
+        1 => BarcodeType::UpcE,
+        2 => BarcodeType::Ean13,
+        3 => BarcodeType::Ean8,
+        4 => BarcodeType::Code39,
+        5 => BarcodeType::Itf,
+        6 => BarcodeType::Nw7Codabar,
+        72 => BarcodeType::Code93,
+        73 => BarcodeType::Code128,
+        80 => BarcodeType::Gs1128,
+        81 => BarcodeType::Gs1DatabarOmni,
+        82 => BarcodeType::Gs1DatabarTruncated,
+        83 => BarcodeType::Gs1DatabarLimited,
+        84 => BarcodeType::Gs1DatabarExpanded,
+        85 => BarcodeType::Code128Auto,
         _ => BarcodeType::Unknown
       };
 
       //I'm seeing some conflicting implementations for function definitions
       if byte <= 6 { self.encoding = EncodingFunction::NulTerminated; }
-      else if byte >= 41 && byte <= 78 { self.encoding = EncodingFunction::ExplicitSize; } 
+      else if byte >= 41 { self.encoding = EncodingFunction::ExplicitSize; } 
       else { self.encoding = EncodingFunction::Unknown }
       self.accept_data = true;
       
@@ -95,6 +98,29 @@ impl CommandHandler for BarcodeHandler {
         return false;
       },
       EncodingFunction::Unknown => return false,
+    }
+  }
+
+
+  fn get_barcode(&self, command: &Command) -> Option<AbstractBarcode> {
+    from_utf8(&command.data as &[u8]).unwrap_or("[No Data]");
+
+    match self.kind {
+        BarcodeType::Code128 => {
+          //TODO ask the maintainers of the barcoders project if there is a better way to do this by passing in the native string with commands
+          //It seems there is an existing control character for switching command pages which differs from what the maintainers implemented
+          //but I actually have no idea what is right here
+          let data = from_utf8(&command.data as &[u8]).unwrap_or("");
+          if let Ok(barcode) = Code128::new(data.to_string()) {
+            return Some(AbstractBarcode{
+              lines: barcode.encode(),
+              text: data.to_string()
+            });
+          } else {
+            return None
+          }
+        }
+        _ => return None
     }
   }
 

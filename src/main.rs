@@ -5,7 +5,7 @@ use std::fs;
 use crate::parser::{command_sets::esc_pos, CommandType};
 
 fn main() {
-    let bytes = std::fs::read("test/test_receipt.bin").unwrap();
+    let bytes = std::fs::read("test/test_receipt_1.bin").unwrap();
     
     let esc_pos = esc_pos::new();
     let commands = esc_pos.parse(&bytes); 

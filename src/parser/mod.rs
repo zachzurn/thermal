@@ -95,6 +95,7 @@ impl Clone for Box<dyn CommandHandler> {
 pub trait CommandHandler: CloneCommandHandler {
   fn get_text(&self, _command: &Command) -> Option<String>{ None }
   fn get_image_pbm(&self, _command: &Command) -> Option<Vec<u8>> { None }
+  fn get_barcode(&self, _command: &Command) -> Option<AbstractBarcode> { None }
   
   fn debug(&self, _command: &Command) -> String { 
     if _command.data.is_empty() { return format!("{}", _command.name.to_string()) }
@@ -106,4 +107,9 @@ pub trait CommandHandler: CloneCommandHandler {
   }
   //fn get image
   //fn get graphicscommands
+}
+
+pub struct AbstractBarcode {
+  pub lines: Vec<u8>,
+  pub text: String,
 }
