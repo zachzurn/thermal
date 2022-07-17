@@ -3,7 +3,7 @@ pub mod commands;
 pub mod command_sets;
 pub mod common_handlers;
 
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 
 pub static ESC: u8 = 0x1B;
 pub static HT: u8 = 0x09;
@@ -37,7 +37,6 @@ pub enum DataType {
   Unknown
 }
 
-#[derive(Clone)]
 pub struct Command {
     pub commands: Vec<u8>,
     pub name: String,
@@ -47,14 +46,11 @@ pub struct Command {
     pub handler: Arc<Mutex<dyn CommandHandler>>
 }
 
-pub trait CommandHandler {
-    fn get_text(&self, _command: &Command) -> Option<String>{ None }
-    fn push(&mut self, _command: &mut Vec<u8>, _byte: u8) -> bool{ return false }
-    //fn get image
-    //fn get graphicscommands
-}
 
 impl Command {
+    pub fn get_handler(&self) -> MutexGuard<dyn CommandHandler + 'static>{
+      self.handler.lock().unwrap()
+    }
     pub fn new(name_str: &str, commands: Vec<u8>, kind: CommandType, data_kind: DataType, handler: Arc<Mutex<dyn CommandHandler>>) -> Self {
         let data: Vec<u8> = vec![];
         let name: String = name_str.to_string();
@@ -78,4 +74,22 @@ impl Command {
         self.data.push(byte); //Always push byte if not returned early
         true
     }
+}
+
+
+pub trait CommandHandler {
+  fn get_text(&self, _command: &Command) -> Option<String>{ 
+    None 
+  }
+  
+  fn debug(&self, _command: &Command) -> String { 
+    if _command.data.is_empty() { return format!("{}", _command.name.to_string()) }
+    format!("{} {:02X?}", _command.name.to_string(), _command.data) 
+  }
+  
+  fn push(&mut self, _command: &mut Vec<u8>, _byte: u8) -> bool{ 
+    return false 
+  }
+  //fn get image
+  //fn get graphicscommands
 }

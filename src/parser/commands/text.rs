@@ -15,6 +15,9 @@ impl CommandHandler for Handler {
         },
     };
   }
+  fn debug(&self, command: &Command) -> String {
+    self.get_text(command).unwrap_or("".to_string())
+  }
 }
 
 pub fn new() -> Command {

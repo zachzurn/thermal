@@ -1,5 +1,5 @@
 use crate::parser::*;
-use crate::parser::common_handlers::data_handler;
+use crate::parser::common_handlers::graphics_data;
 
 //Notes here 
 //$cn . $fn . $m . $data
@@ -14,6 +14,6 @@ pub fn new() -> Command {
     vec![GS, '(' as u8, 'k' as u8], 
     CommandType::Graphics,
     DataType::Custom,
-    data_handler::new(false)
+    graphics_data::new(false)
   )
 }
