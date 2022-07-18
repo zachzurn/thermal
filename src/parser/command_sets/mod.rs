@@ -1,8 +1,6 @@
-use std::sync::Arc;
-
 use crate::parser::Command;
 
-fn subset_commands<'a>(byte: u8, depth: u8, command_set: Arc<Vec<Command>>) -> Arc<Vec<Command>>{
+fn subset_commands<'a>(byte: u8, depth: u8, command_set: Box<Vec<Command>>) -> Box<Vec<Command>>{
   let mut current_command_set: Vec<Command> = Vec::with_capacity(0);
 
   for cmd in command_set.iter() {
@@ -14,12 +12,12 @@ fn subset_commands<'a>(byte: u8, depth: u8, command_set: Arc<Vec<Command>>) -> A
       }
   }
 
-  Arc::from(current_command_set)
+  Box::from(current_command_set)
 }
 
 /// 
 pub struct CommandSet{
-  pub commands: Arc<Vec<Command>>, //list of supported commands
+  pub commands: Box<Vec<Command>>, //list of supported commands
   pub default: Command //default command (normally a text command)
 }
 
@@ -29,7 +27,7 @@ impl CommandSet {
   pub fn parse(&self, bytes: &Vec<u8>) -> Vec<Command> {
     let mut depth= 0u8;
     let empty_command_subset: Vec<Command> = vec!();
-    let mut command_subset: Arc<Vec<Command>> = Arc::from(empty_command_subset);
+    let mut command_subset: Box<Vec<Command>> = Box::from(empty_command_subset);
     let mut commands: Vec<Command> = vec![];
     let mut last_command_is_default = false;
 

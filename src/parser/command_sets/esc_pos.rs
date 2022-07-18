@@ -1,16 +1,14 @@
 use crate::parser::command_sets::CommandSet;
 use crate::parser::commands::*;
-use std::sync::Arc;
 
 //These should always be in alphabetical order
 pub fn new() -> CommandSet{
   let commands = vec![
     barcode::new(),
     bit_image::new(),
-    cancel_kanji_character_mode::new(),
     cancel::new(),
     carriage_return::new(),
-    qr_code::new(),
+    code_2d::new(),
     default_line_spacing::new(),
     feed_and_cut::new(),
     formfeed::new(),
@@ -41,7 +39,6 @@ pub fn new() -> CommandSet{
     set_hri_print_pos::new(),
     set_international_charset::new(),
     set_justification::new(),
-    set_kanji_character_code::new(),
     set_line_spacing::new(),
     set_panel_buttons::new(),
     set_peripheral_device::new(),
@@ -62,6 +59,6 @@ pub fn new() -> CommandSet{
 
   CommandSet {
     default: text::new(),
-    commands: Arc::from(commands)
+    commands: Box::from(commands)
   }
 }

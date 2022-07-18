@@ -2,6 +2,8 @@ mod parser;
 
 use std::fs;
 
+use parser::context::Context;
+
 use crate::parser::*;
 use crate::parser::command_sets::esc_pos;
 use crate::parser::graphics::*;
@@ -14,12 +16,14 @@ fn main() {
     let commands = esc_pos.parse(&bytes);
     let mut image_storage: HashMap<u8, Image> = HashMap::new();
     
+    let mut context = Context::new();
+
     let mut graphics_id = 0;
 
     for command in commands {
         match command.kind {
             CommandType::Graphics => {
-                if let Some(gfx) = command.handler.get_graphics(&command){
+                if let Some(gfx) = command.handler.get_graphics(&command, &context){
                     match gfx {
                         GraphicsCommand::Qrcode(_qr) => todo!(),
                         GraphicsCommand::Barcode(_br) => todo!(),
@@ -41,13 +45,17 @@ fn main() {
                                 if let Ok(_) = fs::write(filepath, img.as_pbm()) {}
                             }
                         },
+                        _ => {}
                     }
                 }
             },
+            CommandType::Context => {
+                command.handler.apply_context(&command, &mut context)
+            }
             _ => {},
         }
 
-        println!("{}", command.handler.debug(&command));
+        println!("{}", command.handler.debug(&command, &context));
 
         graphics_id += 1;
     }

@@ -9,7 +9,7 @@ pub fn new() -> Command {
   Command::new(
     "Initialize",
     vec![ESC, '@' as u8], 
-    CommandType::Control,
+    CommandType::Initialize,
     DataType::Empty,
     Box::new(Handler{})
   )

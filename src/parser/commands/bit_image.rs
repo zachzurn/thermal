@@ -13,7 +13,7 @@ struct Handler{
 }
 
 impl CommandHandler for Handler {
-  fn get_graphics(&self, command: &Command) -> Option<GraphicsCommand> {
+  fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
     let pixtype = if self.is_bit_image { PixelType::Bit } else { PixelType::Byte };  
     Some(GraphicsCommand::Image(Image{
         pixels: command.data.clone(),

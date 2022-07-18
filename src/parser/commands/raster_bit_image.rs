@@ -2,10 +2,16 @@ use crate::parser::graphics::{PixelType, Image, GraphicsCommand};
 use crate::parser::*;
 
 #[derive(Clone)]
+enum ImageScaling {
+
+}
+
+#[derive(Clone)]
 struct Handler{
   width: u32,
   height: u32,
   capacity: u32,
+  scaling: u8,
   accept_data: bool
 }
 
@@ -15,7 +21,7 @@ impl CommandHandler for Handler {
 
     if !self.accept_data {
       if data_len <= 4 { data.push(byte); }
-      let _ = *data.get(0).unwrap() as usize; //Not sure what this is
+      self.scaling = *data.get(0).unwrap(); // 0x01 normal 0x02 double width  0x03  double height 0x04 quadruple
       let w1 = *data.get(1).unwrap() as u32;
       let w2 = *data.get(2).unwrap() as u32;
       let h1 = *data.get(3).unwrap() as u32;
@@ -34,7 +40,8 @@ impl CommandHandler for Handler {
     data.push(byte);
     true
   }
-  fn get_graphics(&self, command: &Command) -> Option<GraphicsCommand> {
+  fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
+      //possibly implement scaling here
       Some(GraphicsCommand::Image(Image{
         pixels: command.data.clone(),
         width: self.width,
@@ -55,6 +62,7 @@ pub fn new() -> Command {
         width: 0,
         height: 0,
         capacity: 0,
+        scaling: 0,
         accept_data: false
     })
   )

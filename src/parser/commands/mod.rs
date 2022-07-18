@@ -1,10 +1,9 @@
 //These should always be in alphabetical order
 pub mod barcode;
 pub mod bit_image;
-pub mod cancel_kanji_character_mode;
 pub mod cancel;
 pub mod carriage_return;
-pub mod qr_code;
+pub mod code_2d;
 pub mod default_line_spacing;
 pub mod feed_and_cut;
 pub mod formfeed;
@@ -35,7 +34,6 @@ pub mod set_graphics_x_y;
 pub mod set_hri_print_pos;
 pub mod set_international_charset;
 pub mod set_justification;
-pub mod set_kanji_character_code;
 pub mod set_line_spacing;
 pub mod set_panel_buttons;
 pub mod set_peripheral_device;

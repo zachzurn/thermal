@@ -1,11 +1,14 @@
 // pub mod constants;
 pub mod commands;
+pub mod subcommands;
 pub mod command_sets;
 pub mod common_handlers;
 pub mod graphics;
 pub mod context;
 
 use crate::parser::graphics::GraphicsCommand;
+
+use self::context::Context;
 
 pub static ESC: u8 = 0x1B;
 pub static HT: u8 = 0x09;
@@ -19,10 +22,12 @@ pub static CAN: u8 = 0x18;
 
 #[derive(Clone)]
 pub enum CommandType {
+  Initialize,
   Control,
   Text,
   Graphics,
   Context,
+  End,
   Unknown
 }
 
@@ -96,11 +101,11 @@ impl Clone for Box<dyn CommandHandler> {
 
 pub trait CommandHandler: CloneCommandHandler {
   //Might need to add various encoding support for the get_text method  
-  fn get_text(&self, _command: &Command) -> Option<String>{ None }
-  fn get_graphics(&self, _command: &Command) -> Option<GraphicsCommand> { None }
-  fn apply_context(&self, _command: &Command){}
+  fn get_text(&self, _command: &Command, _context: &Context) -> Option<String>{ None }
+  fn get_graphics(&self, _command: &Command, _context: &Context) -> Option<GraphicsCommand> { None }
+  fn apply_context(&self, _command: &Command, _context: &mut Context){}
   
-  fn debug(&self, _command: &Command) -> String { 
+  fn debug(&self, _command: &Command, _context: &Context) -> String { 
     if _command.data.is_empty() { return format!("{}", _command.name.to_string()) }
     format!("{} {:02X?}", _command.name.to_string(), _command.data) 
   }

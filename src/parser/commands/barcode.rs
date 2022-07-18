@@ -7,10 +7,11 @@ use barcoders::sym::code93::Code93;
 use barcoders::sym::ean13::EAN13;
 use barcoders::sym::ean13::UPCA;
 use barcoders::sym::ean8::EAN8;
+use barcoders::sym::tf::TF;
 
 use std::str::from_utf8;
 
-use crate::parser::{*, graphics::Barcode};
+use crate::parser::{*, graphics::Barcode, context::Context};
 
 #[derive(Clone)]
 enum BarcodeType {
@@ -57,13 +58,13 @@ impl CommandHandler for BarcodeHandler {
     if !self.accept_data {
       self.kind_id = byte;
       self.kind = match self.kind_id {
-        0 => BarcodeType::UpcA,
-        1 => BarcodeType::UpcE,
-        2 => BarcodeType::Ean13,
-        3 => BarcodeType::Ean8,
-        4 => BarcodeType::Code39,
-        5 => BarcodeType::Itf,
-        6 => BarcodeType::Nw7Codabar,
+        0 | 65 => BarcodeType::UpcA,
+        1 | 66 => BarcodeType::UpcE,
+        2 | 67 => BarcodeType::Ean13,
+        3 | 68 => BarcodeType::Ean8,
+        4 | 69 => BarcodeType::Code39,
+        5 | 70 => BarcodeType::Itf,
+        6 | 71 => BarcodeType::Nw7Codabar,
         72 => BarcodeType::Code93,
         73 => BarcodeType::Code128,
         80 => BarcodeType::Gs1128,
@@ -77,7 +78,7 @@ impl CommandHandler for BarcodeHandler {
 
       //I'm seeing some conflicting implementations for function definitions
       if byte <= 6 { self.encoding = EncodingFunction::NulTerminated; }
-      else if byte >= 41 { self.encoding = EncodingFunction::ExplicitSize; } 
+      else if byte >= 65 && byte <= 79 { self.encoding = EncodingFunction::ExplicitSize; } 
       else { self.encoding = EncodingFunction::Unknown }
       self.accept_data = true;
       
@@ -108,13 +109,15 @@ impl CommandHandler for BarcodeHandler {
     }
   }
 
-  fn get_graphics(&self, command: &Command) -> Option<GraphicsCommand> {
+  fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
     let data = from_utf8(&command.data as &[u8]).unwrap_or("");
 
     match self.kind {
       BarcodeType::Code128 => {
         if let Ok(barcode) = Code128::new(data.to_string()) { 
-          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
+          //all code128 data has two bytes that set the type, we are converting this to the barcoders format
+          let adjusted_data = data.replace("{A", "À").replace("{B", "Ɓ").replace("{C", "Ć");
+          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: adjusted_data })); } 
       }
       BarcodeType::Nw7Codabar => {
         if let Ok(barcode) = Codabar::new(data.to_string()) { 
@@ -140,12 +143,16 @@ impl CommandHandler for BarcodeHandler {
         if let Ok(barcode) = EAN8::new(data.to_string()) { 
           return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
       }
+      BarcodeType::Itf => {
+        if let Ok(barcode) = TF::interleaved(data.to_string()) { 
+          return Some(GraphicsCommand::Barcode(Barcode{ points: barcode.encode(), text: data.to_string() })); } 
+      } 
       _ => return None
     }
     None
   }
 
-  fn debug(&self, command: &Command) -> String {
+  fn debug(&self, command: &Command, _context: &Context) -> String {
     let encoding_str = match self.encoding {
         EncodingFunction::NulTerminated => "Nul Terminated",
         EncodingFunction::ExplicitSize => "Explicit Size",

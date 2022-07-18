@@ -1,12 +1,8 @@
+//See: https://reference.epson-biz.com/modules/ref_escpos/index.php?content_id=130
 use crate::parser::*;
 use crate::parser::common_handlers::graphics_data;
 
-//Notes here 
-//$cn . $fn . $m . $data
-
-//First byte of data is output code type
-//Second byte is function to use
-//Third byte is modifier Often 0
+//TODO implement custom data methods
 
 pub fn new() -> Command {
   Command::new(

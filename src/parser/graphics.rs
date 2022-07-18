@@ -7,6 +7,18 @@ pub struct Barcode {
   pub text: String,
 }
 
+pub struct Rectangle {
+  width: u32,
+  height: u32 
+}
+
+pub struct Line {
+  ax: u32,
+  ay: u32,
+  bx: u32,
+  by: u32 
+}
+
 pub struct Qrcode {
   pub points: Vec<u8>,
   pub width: u32
@@ -53,5 +65,7 @@ pub enum GraphicsCommand {
   Qrcode(Qrcode),
   Barcode(Barcode),
   Image(Image),
-  ImageRef(ImageRef)
+  ImageRef(ImageRef),
+  Rectangle(Rectangle),
+  Line(Line)
 }

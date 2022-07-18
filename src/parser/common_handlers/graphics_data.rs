@@ -1,7 +1,6 @@
+use crate::parser::context::Context;
 use crate::parser::{ CommandHandler, Command };
 use crate::parser::graphics::*;
-
-use super::as_pbm;
 
 #[derive(Clone)]
 pub enum GraphicsDataType {
@@ -55,7 +54,7 @@ impl DataHandler {
 }
 
 impl CommandHandler for DataHandler {
-  fn get_graphics(&self, _command: &Command) -> Option<GraphicsCommand> {
+  fn get_graphics(&self, _command: &Command, _context: &Context) -> Option<GraphicsCommand> {
     match self.kind {
         GraphicsDataType::PrintGraphics => {
           return Some(GraphicsCommand::ImageRef(ImageRef{
@@ -112,7 +111,7 @@ impl CommandHandler for DataHandler {
 
     false
   }
-  fn debug(&self, command: &Command) -> String {
+  fn debug(&self, command: &Command, _context: &Context) -> String {
     let sub_description: &str;
     match self.kind {
       GraphicsDataType::PrintGraphics => sub_description = "Print Image",
