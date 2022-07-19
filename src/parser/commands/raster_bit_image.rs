@@ -41,13 +41,21 @@ impl CommandHandler for Handler {
     true
   }
   fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
+      let stretch = match self.scaling {
+        0x01 => (1,1),
+        0x02 => (2,1),
+        0x03 => (1,2),
+        0x04 => (2,2),
+        _ => (1,1)
+      };
+
       //possibly implement scaling here
       Some(GraphicsCommand::Image(Image{
         pixels: command.data.clone(),
         width: self.width,
         height: self.height,
-        pixel_type: PixelType::Byte,
-        storage_id: None
+        pixel_type: PixelType::Monochrome(1),
+        stretch
       }))
   }
 }

@@ -7,20 +7,18 @@ struct Handler{
   height: u32,
   capacity: u32,
   size: u32,
-  is_bit_image: bool,
-  buffer: u8,
   accept_data: bool
 }
 
 impl CommandHandler for Handler {
   fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
-    let pixtype = if self.is_bit_image { PixelType::Bit } else { PixelType::Byte };  
+    let pixtype = PixelType::Monochrome(0);  
     Some(GraphicsCommand::Image(Image{
         pixels: command.data.clone(),
         width: self.width,
         height: self.height,
         pixel_type: pixtype,
-        storage_id: None,
+        stretch: (1,1)
     }))
   }
   fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool{ 
@@ -29,21 +27,7 @@ impl CommandHandler for Handler {
     if self.accept_data {
       if self.size >= self.capacity { return false; }
       
-      if self.is_bit_image {
-        //For Bit Images (only black or white pixels) we can store them in a compressed format
-        //Here we are storing compressed image data since the bytes only ever contain 0 or 1
-        let bit_index = self.size % 8;
-        
-                                             //set the nth bit to on
-        if byte > 0 { self.buffer = (1 << bit_index) | self.buffer }
-        
-        if bit_index == 7 { 
-          data.push(self.buffer); 
-          self.buffer = 0;
-        }
-      } else {
-        data.push(byte);
-      }
+      data.push(byte);
       
       self.size += 1;
       return true;
@@ -86,8 +70,6 @@ pub fn new() -> Command {
       height: 0,
       capacity: 0,
       size: 0,
-      is_bit_image: false,
-      buffer: 0,
       accept_data: false
     })
   )

@@ -1,3 +1,6 @@
+use super::graphics::{Image, ImageRef};
+use std::collections::HashMap;
+
 #[derive(Clone)]
 pub enum TextJustify{ Left, Center, Right }
 
@@ -12,7 +15,8 @@ pub enum Font{ A, B, C }
 pub struct Context {
   pub text: TextContext,
   pub barcode: BarcodeContext,
-  pub code2d: Code2DContext
+  pub code2d: Code2DContext,
+  pub graphics: GraphicsContext
 }
 
 #[derive(Clone)]
@@ -25,6 +29,14 @@ pub struct TextContext {
     pub width_mult: u16,
     pub height_mult: u16,
     pub upside_down: bool, 
+}
+
+#[derive(Clone)]
+pub struct GraphicsContext {
+  pub dots_per_inch: u16,
+  pub graphics_count: u16,
+  pub stored_graphics: HashMap<ImageRef, Image>,
+  pub buffer_graphics: Option<Image>
 }
 
 #[derive(Clone)]
@@ -106,12 +118,20 @@ static CODE2D_DEFAULT: Code2DContext = Code2DContext{
     datamatrix_rows: 0,
 };
 
+static DEFAULT_GRAPHICS_DPI: u16 = 180;
+
 impl Context {
   pub fn new() -> Context {
     Context { 
       text: TEXT_DEFAULT.clone(), 
       barcode: BARCODE_DEFAULT.clone(), 
-      code2d: CODE2D_DEFAULT.clone() 
+      code2d: CODE2D_DEFAULT.clone(),
+      graphics: GraphicsContext { 
+          dots_per_inch: DEFAULT_GRAPHICS_DPI,
+          graphics_count: 0,
+          stored_graphics: HashMap::<ImageRef, Image>::new(),
+          buffer_graphics: None,
+      }
     }
   }
 
@@ -123,5 +143,7 @@ impl Context {
     self.text = TEXT_DEFAULT.clone();
     self.barcode = BARCODE_DEFAULT.clone();
     self.code2d = CODE2D_DEFAULT.clone();
+    self.graphics.dots_per_inch = DEFAULT_GRAPHICS_DPI;
+    self.graphics.graphics_count = 0;
   }
 }

@@ -2,7 +2,6 @@
 pub mod commands;
 pub mod subcommands;
 pub mod command_sets;
-pub mod common_handlers;
 pub mod graphics;
 pub mod context;
 
@@ -27,7 +26,7 @@ pub enum CommandType {
   Text,
   Graphics,
   Context,
-  End,
+  Subcommand,
   Unknown
 }
 
@@ -38,7 +37,8 @@ pub enum DataType {
   Double,
   Triple,
   Text,
-  Custom, //Command Handler implements the push logic
+  Custom,
+  Subcommand,
   Unknown
 }
 
@@ -64,7 +64,7 @@ impl Command {
         let data_len =self.data.len();  
 
         match self.data_kind {
-            DataType::Custom => { 
+            DataType::Custom | DataType::Subcommand => { 
               return self.handler.push(&mut self.data, byte)
             },
             DataType::Empty => return false,
@@ -100,16 +100,25 @@ impl Clone for Box<dyn CommandHandler> {
 }
 
 pub trait CommandHandler: CloneCommandHandler {
-  //Might need to add various encoding support for the get_text method  
+  //Renders text
   fn get_text(&self, _command: &Command, _context: &Context) -> Option<String>{ None }
+
+  //Renders a graphic
   fn get_graphics(&self, _command: &Command, _context: &Context) -> Option<GraphicsCommand> { None }
+
+  //Applies context
   fn apply_context(&self, _command: &Command, _context: &mut Context){}
-  
+
+  //Transmits data back to the client
+  fn transmit(&self, _command: &Command, _context: &Context) -> Option<Vec<u8>>{ None }
+
+  //For debugging commands
   fn debug(&self, _command: &Command, _context: &Context) -> String { 
     if _command.data.is_empty() { return format!("{}", _command.name.to_string()) }
     format!("{} {:02X?}", _command.name.to_string(), _command.data) 
   }
   
+  //Push data to a command. The command decides what to accept
   fn push(&mut self, _command: &mut Vec<u8>, _byte: u8) -> bool{ 
     return false 
   }

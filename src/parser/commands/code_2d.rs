@@ -1,6 +1,5 @@
 //See: https://reference.epson-biz.com/modules/ref_escpos/index.php?content_id=130
 use crate::parser::*;
-use crate::parser::common_handlers::graphics_data;
 
 //TODO implement custom data methods
 
@@ -10,6 +9,6 @@ pub fn new() -> Command {
     vec![GS, '(' as u8, 'k' as u8], 
     CommandType::Graphics,
     DataType::Custom,
-    graphics_data::new(false)
+    subcommands::new(false, subcommands::gs_code2d::all())
   )
 }

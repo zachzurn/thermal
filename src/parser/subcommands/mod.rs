@@ -115,8 +115,8 @@ impl CommandHandler for  SubCommandHandler{
   }
 }
 
-pub fn new(is_large: bool, commands: Rc<Vec<Command>>) -> SubCommandHandler{
-  SubCommandHandler{
+pub fn new(is_large: bool, commands: Rc<Vec<Command>>) -> Box<SubCommandHandler>{
+  Box::new(SubCommandHandler{
     commands: commands,
     subcommand: None,
     is_large,
@@ -125,5 +125,10 @@ pub fn new(is_large: bool, commands: Rc<Vec<Command>>) -> SubCommandHandler{
     capacity: 0,
     accept_data: false,
     use_m: false
-  }
+  })
+}
+
+pub fn no_commands() -> Rc<Vec<Command>> {
+  let all: Vec<Command> = vec![];
+  Rc::new(all)
 }
