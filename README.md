@@ -1,74 +1,97 @@
-# Thermal
-Thermal Emulator (esc/pos) built in Rust. Inspired by the php lib (https://github.com/receipt-print-hq/escpos-tools)
 
-This is a work in progress and should not in any way be used right now.
+# Thermal
+Thermal Emulator (esc/pos) built in Rust.
 
 This is my first Rust project, so things will be very messy. Feedback and contribution is welcome.
 
-Goal is to have a functional esc/pos emulator that has a state that is written to a file for onboard images and whatnot that can render to.
+## Goals:
+* Cover the whole esc/pos spec besides deprecated commands
+* Provide a simple rendering pipeline that makes it easy to render in various formats
+* Render to markdown
+* Render to an image
+* Render to HTML with SVG barcodes and QR Codes
+* Allow for the creation of virtual USB and Ethernet printers
+	
+## Structure:
+Commands are the basic building block for parsing ESC/POS code. Each Command defines a list of match characters that a parser can check against.
 
-* text file
-* json debug file
-* image file
-* html file
+The parser loops through all Commands looking for matches and then when it finds a match it pushes bytes until the Command's CommandHandler rejects the bytes.
 
-
-Currently the initial parser framework has been set up and I am working on implementing the rest of the basic commands.
-
-Commands can be implemented easily by creating a command in the commands module (parser/commands) and then including the command in the esc_pos command_set commands Vec.
+Each Command defines it's own struct that implements the CommandHandler trait which is responsible for receiving bytes and is also responsible for implementing the optional CommandHandler functions.
 
 ```rust
-use std::sync::Arc;
+pub trait CommandHandler: CloneCommandHandler {
+  //Renders text
+  fn get_text(&self, _command: &Command, _context: &Context) -> Option<String>{ None }
 
-use crate::parser::*;
+  //Renders a graphic
+  fn get_graphics(&self, _command: &Command, _context: &Context) -> Option<GraphicsCommand> { None }
 
-struct Handler;
+  //Applies context
+  fn apply_context(&self, _command: &Command, _context: &mut Context){}
 
-impl CommandHandler for Handler {
-  //implementation for this command, different commands can override the expected functions (see CommandHandler trait)
-  fn get_text(&self, _command: &Command) -> Option<String>{ 
-    Some("\r".to_string())
+  //Transmits data back to the client
+  fn transmit(&self, _command: &Command, _context: &Context) -> Option<Vec<u8>>{ None }
+
+  //For debugging commands
+  fn debug(&self, _command: &Command, _context: &Context) -> String { 
+    if _command.data.is_empty() { return format!("{}", _command.name.to_string()) }
+    format!("{} {:02X?}", _command.name.to_string(), _command.data) 
+  }
+  
+  //Push data to a command. The command decides what to accept
+  fn push(&mut self, _command: &mut Vec<u8>, _byte: u8) -> bool{ 
+    return false 
   }
 }
 
-pub fn command() -> Command {
-  Command::new(
-    "Line Feed", //Name of the command
-    vec![CR], //List of u8's to match
-    CommandType::Text, //General category of the command, useful for rendering
-    DataType::Empty, //Data type for the command, useful for parsing
-    Arc::new(Handler{}) //implementation for the command (See CommandHandler struct)
-  )
-}
 ```
 
-Commands have two type identifiers:
-
-CommandType
+The parser will return a list of commands that can then be looped to create output. Here is a simple text renderer. When we need to render images, we output them to files.
 
 ```rust
-pub enum CommandType {
-  Control, //Commands that are purely control commands like initialize printer
-  Text, //Commands that display text
-  TextContext, //Commands that mutate the text rendering context
-  Image, //Commands that display images
-  Graphics, //Commands that draw
-  GraphicsContext, //Commands that mutate the graphics context
-  Unknown //Unknown commands (see Unknown in DataType below)
+let esc_pos = esc_pos::new();
+let commands = esc_pos.parse(&bytes);
+let mut context = Context::new();
+
+for command in commands {
+    
+    command.handler.apply_context(&command, &mut context);
+
+    if let Some(gfx) = command.handler.get_graphics(&command, &context){
+        match gfx {
+            GraphicsCommand::Qrcode(_qr) => todo!(),
+            GraphicsCommand::Barcode(_br) => todo!(),
+            GraphicsCommand::Image(img) => {
+                let filepath = format!("test/gfx{:?}.pbm", context.graphics.graphics_count);
+                if let Ok(_) = fs::write(filepath, img.as_pbm()) {}
+                context.graphics.graphics_count += 1;
+            },
+            _ => {}
+        }
+    }
+
+    if let Some(text) = command.handler.get_text(&command, &context){ print!("{}", text) }
+
+    //Not going to be implemented but if the command wants to transmit data it can implement this
+    if let Some(_return_bytes) = command.handler.transmit(&command, &context){};
+
 }
 ```
 
-DataType tells the parser how to parse the command. Some commands have Single arguments, some commands need custom parsing.
+The plan is to create a rendering pipeline that makes a predicable set of calls to abstract away the need to loop commands. The pipeline would be a trait that has various rendering methods like:
 
-```rust
-pub enum DataType {
-  Empty, //Command has no arguments
-  Single, //Command has a single argument
-  Double, //Command has two arguments
-  Triple, //Command has three arguments
-  Text, //Command should take bytes until a new command is matched
-  Bitmap, //Command should parse a bitmaps metadata and pull in the proper amount of bytes
-  Unknown //Command should take bytes until a new command is matched. This helps us 
-          //learn unimplemented commands by specifying a single top level control command
-}
-```
+* Render text
+* Render an image
+* Render a rectangle
+* Render a line
+
+The idea is that if a renderer implements these methods alone, they can render the esc.pos format.
+
+Thanks for listening.
+
+## Inspiration/References:
+https://github.com/receipt-print-hq/escpos-tools
+https://github.com/local-group/rust-escposify
+https://github.com/buntine/barcoders
+https://reference.epson-biz.com/modules/ref_escpos/index.php?content_id=72
