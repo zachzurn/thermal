@@ -115,16 +115,16 @@ impl CommandHandler for  SubCommandHandler{
   }
 }
 
-pub fn new(is_large: bool, commands: Rc<Vec<Command>>) -> Box<SubCommandHandler>{
+pub fn new(is_large: bool, use_m: bool, commands: Rc<Vec<Command>>) -> Box<SubCommandHandler>{
   Box::new(SubCommandHandler{
-    commands: commands,
+    commands,
     subcommand: None,
     is_large,
     m: 0,
     subcommand_id: 0,
     capacity: 0,
     accept_data: false,
-    use_m: false
+    use_m
   })
 }
 

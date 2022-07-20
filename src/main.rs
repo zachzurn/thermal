@@ -19,7 +19,7 @@ fn main() {
 
         if let Some(gfx) = command.handler.get_graphics(&command, &context){
             match gfx {
-                GraphicsCommand::Qrcode(_qr) => todo!(),
+                GraphicsCommand::Code2D(_qr) => todo!(),
                 GraphicsCommand::Barcode(_br) => todo!(),
                 GraphicsCommand::Image(img) => {
                     let filepath = format!("test/gfx{:?}.pbm", context.graphics.graphics_count);

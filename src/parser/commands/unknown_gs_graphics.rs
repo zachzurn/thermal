@@ -6,6 +6,6 @@ pub fn new() -> Command {
     vec![GS, '(' as u8], 
     CommandType::Unknown,
     DataType::Custom,
-    subcommands::new(false, subcommands::no_commands())
+    subcommands::new(false, false, subcommands::no_commands())
   )
 }

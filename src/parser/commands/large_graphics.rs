@@ -6,6 +6,6 @@ pub fn new() -> Command {
     vec![GS, '8' as u8, 'L' as u8], 
     CommandType::Graphics,
     DataType::Custom,
-    subcommands::new(false, subcommands::gs_graphics::all())
+    subcommands::new(false, false, subcommands::gs_graphics::all())
   )
 }

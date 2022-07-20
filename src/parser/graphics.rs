@@ -19,7 +19,7 @@ pub struct Line {
 }
 
 #[derive(Clone)]
-pub struct Qrcode {
+pub struct Code2D {
   pub points: Vec<u8>,
   pub width: u32
 }
@@ -149,7 +149,7 @@ pub enum ImageRefStorage {
 }
 
 pub enum GraphicsCommand {
-  Qrcode(Qrcode),
+  Code2D(Code2D),
   Barcode(Barcode),
   Image(Image),
   Rectangle(Rectangle),

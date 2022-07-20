@@ -1,5 +1,6 @@
 use super::graphics::{Image, ImageRef};
 use std::collections::HashMap;
+use crate::{Code2D};
 
 #[derive(Clone)]
 pub enum TextJustify{ Left, Center, Right }
@@ -48,6 +49,8 @@ pub struct BarcodeContext {
 
 #[derive(Clone)]
 pub struct Code2DContext {
+   pub symbol_storage: Option<Code2D>,
+
    pub qr_model: u8,
    pub qr_size: u8,
    pub qr_err_correction: u8,
@@ -57,15 +60,16 @@ pub struct Code2DContext {
    pub pdf417_width: u8,
    pub pdf417_row_height: u8,
    pub pdf417_err_correction: u8,
-   pub pdf417_is_truncated: u8,
+   pub pdf417_is_truncated: bool,
  
    pub maxicode_mode: u8,
  
    pub gs1_databar_width: u8,
-   pub gs1_databar_max_width: u8,
+   pub gs1_databar_max_width: u32,
  
    pub composite_width: u8,
-   pub composite_max_width: u8,
+   pub composite_max_width: u32,
+   pub composite_font: u8,
  
    pub aztec_mode: u8,
    pub aztec_layers: u8,
@@ -75,6 +79,7 @@ pub struct Code2DContext {
    pub datamatrix_type: u8,
    pub datamatrix_columns: u8,
    pub datamatrix_rows: u8,
+   pub datamatrix_width: u8,
 }
 
 static TEXT_DEFAULT: TextContext = TextContext{
@@ -95,6 +100,7 @@ static BARCODE_DEFAULT: BarcodeContext = BarcodeContext{
 };
 
 static CODE2D_DEFAULT: Code2DContext = Code2DContext{
+    symbol_storage: None,
     qr_model: 0,
     qr_size: 0,
     qr_err_correction: 0,
@@ -103,12 +109,13 @@ static CODE2D_DEFAULT: Code2DContext = Code2DContext{
     pdf417_width: 0,
     pdf417_row_height: 0,
     pdf417_err_correction: 0,
-    pdf417_is_truncated: 0,
+    pdf417_is_truncated: false,
     maxicode_mode: 0,
     gs1_databar_width: 0,
     gs1_databar_max_width: 0,
     composite_width: 0,
     composite_max_width: 0,
+    composite_font: 0,
     aztec_mode: 0,
     aztec_layers: 0,
     aztec_size: 0,
@@ -116,6 +123,7 @@ static CODE2D_DEFAULT: Code2DContext = Code2DContext{
     datamatrix_type: 0,
     datamatrix_columns: 0,
     datamatrix_rows: 0,
+    datamatrix_width: 0,
 };
 
 static DEFAULT_GRAPHICS_DPI: u16 = 180;

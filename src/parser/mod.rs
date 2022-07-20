@@ -78,7 +78,6 @@ impl Command {
     }
 }
 
-//This seems insane, not quite sure how this actually works
 //These next 3 traits/impl make the Box<dyn CommandHandler> cloneable
 pub trait CloneCommandHandler {
   fn clone_command_handler<'a>(&self) -> Box<dyn CommandHandler>;

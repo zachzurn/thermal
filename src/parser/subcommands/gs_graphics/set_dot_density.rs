@@ -3,11 +3,17 @@ use crate::parser::*;
 #[derive(Clone)]
 pub struct Handler;
 
-impl CommandHandler for Handler {}
+impl CommandHandler for Handler {
+  fn apply_context(&self, command: &Command, context: &mut Context) {
+      let x = *command.data.get(0).unwrap_or(&50);
+      let y = *command.data.get(1).unwrap_or(&50);
+
+      if x == 50 && y == 50 { context.graphics.dots_per_inch = 180 }
+      else if x == 51 && y == 51 { context.graphics.dots_per_inch = 360 } 
+  }
+}
 
 // Sets the reference dot density to process the graphics data or bit image data. (dpi: dots per inch)
-// [180 dpi × 180 dpi] is selected when x = 50 and y = 50
-// [360 dpi × 360 dpi] is selected when x = 51 and y = 51
 pub fn new() -> Command {
   Command::new(
     "Set Dot Density",
