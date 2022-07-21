@@ -6,11 +6,11 @@ struct Handler;
 impl CommandHandler for Handler {}
 
 pub fn new() -> Command {
-  Command::new(
-    "Pulse",
-    vec![ESC, 'p' as u8], 
-    CommandType::Control,
-    DataType::Triple,
-    Box::new(Handler{})
-  )
+    Command::new(
+        "Pulse",
+        vec![ESC, 'p' as u8],
+        CommandType::Control,
+        DataType::Triple,
+        Box::new(Handler {}),
+    )
 }

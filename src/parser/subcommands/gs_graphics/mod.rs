@@ -21,27 +21,27 @@ pub mod store_buffer_graphics_raster;
 pub mod store_buffer_graphics_table;
 
 pub fn all() -> Rc<Vec<Command>> {
-  let all: Vec<Command> = vec![
-    clear_all_download_graphics::new(),
-    clear_all_nv_graphics::new(),
-    clear_download_graphic::new(),
-    clear_nv_graphic::new(),
-    define_download_graphics_column::new(),
-    define_download_graphics_raster::new(),
-    define_nv_graphics_column::new(),
-    define_nv_graphics_raster::new(),
-    define_download_graphics_raster::new(),
-    get_download_keycodes::new(),
-    get_nv_capacity::new(),
-    get_nv_keycodes::new(),
-    get_nv_remaining_capacity::new(),
-    print_buffer_graphics::new(),
-    print_download_graphics::new(),
-    print_nv_graphic::new(),
-    set_dot_density::new(),
-    store_buffer_graphics_raster::new(),
-    store_buffer_graphics_table::new()
-  ];
+    let all: Vec<Command> = vec![
+        clear_all_download_graphics::new(),
+        clear_all_nv_graphics::new(),
+        clear_download_graphic::new(),
+        clear_nv_graphic::new(),
+        define_download_graphics_column::new(),
+        define_download_graphics_raster::new(),
+        define_nv_graphics_column::new(),
+        define_nv_graphics_raster::new(),
+        define_download_graphics_raster::new(),
+        get_download_keycodes::new(),
+        get_nv_capacity::new(),
+        get_nv_keycodes::new(),
+        get_nv_remaining_capacity::new(),
+        print_buffer_graphics::new(),
+        print_download_graphics::new(),
+        print_nv_graphic::new(),
+        set_dot_density::new(),
+        store_buffer_graphics_raster::new(),
+        store_buffer_graphics_table::new(),
+    ];
 
-  Rc::new(all)
+    Rc::new(all)
 }

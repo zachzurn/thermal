@@ -6,11 +6,11 @@ struct Handler;
 impl CommandHandler for Handler {}
 
 pub fn new() -> Command {
-  Command::new(
-    "Set Print Mode",
-    vec![ESC, '!' as u8], 
-    CommandType::Context,
-    DataType::Single,
-    Box::new(Handler{})
-  )
+    Command::new(
+        "Set Print Mode",
+        vec![ESC, '!' as u8],
+        CommandType::Context,
+        DataType::Single,
+        Box::new(Handler {}),
+    )
 }

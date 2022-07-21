@@ -4,16 +4,16 @@ use crate::parser::*;
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn get_text(&self, _command: &Command, _context: &Context) -> Option<String> {
-        Some("\r".to_string())
+    fn apply_context(&self, _command: &Command, context: &mut Context) {
+        context.text.italic = true;
     }
 }
 
 pub fn new() -> Command {
     Command::new(
-        "Line Feed",
-        vec![CR],
-        CommandType::Text,
+        "Set Italic On",
+        vec![ESC, 0x34, 0x01],
+        CommandType::Context,
         DataType::Empty,
         Box::new(Handler {}),
     )

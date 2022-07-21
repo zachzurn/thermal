@@ -5,10 +5,11 @@ struct Handler;
 
 impl CommandHandler for Handler {}
 
+//Position of Human Readable characters
 pub fn new() -> Command {
     Command::new(
-        "Set Alernate Color",
-        vec![ESC, 'r' as u8],
+        "Set Hri Print POS",
+        vec![GS, 'H' as u8],
         CommandType::Context,
         DataType::Single,
         Box::new(Handler {}),

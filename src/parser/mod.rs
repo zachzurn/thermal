@@ -9,6 +9,7 @@ use crate::parser::graphics::GraphicsCommand;
 
 use self::context::Context;
 
+pub static NUL: u8 = 0x00;
 pub static ESC: u8 = 0x1B;
 pub static HT: u8 = 0x09;
 pub static LF: u8 = 0x0A;
@@ -19,27 +20,27 @@ pub static FS: u8 = 0x1C;
 pub static DLE: u8 = 0x10;
 pub static CAN: u8 = 0x18;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum CommandType {
-  Initialize,
-  Control,
-  Text,
-  Graphics,
-  Context,
-  Subcommand,
-  Unknown
+    Initialize,
+    Control,
+    Text,
+    Graphics,
+    Context,
+    Subcommand,
+    Unknown,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum DataType {
-  Empty,
-  Single,
-  Double,
-  Triple,
-  Text,
-  Custom,
-  Subcommand,
-  Unknown
+    Empty,
+    Single,
+    Double,
+    Triple,
+    Text,
+    Custom,
+    Subcommand,
+    Unknown,
 }
 
 #[derive(Clone)]
@@ -49,7 +50,7 @@ pub struct Command {
     pub data: Vec<u8>,
     pub kind: CommandType,
     pub data_kind: DataType,
-    pub handler: Box<dyn CommandHandler>
+    pub handler: Box<dyn CommandHandler>,
 }
 
 impl Command {
@@ -60,18 +61,18 @@ impl Command {
     }
 
     // returns true if the byte was consumed or false if it was rejected
-    pub fn push(&mut self, byte: u8) -> bool{
-        let data_len =self.data.len();  
+    pub fn push(&mut self, byte: u8) -> bool {
+        let data_len = self.data.len();
 
         match self.data_kind {
-            DataType::Custom | DataType::Subcommand => { 
-              return self.handler.push(&mut self.data, byte)
-            },
+            DataType::Custom | DataType::Subcommand => {
+                return self.handler.push(&mut self.data, byte);
+            }
             DataType::Empty => return false,
-            DataType::Single => if data_len >= 1 { return false },
-            DataType::Double => if data_len >= 2 { return false },
-            DataType::Triple => if data_len >= 3 { return false }
-            DataType::Text | DataType::Unknown => {}, //Text and unknown collect bytes until the next match
+            DataType::Single => if data_len >= 1 { return false; },
+            DataType::Double => if data_len >= 2 { return false; },
+            DataType::Triple => if data_len >= 3 { return false; }
+            DataType::Text | DataType::Unknown => {} //Text and unknown collect bytes until the next match
         }
         self.data.push(byte); //Always push byte if not returned early
         true
@@ -80,12 +81,12 @@ impl Command {
 
 //These next 3 traits/impl make the Box<dyn CommandHandler> cloneable
 pub trait CloneCommandHandler {
-  fn clone_command_handler<'a>(&self) -> Box<dyn CommandHandler>;
+    fn clone_command_handler<'a>(&self) -> Box<dyn CommandHandler>;
 }
 
 impl<T> CloneCommandHandler for T
-where
-    T: CommandHandler + Clone + 'static,
+    where
+        T: CommandHandler + Clone + 'static,
 {
     fn clone_command_handler(&self) -> Box<dyn CommandHandler> {
         Box::new(self.clone())
@@ -99,26 +100,26 @@ impl Clone for Box<dyn CommandHandler> {
 }
 
 pub trait CommandHandler: CloneCommandHandler {
-  //Renders text
-  fn get_text(&self, _command: &Command, _context: &Context) -> Option<String>{ None }
+    //Renders text
+    fn get_text(&self, _command: &Command, _context: &Context) -> Option<String> { None }
 
-  //Renders a graphic
-  fn get_graphics(&self, _command: &Command, _context: &Context) -> Option<GraphicsCommand> { None }
+    //Renders a graphic
+    fn get_graphics(&self, _command: &Command, _context: &Context) -> Option<GraphicsCommand> { None }
 
-  //Applies context
-  fn apply_context(&self, _command: &Command, _context: &mut Context){}
+    //Applies context
+    fn apply_context(&self, _command: &Command, _context: &mut Context) {}
 
-  //Transmits data back to the client
-  fn transmit(&self, _command: &Command, _context: &Context) -> Option<Vec<u8>>{ None }
+    //Transmits data back to the client
+    fn transmit(&self, _command: &Command, _context: &Context) -> Option<Vec<u8>> { None }
 
-  //For debugging commands
-  fn debug(&self, _command: &Command, _context: &Context) -> String { 
-    if _command.data.is_empty() { return format!("{}", _command.name.to_string()) }
-    format!("{} {:02X?}", _command.name.to_string(), _command.data) 
-  }
-  
-  //Push data to a command. The command decides what to accept
-  fn push(&mut self, _command: &mut Vec<u8>, _byte: u8) -> bool{ 
-    return false 
-  }
+    //For debugging commands
+    fn debug(&self, command: &Command, _context: &Context) -> String {
+        if command.data.is_empty() { return format!("{}", command.name.to_string()); }
+        format!("{} {:02X?}", command.name.to_string(), command.data)
+    }
+
+    //Push data to a command. The command decides what to accept
+    fn push(&mut self, _command: &mut Vec<u8>, _byte: u8) -> bool {
+        return false;
+    }
 }
