@@ -42,6 +42,12 @@ pub enum HumanReadableInterface {
     Both,
 }
 
+#[derive(Clone)]
+pub enum Color{
+    Black,
+    Red
+}
+
 
 #[derive(Clone)]
 pub struct Context {
@@ -53,6 +59,7 @@ pub struct Context {
 
 #[derive(Clone)]
 pub struct TextContext {
+    pub font_size: u8,
     pub justify: TextJustify,
     pub font: Font,
     pub bold: bool,
@@ -62,6 +69,8 @@ pub struct TextContext {
     pub width_mult: u16,
     pub height_mult: u16,
     pub upside_down: bool,
+    pub line_spacing: u16,
+    pub color: Color
 }
 
 #[derive(Clone)]
@@ -116,15 +125,18 @@ pub struct Code2DContext {
 }
 
 static TEXT_DEFAULT: TextContext = TextContext {
+    font_size: 16,
     justify: TextJustify::Left,
     font: Font::A,
     bold: false,
     italic: false,
     underline: TextUnderline::Off,
     invert: false,
-    width_mult: 100,
-    height_mult: 100,
+    width_mult: 1,
+    height_mult: 1,
     upside_down: false,
+    line_spacing: 18,
+    color: Color::Black
 };
 
 static BARCODE_DEFAULT: BarcodeContext = BarcodeContext {
@@ -180,6 +192,10 @@ impl Context {
 
     pub fn reset_text_context(&mut self) {
         self.text = TEXT_DEFAULT.clone();
+    }
+
+    pub fn reset_text_line_spacing(&mut self){
+        self.text.line_spacing = TEXT_DEFAULT.line_spacing;
     }
 
     pub fn reset(&mut self) {

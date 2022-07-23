@@ -2,6 +2,21 @@ use crate::context::Context;
 use crate::graphics::GraphicsCommand;
 
 #[derive(Clone, PartialEq)]
+pub enum DeviceCommand {
+    Initialize,
+    PartialCut,
+    FullCut,
+    PartialCutFeed(i8),
+    FullCutFeed(i16),
+    PrintAndFeed(i16),
+    Cancel,
+    Pulse,
+    Transmit(Vec<u8>),
+    MoveX(u16),
+    MoveY(u16)
+}
+
+#[derive(Clone, PartialEq)]
 pub enum CommandType {
     Initialize,
     Control,
@@ -90,8 +105,8 @@ pub trait CommandHandler: CloneCommandHandler {
     //Applies context
     fn apply_context(&self, _command: &Command, _context: &mut Context) {}
 
-    //Transmits data back to the client
-    fn transmit(&self, _command: &Command, _context: &Context) -> Option<Vec<u8>> { None }
+    //Gets a device command to execute
+    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<DeviceCommand> { None }
 
     //For debugging commands
     fn debug(&self, command: &Command, _context: &Context) -> String {

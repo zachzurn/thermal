@@ -1,9 +1,19 @@
 use crate::{command::*, constants::*};
+use crate::context::{Color, Context};
+use crate::graphics::GraphicsCommand;
 
 #[derive(Clone)]
 struct Handler;
 
-impl CommandHandler for Handler {}
+impl CommandHandler for Handler {
+    fn apply_context(&self, _command: &Command, context: &mut Context) {
+        let n = *command.data.get(0).unwrap_or(&0u8);
+        context.text.color = match n {
+            1 | 49 => Color::Red,
+            _ => Color::Black
+        }
+    }
+}
 
 pub fn new() -> Command {
     Command::new(
