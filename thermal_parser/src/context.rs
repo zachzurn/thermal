@@ -1,6 +1,7 @@
 use std::collections::HashMap;
+use crate::graphics;
 
-use crate::graphics::{Code2D, Image, ImageRef};
+use crate::graphics::{Image, ImageRef};
 
 #[derive(Clone)]
 pub enum TextJustify { Left, Center, Right }
@@ -91,7 +92,7 @@ pub struct BarcodeContext {
 
 #[derive(Clone)]
 pub struct Code2DContext {
-    pub symbol_storage: Option<Code2D>,
+    pub symbol_storage: Option<graphics::Code2D>,
 
     pub qr_model: u8,
     pub qr_size: u8,

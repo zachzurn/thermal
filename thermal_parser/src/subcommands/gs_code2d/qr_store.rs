@@ -1,12 +1,47 @@
-use crate::{command::*, context::*};
+extern crate qr_code;
+use qr_code::{EcLevel, QrCode, Version};
+
+use crate::{command::*, context::*, graphics};
 
 #[derive(Clone)]
 pub struct Handler;
 
 impl CommandHandler for Handler {
-    fn apply_context(&self, _command: &Command, _context: &mut Context) {
-        //TODO No support for this yet
-        //context.code2d.symbol_storage = Some(Cod2D)
+    fn apply_context(&self, command: &Command, context: &mut Context) {
+
+        let data = command.data.to_owned();
+        let version = match context.code2d.qr_model{
+            0 => Version::Micro(4),
+            1 => Version::Normal(1),
+            _ => Version::Normal(2)
+        };
+        let error_correction = match context.code2d.qr_err_correction {
+            1 => EcLevel::M,
+            2 => EcLevel::Q,
+            3 => EcLevel::H,
+            _ => EcLevel::L
+        };
+
+        let result = QrCode::with_version(data, version, error_correction);
+
+        if let Ok(qr) = result {
+            let raw = qr.to_vec();
+            let mut converted_points = Vec::<u8>::with_capacity(raw.capacity());
+
+            for b in  raw {
+                let v = if b { 1 } else { 0 };
+                converted_points.push(v);
+            }
+
+            let qrcode = graphics::Code2D{
+                points: converted_points,
+                width: qr.width() as u32,
+                point_width: 1,
+                point_height: 1
+            };
+
+            context.code2d.symbol_storage = Some(qrcode);
+        }
     }
 }
 

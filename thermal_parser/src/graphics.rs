@@ -131,7 +131,7 @@ impl Image {
     }
 }
 
-//Images that were added tostorage can be 
+//Images that were added tostorage can be
 //referenced with an ImageRef
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct ImageRef {
