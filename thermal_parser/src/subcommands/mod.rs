@@ -59,7 +59,6 @@ impl SubCommandHandler {
         }
 
         if self.use_m { self.detect_kind_use_m() } else { self.detect_kind() }
-        println!("KIND:  CAPACITY: {}", self.capacity);
         self.accept_data = true;
     }
 }

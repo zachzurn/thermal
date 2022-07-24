@@ -26,11 +26,17 @@ impl CommandHandler for Handler {
     }
 
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
-        if data.len() == 0 { data.push(byte) };
+        if data.len() == 0 {
+            data.push(byte);
+            return true;
+        };
         if data.len() == 1 {
             match data.get(0).unwrap() {
                 0u8 | 48u8 | 1u8 | 49u8 => return false,
-                _default => data.push(byte)
+                _default => {
+                    data.push(byte);
+                    return true;
+                }
             }
         };
         false
