@@ -1,7 +1,6 @@
 use std::mem;
 use crate::{command::Command, command_sets::*};
 use crate::command::CommandType;
-use crate::command::DataType::Subcommand;
 
 pub struct Parser{
     cmd_set: CommandSet,

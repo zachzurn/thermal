@@ -60,17 +60,6 @@ impl Command {
         Self { commands: Rc::new(commands), name: Rc::new(name), data, kind, data_kind, handler }
     }
 
-    pub fn get_empty() -> Self{
-        Self {
-            commands: Rc::new(Vec::<u8>::new()),
-            name: Rc::new("".to_string()),
-            data: Vec::<u8>::new(),
-            kind: CommandType::Unknown,
-            data_kind: DataType::Unknown,
-            handler: Box::from(EmptyHandler{})
-        }
-    }
-
     // returns true if the byte was consumed or false if it was rejected
     pub fn push(&mut self, byte: u8) -> bool {
         let data_len = self.data.len();

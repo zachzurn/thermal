@@ -5,7 +5,7 @@ pub fn new() -> Command {
     Command::new(
       "QR Code",
       vec![GS, '(' as u8, 'k' as u8],
-      CommandType::Graphics,
+      CommandType::Subcommand,
       DataType::Custom,
       subcommands::new(false, true, subcommands::gs_code2d::all()),
     )

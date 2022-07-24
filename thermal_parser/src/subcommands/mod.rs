@@ -45,20 +45,21 @@ impl SubCommandHandler {
         let data_len = data.len();
 
         if data_len == 4 {
-            self.capacity = u16::from_le_bytes([data[0], data[1]]) as u32;
+            self.capacity = data[0] as u32 + data[1] as u32 * 256;
             self.capacity -= 2;
             self.m = *data.get(2).unwrap();
             self.subcommand_id = *data.get(3).unwrap();
         }
 
         if data_len == 6 {
-            self.capacity = u32::from_le_bytes([data[0], data[1], data[2], data[3]]);
+            self.capacity = data[0] as u32 + data[1] as u32 * 256 + data[2] as u32 * 65536 + data[3] as u32;
             self.capacity -= 2;
             self.m = *data.get(4).unwrap();
             self.subcommand_id = *data.get(5).unwrap();
         }
 
         if self.use_m { self.detect_kind_use_m() } else { self.detect_kind() }
+        println!("KIND:  CAPACITY: {}", self.capacity);
         self.accept_data = true;
     }
 }
@@ -93,7 +94,7 @@ impl CommandHandler for SubCommandHandler {
     }
 
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
-        let data_len = data.len();
+        let mut data_len = data.len();
 
         if !self.accept_data {
             if self.is_large {
@@ -110,6 +111,7 @@ impl CommandHandler for SubCommandHandler {
                 self.parse_meta(&data[0..4]);
             }
             data.clear();
+            data_len = 0;
         }
 
         //Accept data
@@ -118,11 +120,18 @@ impl CommandHandler for SubCommandHandler {
             return true;
         }
 
+        //Move the data into the subcommand
+        if let Some(sub) = &mut self.subcommand {
+            sub.data = data.clone();
+            data.clear();
+        }
+
         false
     }
 
     //Returns a subcommand that can be owned and stubs
     fn get_subcommand(&mut self) -> Option<Command> {
+        //swap subcommand
         let mut subcommand = None;
         mem::swap(&mut self.subcommand, &mut subcommand);
         return subcommand
