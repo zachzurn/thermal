@@ -11,13 +11,17 @@ impl CommandHandler for Handler {
         if x > 0 {
             context.graphics.v_motion_unit = 1f32 / x as f32;
         }else {
-            context.reset_graphics_v_motion_units();
+            if let Some(default_context) = &context.default {
+                context.graphics.v_motion_unit = default_context.graphics.v_motion_unit;
+            }
         }
 
         if y > 0 {
             context.graphics.h_motion_unit = 1f32 / y as f32;
         } else {
-            context.reset_graphics_h_motion_units();
+            if let Some(default_context) = &context.default {
+                context.graphics.h_motion_unit = default_context.graphics.h_motion_unit;
+            }
         }
     }
 }

@@ -45,6 +45,7 @@ pub enum Color{
 
 #[derive(Clone)]
 pub struct Context {
+    pub default: Option<Box<Context>>,
     pub text: TextContext,
     pub barcode: BarcodeContext,
     pub code2d: Code2DContext,
@@ -123,100 +124,83 @@ pub struct Code2DContext {
     pub datamatrix_width: u8,
 }
 
-static TEXT_DEFAULT: TextContext = TextContext {
-    character_set: 0,
-    code_table: 0,
-    font_size: 16,
-    justify: TextJustify::Left,
-    font: Font::A,
-    bold: false,
-    italic: false,
-    underline: TextUnderline::Off,
-    invert: false,
-    width_mult: 1,
-    height_mult: 1,
-    upside_down: false,
-    line_spacing: 1,
-    color: Color::Black,
-    smoothing: false
-};
-
-static BARCODE_DEFAULT: BarcodeContext = BarcodeContext {
-    human_readable: HumanReadableInterface::None,
-    width: 2,
-    height: 40,
-    font: Font::A,
-};
-
-static CODE2D_DEFAULT: Code2DContext = Code2DContext {
-    symbol_storage: None,
-    qr_model: 0,
-    qr_size: 0,
-    qr_err_correction: 0,
-    pdf417_columns: 0,
-    pdf417_rows: 0,
-    pdf417_width: 0,
-    pdf417_row_height: 0,
-    pdf417_err_correction: 0,
-    pdf417_is_truncated: false,
-    maxicode_mode: 0,
-    gs1_databar_width: 0,
-    gs1_databar_max_width: 0,
-    composite_width: 0,
-    composite_max_width: 0,
-    composite_font: Font::A,
-    aztec_mode: 0,
-    aztec_layers: 0,
-    aztec_size: 0,
-    aztec_error_correction: 0,
-    datamatrix_type: 0,
-    datamatrix_columns: 0,
-    datamatrix_rows: 0,
-    datamatrix_width: 0,
-};
-
-static DEFAULT_GRAPHICS_DPI: u16 = 180;
-static DEFAULT_GRAPHICS_V_MOTION_UNIT: f32 = 0.25;
-static DEFAULT_GRAPHICS_H_MOTION_UNIT: f32 = 0.01;
-
 impl Context {
-    pub fn new() -> Context {
-        Context {
-            text: TEXT_DEFAULT.clone(),
-            barcode: BARCODE_DEFAULT.clone(),
-            code2d: CODE2D_DEFAULT.clone(),
+    fn default() -> Context {
+        Context{
+            default: None,
+            text: TextContext {
+                character_set: 0,
+                code_table: 0,
+                font_size: 16,
+                justify: TextJustify::Left,
+                font: Font::A,
+                bold: false,
+                italic: false,
+                underline: TextUnderline::Off,
+                invert: false,
+                width_mult: 1,
+                height_mult: 1,
+                upside_down: false,
+                line_spacing: 1,
+                color: Color::Black,
+                smoothing: false
+            },
+            barcode: BarcodeContext {
+                human_readable: HumanReadableInterface::None,
+                width: 2,
+                height: 40,
+                font: Font::A,
+            },
+            code2d: Code2DContext {
+                symbol_storage: None,
+                qr_model: 0,
+                qr_size: 0,
+                qr_err_correction: 0,
+                pdf417_columns: 0,
+                pdf417_rows: 0,
+                pdf417_width: 0,
+                pdf417_row_height: 0,
+                pdf417_err_correction: 0,
+                pdf417_is_truncated: false,
+                maxicode_mode: 0,
+                gs1_databar_width: 0,
+                gs1_databar_max_width: 0,
+                composite_width: 0,
+                composite_max_width: 0,
+                composite_font: Font::A,
+                aztec_mode: 0,
+                aztec_layers: 0,
+                aztec_size: 0,
+                aztec_error_correction: 0,
+                datamatrix_type: 0,
+                datamatrix_columns: 0,
+                datamatrix_rows: 0,
+                datamatrix_width: 0,
+            },
             graphics: GraphicsContext {
-                v_motion_unit: DEFAULT_GRAPHICS_V_MOTION_UNIT,
-                h_motion_unit: DEFAULT_GRAPHICS_H_MOTION_UNIT,
-                dots_per_inch: DEFAULT_GRAPHICS_DPI,
+                dots_per_inch: 180,
+                v_motion_unit: 0.01,
+                h_motion_unit: 0.01,
                 graphics_count: 0,
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
-                buffer_graphics: None,
-            },
+                buffer_graphics: None
+            }
         }
     }
 
-    pub fn reset_text_context(&mut self) {
-        self.text = TEXT_DEFAULT.clone();
-    }
-
-    pub fn reset_text_line_spacing(&mut self){
-        self.text.line_spacing = TEXT_DEFAULT.line_spacing;
-    }
-
-    pub fn reset_graphics_h_motion_units(&mut self) {
-        self.graphics.h_motion_unit = DEFAULT_GRAPHICS_H_MOTION_UNIT;
-    }
-
-    pub fn reset_graphics_v_motion_units(&mut self) {
-        self.graphics.v_motion_unit = DEFAULT_GRAPHICS_V_MOTION_UNIT
+    pub fn new() -> Context {
+        let default_context = Context::default();
+        let mut new_context = default_context.clone();
+        new_context.default = Some(Box::from(default_context));
+        new_context
     }
 
     pub fn reset(&mut self) {
-        self.text = TEXT_DEFAULT.clone();
-        self.barcode = BARCODE_DEFAULT.clone();
-        self.code2d = CODE2D_DEFAULT.clone();
-        self.graphics.dots_per_inch = DEFAULT_GRAPHICS_DPI;
-        self.graphics.graphics_count = 0;
+        if let Some(default) = &self.default {
+            self.text = default.text.clone();
+            self.barcode = default.barcode.clone();
+            self.code2d = default.code2d.clone();
+            self.graphics = default.graphics.clone();
+        }
     }
 }

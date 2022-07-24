@@ -5,7 +5,9 @@ struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, _command: &Command, context: &mut Context) {
-        context.reset_text_line_spacing();
+        if let Some(default_context) = &context.default {
+            context.text.line_spacing = default_context.text.line_spacing;
+        }
     }
 }
 
