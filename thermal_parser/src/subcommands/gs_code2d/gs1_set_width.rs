@@ -13,7 +13,7 @@ pub fn new() -> Command {
     Command::new(
         "GS1 Sets the dot Width",
         vec![51, 67],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

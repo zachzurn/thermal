@@ -18,7 +18,7 @@ pub fn new() -> Command {
     Command::new(
         "Print Download (RAM) Graphics",
         vec![85],
-        CommandType::Subcommand,
+        CommandType::Graphics,
         DataType::Subcommand,
         Box::new(Handler),
     )

@@ -26,7 +26,7 @@ pub fn new() -> Command {
     Command::new(
         "Aztec Set Function and Layers",
         vec![53, 66],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

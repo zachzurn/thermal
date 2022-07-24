@@ -1,3 +1,4 @@
+use std::rc::Rc;
 use crate::context::Context;
 use crate::graphics::GraphicsCommand;
 
@@ -17,11 +18,11 @@ pub enum DeviceCommand {
 
 #[derive(Clone, PartialEq)]
 pub enum CommandType {
-    Initialize,
     Control,
     Text,
     Graphics,
     Context,
+    ContextCommand,
     Subcommand,
     Unknown,
 }
@@ -40,19 +41,34 @@ pub enum DataType {
 
 #[derive(Clone)]
 pub struct Command {
-    pub commands: Vec<u8>,
-    pub name: String,
+    pub commands: Rc<Vec<u8>>,
+    pub name: Rc<String>,
     pub data: Vec<u8>,
     pub kind: CommandType,
     pub data_kind: DataType,
     pub handler: Box<dyn CommandHandler>,
 }
 
+#[derive(Clone)]
+struct EmptyHandler;
+impl CommandHandler for EmptyHandler{}
+
 impl Command {
     pub fn new(name_str: &str, commands: Vec<u8>, kind: CommandType, data_kind: DataType, handler: Box<dyn CommandHandler>) -> Self {
         let data: Vec<u8> = vec![];
         let name: String = name_str.to_string();
-        Self { commands, name, data, kind, data_kind, handler }
+        Self { commands: Rc::new(commands), name: Rc::new(name), data, kind, data_kind, handler }
+    }
+
+    pub fn get_empty() -> Self{
+        Self {
+            commands: Rc::new(Vec::<u8>::new()),
+            name: Rc::new("".to_string()),
+            data: Vec::<u8>::new(),
+            kind: CommandType::Unknown,
+            data_kind: DataType::Unknown,
+            handler: Box::from(EmptyHandler{})
+        }
     }
 
     // returns true if the byte was consumed or false if it was rejected
@@ -117,4 +133,7 @@ pub trait CommandHandler: CloneCommandHandler {
     fn push(&mut self, _command: &mut Vec<u8>, _byte: u8) -> bool {
         return false;
     }
+
+    //Returns the subcommand for a command, see subcommand module
+    fn get_subcommand(&mut self) -> Option<Command> { None }
 }

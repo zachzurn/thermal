@@ -15,7 +15,7 @@ pub fn new() -> Command {
     Command::new(
         "Aztec Set Size",
         vec![53, 67],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

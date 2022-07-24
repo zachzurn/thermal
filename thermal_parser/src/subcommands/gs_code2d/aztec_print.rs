@@ -18,7 +18,7 @@ pub fn new() -> Command {
     Command::new(
         "Print the Code2D data",
         vec![53, 81],
-        CommandType::Subcommand,
+        CommandType::Graphics,
         DataType::Subcommand,
         Box::new(Handler),
     )

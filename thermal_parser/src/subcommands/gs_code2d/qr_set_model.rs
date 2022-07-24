@@ -21,7 +21,7 @@ pub fn new() -> Command {
     Command::new(
         "QR Sets the Model",
         vec![49, 65],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

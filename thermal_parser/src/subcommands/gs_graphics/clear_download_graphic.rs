@@ -15,7 +15,7 @@ pub fn new() -> Command {
     Command::new(
         "Clear Download (RAM) Graphic",
         vec![82],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

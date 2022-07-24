@@ -14,7 +14,7 @@ pub fn new() -> Command {
     Command::new(
         "PDF417 Store the Code2D data",
         vec![52, 80],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

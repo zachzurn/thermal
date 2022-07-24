@@ -17,7 +17,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Dot Density",
         vec![1, 49],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

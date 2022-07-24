@@ -18,7 +18,7 @@ pub fn new() -> Command {
     Command::new(
         "Print Buffer Graphics",
         vec![2, 50],
-        CommandType::Subcommand,
+        CommandType::Graphics,
         DataType::Subcommand,
         Box::new(Handler),
     )

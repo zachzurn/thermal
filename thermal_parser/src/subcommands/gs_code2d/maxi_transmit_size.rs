@@ -11,7 +11,7 @@ pub fn new() -> Command {
     Command::new(
         "Transmit Size of storage area",
         vec![50, 82],
-        CommandType::Subcommand,
+        CommandType::Control,
         DataType::Subcommand,
         Box::new(Handler),
     )

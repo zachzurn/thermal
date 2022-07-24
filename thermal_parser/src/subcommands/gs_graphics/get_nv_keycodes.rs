@@ -12,7 +12,7 @@ pub fn new() -> Command {
     Command::new(
         "Get NV Key Codes",
         vec![64],
-        CommandType::Subcommand,
+        CommandType::Control,
         DataType::Subcommand,
         Box::new(Handler),
     )

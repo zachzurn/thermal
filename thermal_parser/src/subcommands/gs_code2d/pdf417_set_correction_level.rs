@@ -32,7 +32,7 @@ pub fn new() -> Command {
     Command::new(
         "PDF417 Set Error Correction Level",
         vec![48, 69],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

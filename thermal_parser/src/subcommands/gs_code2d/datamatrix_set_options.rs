@@ -45,7 +45,7 @@ pub fn new() -> Command {
     Command::new(
         "Datamatrix Set Options",
         vec![54, 66],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

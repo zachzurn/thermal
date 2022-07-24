@@ -11,12 +11,11 @@ struct Handler {
 
 impl CommandHandler for Handler {
     fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
-        let pixel_type = PixelType::Monochrome(0);
         Some(GraphicsCommand::Image(Image {
             pixels: command.data.clone(),
             width: self.width,
             height: self.height,
-            pixel_type,
+            pixel_type: PixelType::Monochrome(0),
             stretch: (1, 1),
         }))
     }

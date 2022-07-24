@@ -14,7 +14,7 @@ pub fn new() -> Command {
     Command::new(
         "Aztec Set Error Correction Level",
         vec![53, 69],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

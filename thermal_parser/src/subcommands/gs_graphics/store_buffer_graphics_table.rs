@@ -15,7 +15,7 @@ pub fn new() -> Command {
     Command::new(
         "Store Print Buffer Graphics Table Format",
         vec![113],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

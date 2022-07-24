@@ -16,7 +16,7 @@ pub fn new() -> Command {
     Command::new(
         "Define Download Graphics in Column Format",
         vec![84],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

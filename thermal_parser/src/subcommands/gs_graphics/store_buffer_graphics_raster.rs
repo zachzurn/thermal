@@ -16,7 +16,7 @@ pub fn new() -> Command {
     Command::new(
         "Store Print Buffer Graphics Raster Format",
         vec![112],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

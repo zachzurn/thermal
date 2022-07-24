@@ -19,7 +19,7 @@ pub fn new() -> Command {
     Command::new(
         "Print NV Graphic",
         vec![69],
-        CommandType::Subcommand,
+        CommandType::Graphics,
         DataType::Subcommand,
         Box::new(Handler),
     )

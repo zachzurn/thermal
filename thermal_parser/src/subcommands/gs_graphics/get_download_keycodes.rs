@@ -12,7 +12,7 @@ pub fn new() -> Command {
     Command::new(
         "Get Download RAM Key Codes",
         vec![80],
-        CommandType::Subcommand,
+        CommandType::Control,
         DataType::Subcommand,
         Box::new(Handler),
     )

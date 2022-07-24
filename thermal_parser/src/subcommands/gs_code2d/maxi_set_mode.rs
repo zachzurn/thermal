@@ -16,7 +16,7 @@ pub fn new() -> Command {
     Command::new(
         "Maxi Sets the Mode",
         vec![50, 65],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

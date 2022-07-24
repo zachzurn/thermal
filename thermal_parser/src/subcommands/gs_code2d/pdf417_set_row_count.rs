@@ -13,7 +13,7 @@ pub fn new() -> Command {
     Command::new(
         "PDF417 Sets the row width",
         vec![48, 66],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

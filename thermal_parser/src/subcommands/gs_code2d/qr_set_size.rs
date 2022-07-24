@@ -13,7 +13,7 @@ pub fn new() -> Command {
     Command::new(
         "QR Sets the dot count",
         vec![49, 67],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

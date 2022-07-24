@@ -15,7 +15,7 @@ pub fn new() -> Command {
     Command::new(
         "Define NV Graphics in Column Format",
         vec![68],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

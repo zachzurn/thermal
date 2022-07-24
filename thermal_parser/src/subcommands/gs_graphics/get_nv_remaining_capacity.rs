@@ -12,7 +12,7 @@ pub fn new() -> Command {
     Command::new(
         "Get NV Remaining Capacity",
         vec![4, 52],
-        CommandType::Subcommand,
+        CommandType::Control,
         DataType::Subcommand,
         Box::new(Handler),
     )

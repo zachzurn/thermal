@@ -1,3 +1,4 @@
+use std::mem;
 use std::rc::Rc;
 
 use crate::{command::*, context::*, graphics::*};
@@ -118,6 +119,13 @@ impl CommandHandler for SubCommandHandler {
         }
 
         false
+    }
+
+    //Returns a subcommand that can be owned and stubs
+    fn get_subcommand(&mut self) -> Option<Command> {
+        let mut subcommand = None;
+        mem::swap(&mut self.subcommand, &mut subcommand);
+        return subcommand
     }
 }
 

@@ -1,5 +1,7 @@
 use std::mem;
 use crate::{command::Command, command_sets::*};
+use crate::command::CommandType;
+use crate::command::DataType::Subcommand;
 
 pub struct Parser{
     cmd_set: CommandSet,
@@ -24,6 +26,18 @@ impl Parser {
         }
     }
 
+    pub fn emit_command(&self,mut cmd: Command){
+        if cmd.kind == CommandType::Subcommand {
+            let command= &mut cmd;
+
+            if let Some(subcommand) = command.handler.get_subcommand(){
+                (self.on_command_found)(subcommand)
+            }
+        } else {
+            (self.on_command_found)(cmd);
+        }
+    }
+
     pub fn parse_bytes(&mut self, bytes: &Vec<u8>){
         for byte in bytes {
             self.parse(byte);
@@ -32,7 +46,10 @@ impl Parser {
         //emit the last command and reset the parser
         let mut new_cmd = None;
         mem::swap(&mut self.current_command, &mut new_cmd); //new_cmd has become the previous command after the swap
-        if new_cmd.is_some(){  (self.on_command_found)(new_cmd.unwrap()) };
+
+        if let Some(new_cmd_unwrapped) = new_cmd {
+            self.emit_command(new_cmd_unwrapped);
+        }
 
         self.match_depth = 0;
         self.command_buffer.clear();
@@ -79,7 +96,10 @@ impl Parser {
 
                 let mut new_cmd = Some(matched_command.clone());
                 mem::swap(&mut self.current_command, &mut new_cmd); //new_cmd has become the previous command after the swap
-                if new_cmd.is_some(){  (self.on_command_found)(new_cmd.unwrap()) };
+
+                if let Some(new_cmd_unwrapped) = new_cmd {
+                    self.emit_command(new_cmd_unwrapped);
+                }
             }
             return
         }
@@ -110,7 +130,7 @@ impl Parser {
 
             if new_cmd.is_some(){
                 mem::swap(&mut self.current_command, &mut new_cmd);
-                (self.on_command_found)(new_cmd.unwrap()); //new_command has become the previous command after the swap
+                self.emit_command(new_cmd.unwrap()); //new_command has become the previous command after the swap
                 return;
             }
 

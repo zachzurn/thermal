@@ -19,7 +19,7 @@ pub fn new() -> Command {
     Command::new(
         "QR Sets Error Correction Level",
         vec![49, 69],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

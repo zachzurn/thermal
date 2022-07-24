@@ -13,7 +13,7 @@ pub fn new() -> Command {
     Command::new(
         "Datamatrix Sets the dot Width",
         vec![52, 67],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

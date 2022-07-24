@@ -15,7 +15,7 @@ pub fn new() -> Command {
     Command::new(
         "Composite Sets Max Width",
         vec![52, 71],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

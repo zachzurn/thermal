@@ -15,7 +15,7 @@ pub fn new() -> Command {
     Command::new(
         "GS1 Sets Max Width",
         vec![51, 71],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

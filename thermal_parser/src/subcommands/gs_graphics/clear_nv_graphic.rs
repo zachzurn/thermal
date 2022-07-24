@@ -16,7 +16,7 @@ pub fn new() -> Command {
     Command::new(
         "Clear NV Graphic",
         vec![66],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

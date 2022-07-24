@@ -14,7 +14,7 @@ pub fn new() -> Command {
     Command::new(
         "Composite Sets Human Readable Options",
         vec![52, 72],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

@@ -15,7 +15,7 @@ pub fn new() -> Command {
     Command::new(
         "PDF417 Set Options",
         vec![48, 70],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )

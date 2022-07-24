@@ -16,7 +16,7 @@ pub fn new() -> Command {
     Command::new(
         "Define NV Graphics in Raster Format",
         vec![67],
-        CommandType::Subcommand,
+        CommandType::Context,
         DataType::Subcommand,
         Box::new(Handler),
     )
