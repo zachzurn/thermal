@@ -1,6 +1,4 @@
-use crate::{command::*, constants::*};
-use crate::context::Context;
-use crate::graphics::GraphicsCommand;
+use crate::{command::*, constants::*, context::*};
 
 #[derive(Clone)]
 struct Handler;

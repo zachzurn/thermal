@@ -6,14 +6,13 @@ pub enum DeviceCommand {
     Initialize,
     PartialCut,
     FullCut,
-    PartialCutFeed(i8),
-    FullCutFeed(i16),
-    PrintAndFeed(i16),
+    Feed(i16),
+    FeedLine(i16),
     Cancel,
     Pulse,
+    Print,
     Transmit(Vec<u8>),
     MoveX(u16),
-    MoveY(u16)
 }
 
 #[derive(Clone, PartialEq)]
@@ -106,7 +105,7 @@ pub trait CommandHandler: CloneCommandHandler {
     fn apply_context(&self, _command: &Command, _context: &mut Context) {}
 
     //Gets a device command to execute
-    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<DeviceCommand> { None }
+    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> { None }
 
     //For debugging commands
     fn debug(&self, command: &Command, _context: &Context) -> String {

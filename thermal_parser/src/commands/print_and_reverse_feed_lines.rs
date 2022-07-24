@@ -4,9 +4,9 @@ use crate::{command::*, constants::*, context::*};
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn get_device_command(&self, _command: &Command, context: &Context) -> Option<DeviceCommand> {
+    fn get_device_command(&self, command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
         let n = *command.data.get(0).unwrap_or(&0u8);
-        Some(DeviceCommand::PrintAndFeed((0 - n as i16) * context.text.line_spacing))
+        Some(vec![DeviceCommand::Print, DeviceCommand::FeedLine(0 - n as i16)])
     }
 }
 

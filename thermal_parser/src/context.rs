@@ -5,18 +5,12 @@ use crate::graphics::{Code2D, Image, ImageRef};
 #[derive(Clone)]
 pub enum TextJustify { Left, Center, Right }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum TextUnderline { Off, On, Double }
 
 #[derive(Clone)]
 pub enum Font {
-    A,
-    B,
-    C,
-    D,
-    E,
-    SpecialA,
-    SpecialB,
+    A, B, C, D, E, SpecialA, SpecialB,
 }
 
 impl Font {
@@ -59,6 +53,8 @@ pub struct Context {
 
 #[derive(Clone)]
 pub struct TextContext {
+    pub character_set: u8,
+    pub code_table: u8,
     pub font_size: u8,
     pub justify: TextJustify,
     pub font: Font,
@@ -66,16 +62,19 @@ pub struct TextContext {
     pub italic: bool,
     pub underline: TextUnderline,
     pub invert: bool,
-    pub width_mult: u16,
-    pub height_mult: u16,
+    pub width_mult: u8,
+    pub height_mult: u8,
     pub upside_down: bool,
-    pub line_spacing: u16,
-    pub color: Color
+    pub line_spacing: u8,
+    pub color: Color,
+    pub smoothing: bool
 }
 
 #[derive(Clone)]
 pub struct GraphicsContext {
     pub dots_per_inch: u16,
+    pub v_motion_unit: f32,
+    pub h_motion_unit: f32,
     pub graphics_count: u16,
     pub stored_graphics: HashMap<ImageRef, Image>,
     pub buffer_graphics: Option<Image>,
@@ -125,6 +124,8 @@ pub struct Code2DContext {
 }
 
 static TEXT_DEFAULT: TextContext = TextContext {
+    character_set: 0,
+    code_table: 0,
     font_size: 16,
     justify: TextJustify::Left,
     font: Font::A,
@@ -135,8 +136,9 @@ static TEXT_DEFAULT: TextContext = TextContext {
     width_mult: 1,
     height_mult: 1,
     upside_down: false,
-    line_spacing: 18,
-    color: Color::Black
+    line_spacing: 1,
+    color: Color::Black,
+    smoothing: false
 };
 
 static BARCODE_DEFAULT: BarcodeContext = BarcodeContext {
@@ -174,6 +176,8 @@ static CODE2D_DEFAULT: Code2DContext = Code2DContext {
 };
 
 static DEFAULT_GRAPHICS_DPI: u16 = 180;
+static DEFAULT_GRAPHICS_V_MOTION_UNIT: f32 = 0.25;
+static DEFAULT_GRAPHICS_H_MOTION_UNIT: f32 = 0.01;
 
 impl Context {
     pub fn new() -> Context {
@@ -182,6 +186,8 @@ impl Context {
             barcode: BARCODE_DEFAULT.clone(),
             code2d: CODE2D_DEFAULT.clone(),
             graphics: GraphicsContext {
+                v_motion_unit: DEFAULT_GRAPHICS_V_MOTION_UNIT,
+                h_motion_unit: DEFAULT_GRAPHICS_H_MOTION_UNIT,
                 dots_per_inch: DEFAULT_GRAPHICS_DPI,
                 graphics_count: 0,
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
@@ -196,6 +202,14 @@ impl Context {
 
     pub fn reset_text_line_spacing(&mut self){
         self.text.line_spacing = TEXT_DEFAULT.line_spacing;
+    }
+
+    pub fn reset_graphics_h_motion_units(&mut self) {
+        self.graphics.h_motion_unit = DEFAULT_GRAPHICS_H_MOTION_UNIT;
+    }
+
+    pub fn reset_graphics_v_motion_units(&mut self) {
+        self.graphics.v_motion_unit = DEFAULT_GRAPHICS_V_MOTION_UNIT
     }
 
     pub fn reset(&mut self) {

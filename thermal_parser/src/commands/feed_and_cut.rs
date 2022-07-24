@@ -4,22 +4,22 @@ use crate::{command::*, constants::*, context::*};
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<DeviceCommand> {
+    fn get_device_command(&self, command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
         let m = *command.data.get(0).unwrap_or(&0u8);
         let n = *command.data.get(1).unwrap_or(&0u8);
 
         return match m {
             0 | 48 => {
-                Some(DeviceCommand::FullCut)
+                Some(vec![DeviceCommand::FullCut, DeviceCommand::Print])
             }
             1 | 49 => {
-                Some(DeviceCommand::PartialCut)
+                Some(vec![DeviceCommand::PartialCut, DeviceCommand::Print])
             }
             65 | 97 | 103 => {
-                Some(DeviceCommand::FullCutFeed(n))
+                Some(vec![DeviceCommand::FullCut, DeviceCommand::Print, DeviceCommand::Feed(n as i16)])
             }
             66 | 98 | 104 => {
-                Some(DeviceCommand::PartialCutFeed(n))
+                Some(vec![DeviceCommand::PartialCut, DeviceCommand::Print, DeviceCommand::Feed(n as i16)])
             }
             _ => None
         }

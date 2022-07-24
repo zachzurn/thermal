@@ -1,9 +1,14 @@
-use crate::{command::*, constants::*};
+use crate::{command::*, constants::*, context::*};
 
 #[derive(Clone)]
 struct Handler;
 
-impl CommandHandler for Handler {}
+impl CommandHandler for Handler {
+    fn apply_context(&self, command: &Command, context: &mut Context) {
+        let n = *command.data.get(0).unwrap_or(&1u8);
+        context.text.line_spacing = n;
+    }
+}
 
 pub fn new() -> Command {
     Command::new(

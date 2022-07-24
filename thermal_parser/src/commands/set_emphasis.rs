@@ -6,7 +6,7 @@ struct Handler;
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         let n = *command.data.get(0).unwrap_or(&0u8);
-        context.text.bold = if n == 0x00 { false } else { true };
+        context.text.bold = (n & 0x00000001) == 1;
     }
 }
 

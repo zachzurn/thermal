@@ -13,7 +13,6 @@ use barcoders::sym::tf::TF;
 
 use crate::{command::*, constants::*, context::*, graphics::*};
 
-
 #[derive(Clone)]
 enum BarcodeType {
     UpcA,
