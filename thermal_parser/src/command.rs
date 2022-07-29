@@ -16,13 +16,31 @@ pub enum DeviceCommand {
     MoveX(u16),
 }
 
+impl DeviceCommand {
+    pub fn as_string(&self) -> String {
+        match self {
+            Self::Initialize => "Initialize".to_string(),
+            Self::PartialCut => "Partial Cut".to_string(),
+            Self::FullCut => "Full Cut".to_string(),
+            Self::Feed(n) => format!("Feed {} Motion Units", n),
+            Self::FeedLine(n) => format!("Feed {} Lines", n),
+            Self::Cancel => "Cancel".to_string(),
+            Self::Pulse => "Pulse".to_string(),
+            Self::Print => "Print".to_string(),
+            Self::Transmit(b) => "Transmit Data Back".to_string(),
+            Self::MoveX(n) => "Move Horizontally".to_string(),
+            _ => "Device Command".to_string()
+        }
+    }
+}
+
 #[derive(Clone, PartialEq)]
 pub enum CommandType {
     Control,
     Text,
     Graphics,
     Context,
-    ContextCommand,
+    ContextControl,
     Subcommand,
     Unknown,
 }

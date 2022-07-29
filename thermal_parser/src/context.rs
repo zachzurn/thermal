@@ -74,6 +74,11 @@ pub struct TextContext {
 
 #[derive(Clone)]
 pub struct GraphicsContext {
+    pub x: usize,
+    pub y: usize,
+    pub paper_width: f32,
+    pub margin_left: f32,
+    pub margin_right: f32,
     pub dots_per_inch: u16,
     pub v_motion_unit: f32,
     pub h_motion_unit: f32,
@@ -142,7 +147,7 @@ impl Context {
                 width_mult: 1,
                 height_mult: 1,
                 upside_down: false,
-                line_spacing: 1,
+                line_spacing: 20,
                 color: Color::Black,
                 smoothing: false
             },
@@ -179,9 +184,14 @@ impl Context {
                 datamatrix_width: 0,
             },
             graphics: GraphicsContext {
-                dots_per_inch: 180,
-                v_motion_unit: 0.01,
-                h_motion_unit: 0.01,
+                x: 0,
+                y: 0,
+                paper_width: 3.0, //inches
+                margin_left: 0.25, //inches
+                margin_right: 0.25, //inches
+                dots_per_inch: 500, //pixels
+                v_motion_unit: 0.01, //inches
+                h_motion_unit: 0.01, //inches
                 graphics_count: 0,
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
                 buffer_graphics: None
@@ -203,5 +213,20 @@ impl Context {
             self.code2d = default.code2d.clone();
             self.graphics = default.graphics.clone();
         }
+    }
+
+    pub fn available_width_pixels(&self) -> usize{
+        let print_area = self.graphics.paper_width - (self.graphics.margin_left + self.graphics.margin_right);
+        let print_area_pixels = print_area * self.graphics.dots_per_inch as f32;
+        print_area_pixels.round() as usize
+    }
+
+    pub fn font_size_pixels(&self) -> u32 {
+        (self.text.font_size as f32 * 1.333) as u32
+    }
+
+    pub fn process_newline(&mut self){
+        self.graphics.x = 0;
+        self.graphics.y += self.text.line_spacing as usize;
     }
 }

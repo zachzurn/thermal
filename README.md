@@ -90,6 +90,11 @@ The idea is that if a renderer implements these methods alone, they can render t
 
 Thanks for listening.
 
+## Fonts included in this repo do not fall under this repos licence
+
+See thermal_render/resources/fonts/OFL.txt for the license. Fonts were obtained from JetBrains Mono repository on Github:
+https://github.com/JetBrains/JetBrainsMono
+
 ## Inspiration/References:
 https://github.com/receipt-print-hq/escpos-tools
 https://github.com/local-group/rust-escposify

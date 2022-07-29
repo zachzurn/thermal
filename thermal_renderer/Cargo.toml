@@ -1,0 +1,13 @@
+[package]
+name = "thermal_renderer"
+version = "0.0.1"
+authors = ["Zach Zurn <zachzurn@gmail.com>"]
+edition = "2021"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+thermal_parser = { path = "../thermal_parser" }
+fontdue = "0.7.2"
+textwrap = "0.15.0"
+png = "0.17.5"
+nuid = "~0.2"

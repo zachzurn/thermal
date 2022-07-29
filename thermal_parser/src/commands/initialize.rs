@@ -16,7 +16,7 @@ pub fn new() -> Command {
     Command::new(
         "Initialize",
         vec![ESC, '@' as u8],
-        CommandType::ContextCommand,
+        CommandType::ContextControl,
         DataType::Empty,
         Box::new(Handler {}),
     )

@@ -9,11 +9,11 @@ pub struct Parser{
     current_command: Option<Command>,
     current_command_is_default: bool,
     command_buffer: Vec<u8>,
-    on_command_found: Box<dyn Fn(Command)>
+    on_command_found: Box<dyn FnMut(Command)>
 }
 
 impl Parser {
-    pub fn new(cmd_set: CommandSet, on_command_found: Box<dyn Fn(Command)>) -> Self {
+    pub fn new(cmd_set: CommandSet, on_command_found: Box<dyn FnMut(Command)>) -> Self {
         Self {
             cmd_set,
             match_depth: 0,
@@ -22,18 +22,6 @@ impl Parser {
             command_buffer: Vec::<u8>::new(),
             current_command: None,
             on_command_found
-        }
-    }
-
-    pub fn emit_command(&self,mut cmd: Command){
-        if cmd.kind == CommandType::Subcommand {
-            let command= &mut cmd;
-
-            if let Some(subcommand) = command.handler.get_subcommand(){
-                (self.on_command_found)(subcommand)
-            }
-        } else {
-            (self.on_command_found)(cmd);
         }
     }
 
@@ -54,6 +42,18 @@ impl Parser {
         self.command_buffer.clear();
         self.command_matches.clear();
         self.current_command_is_default = false;
+    }
+
+    fn emit_command(&mut self,mut cmd: Command){
+        if cmd.kind == CommandType::Subcommand {
+            let command= &mut cmd;
+
+            if let Some(subcommand) = command.handler.get_subcommand(){
+                (self.on_command_found)(subcommand)
+            }
+        } else {
+            (self.on_command_found)(cmd);
+        }
     }
 
     fn parse(&mut self, byte: &u8) {
