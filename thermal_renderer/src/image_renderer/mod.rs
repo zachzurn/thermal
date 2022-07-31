@@ -3,7 +3,7 @@ extern crate nuid;
 use std::rc::Rc;
 use thermal_parser::command::DeviceCommand;
 use thermal_parser::context;
-use thermal_parser::context::{Context, TextJustify};
+use thermal_parser::context::{Context, TextJustify, TextUnderline};
 use crate::image_renderer::thermal_image::{FontFamily, TextLayout, TextSpan, ThermalImage};
 use crate::renderer::CommandRenderer;
 
@@ -34,8 +34,8 @@ impl ImageRenderer {
 
 impl CommandRenderer for ImageRenderer {
     fn begin_render(&mut self, context: &mut Context){
-        println!("BEGIN RENDER");
-        self.image.set_width(context.available_width_pixels());
+        println!("BEGIN RENDER {}", context.available_width_pixels());
+        self.image.set_width(context.available_width_pixels() as usize);
     }
 
     fn begin_graphics(&mut self, context: &mut Context){
@@ -47,25 +47,19 @@ impl CommandRenderer for ImageRenderer {
     }
     fn end_graphics(&mut self, context: &mut Context){}
 
-    fn draw_image(&mut self, context: &mut Context, bytes: &Vec<u8>, width: usize, height: usize){
+    fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize){
         self.maybe_render_text(context);
-        self.image.put_pixels(context.graphics.x, context.graphics.y, width, height, bytes.clone(), false);
+        self.image.put_pixels(context.graphics.x, context.graphics.y, width, height, bytes, false);
     }
 
     fn draw_text(&mut self, context: &mut Context, text: String){
-        let span = TextSpan::new(self.image.font.clone(), text.to_string(), context.font_size_pixels());
+        let mut span = TextSpan::new(self.image.font.clone(), text.to_string(), context);
 
         if self.text_layout.is_none() {
-            let justify = match context.text.justify {
-                context::TextJustify::Right => thermal_image::TextJustify::Right,
-                context::TextJustify::Center => thermal_image::TextJustify::Center,
-                _ => thermal_image::TextJustify::Left
-            };
-
             self.text_layout = Some(TextLayout{
                 spans: vec![span],
-                line_height: context.text.line_spacing,
-                justify
+                line_height: context.line_height_pixels() as usize,
+                justify: context.text.justify.clone()
             });
         } else {
             if let Some(layout) = &mut self.text_layout {
@@ -83,10 +77,9 @@ impl CommandRenderer for ImageRenderer {
 
         self.maybe_render_text(context);
 
-        //write the image somewhere ??
         self.image.save_png(format!("{}/{}.png", self.out_path.to_string(), nuid::next()));
 
-        self.image.set_width(0);
+        self.image.reset();
         context.graphics.x = 0;
         context.graphics.y = 0;
     }
@@ -96,7 +89,8 @@ impl CommandRenderer for ImageRenderer {
 impl ImageRenderer {
     pub fn maybe_render_text(&mut self, context: &mut Context){
         if let Some(layout) = &mut self.text_layout {
-            self.image.draw_text(context.graphics.x as usize, context.graphics.y as usize, self.image.width, layout);
+            let (_,y) = self.image.draw_text(context.graphics.x as usize, context.graphics.y as usize, self.image.width, layout);
+            context.graphics.y = y;
             self.text_layout = None;
         }
     }

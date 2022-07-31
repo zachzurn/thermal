@@ -9,5 +9,6 @@ license = "MIT OR Apache-2.0"
 thermal_parser = { path = "../thermal_parser" }
 fontdue = "0.7.2"
 textwrap = "0.15.0"
+fast_image_resize = "1.0.0"
 png = "0.17.5"
 nuid = "~0.2"

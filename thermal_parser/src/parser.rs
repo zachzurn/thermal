@@ -26,6 +26,8 @@ impl Parser {
     }
 
     pub fn parse_bytes(&mut self, bytes: &Vec<u8>){
+        self.emit_command(self.cmd_set.begin_parsing.clone());
+
         for byte in bytes {
             self.parse(byte);
         }
@@ -37,6 +39,8 @@ impl Parser {
         if let Some(new_cmd_unwrapped) = new_cmd {
             self.emit_command(new_cmd_unwrapped);
         }
+
+        self.emit_command(self.cmd_set.end_parsing.clone());
 
         self.match_depth = 0;
         self.command_buffer.clear();

@@ -47,6 +47,7 @@ impl SubCommandHandler {
         if data_len == 4 {
             self.capacity = data[0] as u32 + data[1] as u32 * 256;
             self.capacity -= 2;
+            println!("CAPACITY {}", self.capacity);
             self.m = *data.get(2).unwrap();
             self.subcommand_id = *data.get(3).unwrap();
         }

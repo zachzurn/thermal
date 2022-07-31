@@ -57,6 +57,8 @@ pub fn new() -> CommandSet {
     CommandSet {
         default: text::new(),
         unknown: unknown::new(),
+        begin_parsing: begin_print::new(),
+        end_parsing: end_print::new(),
         commands: Box::from(commands),
     }
 }

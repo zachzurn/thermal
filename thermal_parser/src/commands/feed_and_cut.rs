@@ -10,16 +10,16 @@ impl CommandHandler for Handler {
 
         return match m {
             0 | 48 => {
-                Some(vec![DeviceCommand::FullCut, DeviceCommand::Print])
+                Some(vec![DeviceCommand::FullCut])
             }
             1 | 49 => {
-                Some(vec![DeviceCommand::PartialCut, DeviceCommand::Print])
+                Some(vec![DeviceCommand::PartialCut])
             }
             65 | 97 | 103 => {
-                Some(vec![DeviceCommand::FullCut, DeviceCommand::Print, DeviceCommand::Feed(n as i16)])
+                Some(vec![DeviceCommand::FullCut, DeviceCommand::Feed(n as i16)])
             }
             66 | 98 | 104 => {
-                Some(vec![DeviceCommand::PartialCut, DeviceCommand::Print, DeviceCommand::Feed(n as i16)])
+                Some(vec![DeviceCommand::PartialCut, DeviceCommand::Feed(n as i16)])
             }
             _ => None
         }

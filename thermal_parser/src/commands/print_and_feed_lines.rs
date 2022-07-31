@@ -6,7 +6,7 @@ struct Handler;
 impl CommandHandler for Handler {
     fn get_device_command(&self, command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
         let n = *command.data.get(0).unwrap_or(&0u8);
-        Some(vec![DeviceCommand::Print, DeviceCommand::FeedLine(n as i16)])
+        Some(vec![DeviceCommand::FeedLine(n as i16)])
     }
 }
 

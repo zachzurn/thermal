@@ -59,9 +59,9 @@ impl CommandHandler for BarcodeHandler {
 
         match self.kind {
             BarcodeType::Code128 => {
-                if let Ok(barcode) = Code128::new(data.to_string()) {
-                    //all code128 data has two bytes that set the type, we are converting this to the barcoders format
-                    let adjusted_data = data.replace("{A", "À").replace("{B", "Ɓ").replace("{C", "Ć");
+                //all code128 data has two bytes that set the type, we are converting this to the barcoders format
+                let adjusted_data = data.replace("{A", "À").replace("{B", "Ɓ").replace("{C", "Ć");
+                if let Ok(barcode) = Code128::new(adjusted_data.to_string()) {
                     return Some(GraphicsCommand::Barcode(Barcode { points: barcode.encode(), text: adjusted_data, point_width, point_height, hri }));
                 }
             }

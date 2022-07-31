@@ -1,4 +1,5 @@
 use crate::context::HumanReadableInterface;
+use crate::util::bitflags_msb;
 
 #[derive(Clone)]
 pub struct Barcode {
@@ -64,7 +65,39 @@ impl Image {
         data
     }
 
+    pub fn as_grayscale(&self) -> Vec<u8> {
+        let mut bytes = Vec::<u8>::new();
+        let capacity = (self.width * self.height) as usize;
+
+        //number of bytes we need to use for the last column of each row of data
+        let padding = self.width % 8;
+        let mut col = 0;
+
+        for byte in &self.pixels {
+            col += 8;
+            if col >= self.width {
+                for n in 0..padding {
+                    bytes.push(if *byte & 1 << (7 - n) != 0 { 0 } else { 255 });
+                }
+                col = 0;
+            } else {
+                bytes.push(if *byte & 1 << 7 != 0 { 0 } else { 255 });
+                bytes.push(if *byte & 1 << 6 != 0 { 0 } else { 255 });
+                bytes.push(if *byte & 1 << 5 != 0 { 0 } else { 255 });
+                bytes.push(if *byte & 1 << 4 != 0 { 0 } else { 255 });
+                bytes.push(if *byte & 1 << 3 != 0 { 0 } else { 255 });
+                bytes.push(if *byte & 1 << 2 != 0 { 0 } else { 255 });
+                bytes.push(if *byte & 1 << 1 != 0 { 0 } else { 255 });
+                bytes.push(if *byte & 1 << 0 != 0 { 0 } else { 255 });
+            }
+        }
+
+        bytes
+    }
+
     pub fn from_raster_data(data: &Vec<u8>) -> Option<Image> {
+
+
         if data.len() < 8 { return None; };
 
         let a = *data.get(0).unwrap();
@@ -78,6 +111,8 @@ impl Image {
         let width = x1 as u32 + x2 as u32 * 256;
         let height = y1 as u32 + y2 as u32 * 256;
 
+        println!("RASTER DATA WITHOUT REF {}", a);
+
         let pixel_type = match a {
             48 => PixelType::Monochrome(c),
             52 => PixelType::MultipleTone(c, 1),
@@ -86,13 +121,13 @@ impl Image {
 
         let stretch = (bx, by);
 
-        let mut pixels = data.clone();
-        pixels.drain(0..8);
+        let mut pixels = data[8..].to_vec();
 
         Some(Image { pixels, width, height, pixel_type, stretch })
     }
 
     pub fn from_raster_data_with_ref(data: &Vec<u8>, storage: ImageRefStorage) -> Option<(ImageRef, Image)> {
+        println!("RASTER DATA WITH REF");
         if data.len() < 8 { return None; };
 
         let a = *data.get(0).unwrap();
@@ -114,8 +149,7 @@ impl Image {
 
         let stretch = (1, 1);
 
-        let mut pixels = data.clone();
-        pixels.drain(0..8);
+        let mut pixels = data[8..].to_vec();
 
         Some((ImageRef { kc1, kc2, storage }, Image { pixels, width, height, pixel_type, stretch }))
     }

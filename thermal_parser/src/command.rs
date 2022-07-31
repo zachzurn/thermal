@@ -4,6 +4,7 @@ use crate::graphics::GraphicsCommand;
 
 #[derive(Clone, PartialEq)]
 pub enum DeviceCommand {
+    BeginPrint,
     Initialize,
     PartialCut,
     FullCut,
@@ -11,7 +12,7 @@ pub enum DeviceCommand {
     FeedLine(i16),
     Cancel,
     Pulse,
-    Print,
+    EndPrint,
     Transmit(Vec<u8>),
     MoveX(u16),
 }
@@ -26,7 +27,8 @@ impl DeviceCommand {
             Self::FeedLine(n) => format!("Feed {} Lines", n),
             Self::Cancel => "Cancel".to_string(),
             Self::Pulse => "Pulse".to_string(),
-            Self::Print => "Print".to_string(),
+            Self::EndPrint => "End Print".to_string(),
+            Self::BeginPrint => "Begin Print".to_string(),
             Self::Transmit(b) => "Transmit Data Back".to_string(),
             Self::MoveX(n) => "Move Horizontally".to_string(),
             _ => "Device Command".to_string()

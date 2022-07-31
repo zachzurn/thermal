@@ -14,7 +14,7 @@ use textwrap::{WordSeparator, core::Word};
 use textwrap::core::Fragment;
 
 use thermal_parser::command::DeviceCommand;
-use thermal_parser::context::Context;
+use thermal_parser::context::{Context, TextContext};
 
 pub struct FontFamily {
     pub regular: fontdue::Font,
@@ -23,26 +23,14 @@ pub struct FontFamily {
     pub bold_italic: fontdue::Font
 }
 
-pub enum TextJustify {
-    Left,
-    Right,
-    Center
-}
-
-pub enum TextStrikethrough {
-    Off,
-    On,
-    Double
-}
-
 pub struct TextSpan {
     pub font: Rc<FontFamily>,
     pub size: u32,
     pub text: String,
     pub bold: bool,
     pub italic: bool,
-    pub underline: bool,
-    pub strikethrough: TextStrikethrough,
+    pub underline: thermal_parser::context::TextUnderline,
+    pub strikethrough: thermal_parser::context::TextStrikethrough,
     pub stretch_width: f32,
     pub stretch_height: f32,
     pub inverted: bool,
@@ -50,18 +38,20 @@ pub struct TextSpan {
 }
 
 impl TextSpan {
-    pub fn new(font: Rc<FontFamily>, text: String, size: u32) -> Self{
+    pub fn new(font: Rc<FontFamily>, text: String, context: &Context) -> Self{
+        let style = &context.text;
+
         Self {
             font,
-            size,
+            size: context.font_size_pixels(),
             text,
-            bold: false,
-            italic: false,
-            underline: false,
-            strikethrough: TextStrikethrough::Off,
-            stretch_width: 1.0,
-            stretch_height: 1.0,
-            inverted: false,
+            bold: style.bold,
+            italic: style.italic,
+            underline: style.underline.clone(),
+            strikethrough: style.strikethrough.clone(),
+            stretch_width: style.width_mult as f32,
+            stretch_height: style.height_mult as f32,
+            inverted: style.invert,
             c_width: 0
         }
     }
@@ -81,8 +71,8 @@ impl TextSpan {
 
 pub struct TextLayout {
     pub spans: Vec<TextSpan>,
-    pub line_height: u8,
-    pub justify: TextJustify
+    pub line_height: usize,
+    pub justify: thermal_parser::context::TextJustify
 }
 
 pub struct ThermalImage {
@@ -106,8 +96,13 @@ impl ThermalImage {
         self.bytes = Vec::<u8>::new();
     }
 
-    pub fn draw_rect(&mut self, x: usize, y: usize, w: usize, h: usize){
+    pub fn reset(&mut self){
+        self.bytes.clear();
+        self.bytes.shrink_to(0);
+    }
 
+    pub fn draw_rect(&mut self, x: usize, y: usize, w: usize, h: usize){
+        self.put_pixels(x, y, w, h, vec![0u8; w * h], false);
     }
 
     pub fn draw_text(&mut self, x: usize, y: usize, width: usize, layout: &mut TextLayout) -> (usize, usize) {
@@ -120,6 +115,11 @@ impl ThermalImage {
             let words = WordSeparator::UnicodeBreakProperties.find_words(span.text.as_str());
 
             for word in words {
+                if word.word.contains('\n'){
+                    lines.push(newline.clone());
+                    continue;
+                }
+
                 let word_len = word.word.len() + word.whitespace.len();
                 if word_len * char_width < width - temp_x {
                     lines.last_mut().unwrap().push((span, format!("{}{}", word.word, word.whitespace)));
@@ -210,13 +210,17 @@ impl ThermalImage {
         let mut cur_x = x;
         let mut cur_y = y;
 
-        if x + width > self.width { return false };
-        if pixels.len() != width * height { return false };
+        if x + width > self.width {
+            println!("TOO BIG, IGNORING PIXELS {} vs {} {}", self.width, x, width);
+            return false
+        };
 
-        println!("y: {} height:{}", y, height);
+        if pixels.len() < width * height {
+            println!("IMAGE BYTE COUNT IS WRONG len {}  w:{} h:{} exp:{}", pixels.len(), width, height, width * height);
+            return false
+        };
+
         self.ensure_height(y + height);
-
-
 
         for pixel in pixels {
             let idx = cur_y * self.width + cur_x;
@@ -236,8 +240,6 @@ impl ThermalImage {
         for i in 0..to_add {
             self.bytes.push(255u8);
         }
-
-        println!("Ensure bytes height {} bytes:{}", height, self.bytes.len());
     }
 
     pub fn expand(&mut self, left: usize, right: usize, top: usize, bottom: usize){

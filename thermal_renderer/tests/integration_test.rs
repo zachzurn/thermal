@@ -9,7 +9,7 @@ use thermal_renderer::image_renderer::thermal_image::*;
 
 #[test]
 fn it_renders_1(){
-    it_renders("test_receipt_2.bin");
+    it_renders("test_receipt_4.bin");
 }
 
 fn it_renders(filename: &str) {

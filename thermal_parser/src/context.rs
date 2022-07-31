@@ -7,6 +7,9 @@ use crate::graphics::{Image, ImageRef};
 pub enum TextJustify { Left, Center, Right }
 
 #[derive(Clone, PartialEq)]
+pub enum TextStrikethrough { Off, On, Double }
+
+#[derive(Clone, PartialEq)]
 pub enum TextUnderline { Off, On, Double }
 
 #[derive(Clone)]
@@ -63,6 +66,7 @@ pub struct TextContext {
     pub bold: bool,
     pub italic: bool,
     pub underline: TextUnderline,
+    pub strikethrough: TextStrikethrough,
     pub invert: bool,
     pub width_mult: u8,
     pub height_mult: u8,
@@ -137,17 +141,18 @@ impl Context {
             text: TextContext {
                 character_set: 0,
                 code_table: 0,
-                font_size: 16,
+                font_size: 11,
                 justify: TextJustify::Left,
                 font: Font::A,
                 bold: false,
                 italic: false,
                 underline: TextUnderline::Off,
+                strikethrough: TextStrikethrough::Off,
                 invert: false,
                 width_mult: 1,
                 height_mult: 1,
                 upside_down: false,
-                line_spacing: 20,
+                line_spacing: 15,
                 color: Color::Black,
                 smoothing: false
             },
@@ -187,9 +192,9 @@ impl Context {
                 x: 0,
                 y: 0,
                 paper_width: 3.0, //inches
-                margin_left: 0.25, //inches
-                margin_right: 0.25, //inches
-                dots_per_inch: 500, //pixels
+                margin_left: 0.15, //inches
+                margin_right: 0.15, //inches
+                dots_per_inch: 210, //pixels
                 v_motion_unit: 0.01, //inches
                 h_motion_unit: 0.01, //inches
                 graphics_count: 0,
@@ -215,18 +220,47 @@ impl Context {
         }
     }
 
-    pub fn available_width_pixels(&self) -> usize{
+    pub fn available_width_pixels(&self) -> u32{
         let print_area = self.graphics.paper_width - (self.graphics.margin_left + self.graphics.margin_right);
         let print_area_pixels = print_area * self.graphics.dots_per_inch as f32;
-        print_area_pixels.round() as usize
+        print_area_pixels.round() as u32
     }
 
     pub fn font_size_pixels(&self) -> u32 {
-        (self.text.font_size as f32 * 1.333) as u32
+        //1 point = 72 pixels
+        let pixels_per_point = self.graphics.dots_per_inch as f32 / 96f32;
+        (self.text.font_size as f32 * pixels_per_point) as u32
     }
 
-    pub fn process_newline(&mut self){
-        self.graphics.x = 0;
-        self.graphics.y += self.text.line_spacing as usize;
+    pub fn graphics_x_offset(&self, width: u32) -> u32 {
+        if width > self.available_width_pixels() { return 0 }
+        match self.text.justify {
+            TextJustify::Center => {
+                let center_remaining = self.available_width_pixels() - width;
+                if center_remaining > 0 {
+                    (center_remaining / 2) as u32
+                } else {
+                    0
+                }
+            }
+            TextJustify::Right => {
+                self.available_width_pixels() - width
+            }
+            _ => {
+                0
+            }
+        }
+    }
+
+    pub fn motion_unit_y_pixels(&self) -> u32{
+        (self.graphics.v_motion_unit * self.graphics.dots_per_inch as f32) as u32
+    }
+
+    pub fn motion_unit_x_pixels(&self) -> u32{
+        (self.graphics.h_motion_unit * self.graphics.dots_per_inch as f32) as u32
+    }
+
+    pub fn line_height_pixels(&self) -> u32 {
+        (self.text.line_spacing as f32 * self.motion_unit_y_pixels() as f32) as u32
     }
 }

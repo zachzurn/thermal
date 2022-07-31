@@ -4,8 +4,8 @@ use crate::{command::*, constants::*, context::*};
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
-        Some(vec![DeviceCommand::FeedLine(1)])
+    fn get_text(&self, _command: &Command, _context: &Context) -> Option<String> {
+        Some("\n".to_string())
     }
 }
 

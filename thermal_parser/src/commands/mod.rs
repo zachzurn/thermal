@@ -1,4 +1,3 @@
-//These should always be in alphabetical order
 pub mod barcode;
 pub mod bit_image;
 pub mod cancel;
@@ -50,3 +49,5 @@ pub mod set_upside_down;
 pub mod text;
 pub mod transmit_printer_id;
 pub mod unknown;
+pub mod begin_print;
+pub mod end_print;
