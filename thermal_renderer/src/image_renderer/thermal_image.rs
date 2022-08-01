@@ -14,7 +14,7 @@ use textwrap::{WordSeparator, core::Word};
 use textwrap::core::Fragment;
 
 use thermal_parser::command::DeviceCommand;
-use thermal_parser::context::{Context, TextContext};
+use thermal_parser::context::{Context, TextContext, TextJustify, TextStrikethrough, TextUnderline};
 
 pub struct FontFamily {
     pub regular: fontdue::Font,
@@ -29,11 +29,12 @@ pub struct TextSpan {
     pub text: String,
     pub bold: bool,
     pub italic: bool,
-    pub underline: thermal_parser::context::TextUnderline,
-    pub strikethrough: thermal_parser::context::TextStrikethrough,
+    pub underline: usize,
+    pub strikethrough: usize,
     pub stretch_width: f32,
     pub stretch_height: f32,
     pub inverted: bool,
+    pub justify: TextJustify,
     c_width: usize,
 }
 
@@ -41,17 +42,31 @@ impl TextSpan {
     pub fn new(font: Rc<FontFamily>, text: String, context: &Context) -> Self{
         let style = &context.text;
 
+        let underline = match style.underline {
+             TextUnderline::On => { context.points_to_pixels(1.0) as usize }
+             TextUnderline::Double => { context.points_to_pixels(2.0)  as usize }
+             _ => { 0 }
+         };
+
+        let strikethrough = match style.strikethrough {
+            TextStrikethrough::On => { context.points_to_pixels(1.0) as usize }
+            TextStrikethrough::Double => { context.points_to_pixels(2.0) as usize }
+            _ => { 0 }
+        };
+
+
         Self {
             font,
             size: context.font_size_pixels(),
             text,
             bold: style.bold,
             italic: style.italic,
-            underline: style.underline.clone(),
-            strikethrough: style.strikethrough.clone(),
+            underline,
+            strikethrough,
             stretch_width: style.width_mult as f32,
             stretch_height: style.height_mult as f32,
             inverted: style.invert,
+            justify: context.text.justify.clone(),
             c_width: 0
         }
     }
@@ -75,6 +90,9 @@ pub struct TextLayout {
     pub justify: thermal_parser::context::TextJustify
 }
 
+/// A simple image renderer designed for thermal image generation
+/// This allows for an image with a fixed width that can grow in height
+/// to accommodate sets of pixels being pushed at arbitrary x and y values
 pub struct ThermalImage {
     bytes: Vec<u8>,
     pub width: usize,
@@ -114,7 +132,19 @@ impl ThermalImage {
             let char_width = span.char_width();
             let words = WordSeparator::UnicodeBreakProperties.find_words(span.text.as_str());
 
+            //TODO DEAL WITH TABS \t
+
             for word in words {
+                if word.word.contains('\t'){
+                    println!("TAB");
+                    continue;
+                }
+
+                if word.word.contains('\r'){
+                    temp_x = 0;
+                    continue;
+                }
+
                 if word.word.contains('\n'){
                     lines.push(newline.clone());
                     continue;
@@ -150,14 +180,34 @@ impl ThermalImage {
             }
         }
 
-        //Render the lines
         let mut new_x = x;
         let mut new_y = y;
 
-        for line in &mut lines {
-            for item in line {
-                let (w,h) = self.render_word(new_x, new_y, item.1.as_str(), item.0);
-                //TODO draw underline and strike through
+        for line in lines.into_iter() {
+            let mut precalculated_width = 0;
+            let mut justify = TextJustify::Left;
+            let mut iter = 0;
+
+            for word in &line {
+                if iter == 0 {
+                    justify = word.0.justify.clone();
+                }
+                precalculated_width += word.1.len() * word.0.char_width();
+                iter += 1;
+            }
+
+            match justify {
+                TextJustify::Center => {
+                    new_x = (width - precalculated_width) / 2
+                }
+                TextJustify::Right => {
+                    new_x = width - precalculated_width
+                }
+                _ => {}
+            }
+
+            for word in &line {
+                let (w,h) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
                 new_x += w;
             }
             new_x = x;
@@ -172,11 +222,11 @@ impl ThermalImage {
         let font_size = span.size as f32;
         let font_metrics = font.horizontal_line_metrics(font_size).unwrap();
         let mut w = 0;
-        let h = f32::ceil(font_metrics.ascent + font_metrics.descent) as usize;
+        let mut h = (font_metrics.ascent + font_metrics.descent.abs()).ceil() as usize;
         let mut cur_x = x;
         let mut cur_y = y;
 
-        let baseline = font_metrics.ascent + font_metrics.descent;
+        let baseline = f32::ceil(font_metrics.ascent + font_metrics.descent);
 
         //Need a solution for graphemes maybe
         for char in text.chars() {
@@ -201,9 +251,47 @@ impl ThermalImage {
             self.put_pixels(x_offset, cur_y + y_offset, metrics.width, metrics.height, bitmap, true);
             cur_x += span.char_width();
             w += span.char_width();
+            h = h.max(metrics.height + y_offset);
+        }
+
+        if span.underline > 0 {
+            let under_y = y + (baseline + span.underline as f32).ceil() as usize;
+            let under_x = x;
+
+            self.draw_rect(under_x,  under_y, w, span.underline);
+        }
+
+        if span.strikethrough > 0 {
+            let strike_y = y + ((baseline / 2f32) - span.strikethrough as f32 / 2f32) as usize;
+            let strike_x = x;
+
+            self.draw_rect(strike_x, strike_y - span.strikethrough, w, span.strikethrough);
+        }
+
+        if span.inverted {
+            self.invert_pixels(x,y,w,h);
         }
 
         (w,h)
+    }
+
+    pub fn invert_pixels(&mut self, x: usize, y: usize, width: usize, height: usize){
+        if x + width > self.width { return };
+
+        self.ensure_height(y + height);
+
+        let mut cur_y = y;
+        let mut cur_x = x;
+
+        for row in 0..height {
+            let idx = cur_y * self.width + cur_x;
+            for i in 0..width {
+                self.bytes[idx + i] = 255 - self.bytes[idx + i];
+                cur_x += 1;
+            }
+            cur_x = x;
+            cur_y += 1;
+        }
     }
 
     pub fn put_pixels(&mut self, x: usize, y: usize, width: usize, height: usize, pixels: Vec<u8>, invert: bool) -> bool{
@@ -211,12 +299,10 @@ impl ThermalImage {
         let mut cur_y = y;
 
         if x + width > self.width {
-            println!("TOO BIG, IGNORING PIXELS {} vs {} {}", self.width, x, width);
             return false
         };
 
         if pixels.len() < width * height {
-            println!("IMAGE BYTE COUNT IS WRONG len {}  w:{} h:{} exp:{}", pixels.len(), width, height, width * height);
             return false
         };
 
@@ -242,8 +328,33 @@ impl ThermalImage {
         }
     }
 
-    pub fn expand(&mut self, left: usize, right: usize, top: usize, bottom: usize){
+    pub fn add_top_margin(&mut self, height: usize){
+        self.bytes.splice(0..0, vec![255u8; self.width * height]);
+    }
 
+    pub fn expand_to_width(&mut self, new_width: usize){
+        let old_width = self.width;
+        if new_width < old_width { return };
+        let height = self.bytes.len() / self.width;
+        let left = ((new_width - old_width) as f32 / 2.0).floor() as usize;
+        let right = new_width - (left + old_width);
+
+        self.bytes.try_reserve(height * new_width - self.bytes.len()).unwrap();
+
+        let mut insert_idx = 0;
+
+        let left_bytes = vec![255u8; left];
+        let right_bytes = vec![255u8; right];
+
+        for i in 0..height {
+            self.bytes.splice(insert_idx..insert_idx, left_bytes.clone());
+            insert_idx += left + old_width;
+
+            self.bytes.splice(insert_idx..insert_idx, right_bytes.clone());
+            insert_idx += right;
+        }
+
+        self.width = new_width;
     }
 
     pub fn save_png(&self, filepath: String){

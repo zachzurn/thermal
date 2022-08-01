@@ -1,8 +1,119 @@
+<img src="readme/thermal.png" width="124" height="124" style="float:right; margin-left: 30px;">
 
 # Thermal
-Thermal Emulator (esc/pos) built in Rust.
+Thermal Emulator (esc/pos) being built in Rust.
 
 This is my first Rust project, so things will be very messy. Feedback and contribution is welcome.
+
+# Thermal Parser
+
+Parse esc/pos commands from binary data. This crate is purely a parser and does not have any rendering code in it. See thermal_parser folder in the repo.
+
+```rust
+
+//See the resrouces/test folder for sample binary files
+let bytes = std::fs::read("./thermal_test.bin".to_string()).unwrap();
+
+//Create a context to store changes in text and graphic styles
+let context = Context::new();
+
+//Create a closure to handle parsed commands
+let on_new_command = move |cmd: Command| {
+    if debug { println!("{}", cmd.handler.debug(&cmd, &context)) };
+};
+
+//Create a new parser with the esc/pos command set
+let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
+
+//Parse the bytes (Commands will be sent to the closure above)
+command_parser.parse_bytes(&bytes);
+
+```
+
+# Thermal Renderer (Image)
+
+Image rendering is mostly complete. There are some word wrapping issues and a couple of unimplemented features.
+
+The image renderer uses a pretty basic and possibly inefficient hand rolled renderer that uses Fontdue for chatacter rasterization. Text layout is also hand rolled and still needs some work.
+
+It currently supports Barcodes, QR Codes, Text formatting (bold, italic, underline, strikethough, invert, justification).
+
+The image renderer implements the CommandRenderer trait. This allows you to implement a couple of commands (see next section) in order to roll your own renderer.
+
+```rust
+
+//See the resrouces/test folder for sample binary files
+let bytes = std::fs::read("./thermal_test.bin".to_string()).unwrap();
+
+//Create a context to store changes in text and graphic styles
+let mut context = Context::new();
+
+//Create the image renderer with a folder that you want to same images to
+let mut image_renderer = ImageRenderer::new("./rendered_images".to_string());
+
+//Create a closure to handle parsed commands
+let on_new_command = move |cmd: Command| {
+    //Pass the commands through to the renderer
+    image_renderer.process_command(&mut context, &cmd);
+};
+
+//Create a new parser with the esc/pos command set
+let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
+
+//Parse the bytes (Commands will be sent to the closure above)
+command_parser.parse_bytes(&bytes);
+
+```
+
+### Here are some sample receipts that were rendered using the image renderer
+
+<img src="readme/example_1.png" width="324">
+
+<img src="readme/example_2.png" width="324">
+
+<img src="readme/example_3.png" width="324">
+
+
+# Roll Your Own Renderer
+
+In order to roll your own renderer you just need to implement the CommandRenderer trait. The CommandRenderer abstracts out quite a bit of the logic needed to render out receipts.
+
+The Context struct is extremely important here and provides graphics context along the way in addition to text styling context.
+
+Have a look at the ImageRenderer under thermal_renderer/src/image_renderer/mod.rs for a better idea of how to create your own renderer.
+
+```rust
+
+struct MyOwnRenderer{}
+
+impl CommandRenderer for MyOwnRenderer {
+    //Create a receipt
+    fn begin_render(&mut self, context: &mut Context){}
+    
+    //Begin a series of graphics commands (currently only draw_rect)
+    fn begin_graphics(&mut self, context: &mut Context){}
+    
+    //Draw a rectangle
+    fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize){}
+    
+    //End a series of graphics commands
+    fn end_graphics(&mut self, context: &mut Context){}
+
+    //Draw an image. Bytes are u8 Luma values 0 = black 255 = white;
+    fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize){}
+
+    //Draw text
+    fn draw_text(&mut self, context: &mut Context, text: String){}
+
+    //Potentially render something for devices commands
+    fn draw_device_command(&mut self, context: &mut Context, command: &DeviceCommand){}
+    
+    //Save out the receipt in whatever format the render saves out to
+    fn end_render(&mut self, context: &mut Context){}
+}
+
+```
+
 
 ## Goals:
 * Cover the whole esc/pos spec besides deprecated commands
@@ -10,85 +121,8 @@ This is my first Rust project, so things will be very messy. Feedback and contri
 * Render to markdown
 * Render to an image
 * Render to HTML with SVG barcodes and QR Codes
-* Allow for the creation of virtual USB and Ethernet printers
-	
-## Structure:
-Commands are the basic building block for parsing ESC/POS code. Each Command defines a list of match characters that a parser can check against.
+* Allow for the creation of virtual USB and Ethernet printer emulators
 
-The parser loops through all Commands looking for matches and then when it finds a match it pushes bytes until the Command's CommandHandler rejects the bytes.
-
-Each Command defines it's own struct that implements the CommandHandler trait which is responsible for receiving bytes and is also responsible for implementing the optional CommandHandler functions.
-
-```rust
-pub trait CommandHandler: CloneCommandHandler {
-  //Renders text
-  fn get_text(&self, _command: &Command, _context: &Context) -> Option<String>{ None }
-
-  //Renders a graphic
-  fn get_graphics(&self, _command: &Command, _context: &Context) -> Option<GraphicsCommand> { None }
-
-  //Applies context
-  fn apply_context(&self, _command: &Command, _context: &mut Context){}
-
-  //Transmits data back to the client
-  fn transmit(&self, _command: &Command, _context: &Context) -> Option<Vec<u8>>{ None }
-
-  //For debugging commands
-  fn debug(&self, _command: &Command, _context: &Context) -> String { 
-    if _command.data.is_empty() { return format!("{}", _command.name.to_string()) }
-    format!("{} {:02X?}", _command.name.to_string(), _command.data) 
-  }
-  
-  //Push data to a command. The command decides what to accept
-  fn push(&mut self, _command: &mut Vec<u8>, _byte: u8) -> bool{ 
-    return false 
-  }
-}
-
-```
-
-The parser will return a list of commands that can then be looped to create output. Here is a simple text renderer. When we need to render images, we output them to files.
-
-```rust
-let esc_pos = esc_pos::new();
-let commands = esc_pos.parse(&bytes);
-let mut context = Context::new();
-
-for command in commands {
-    
-    command.handler.apply_context(&command, &mut context);
-
-    if let Some(gfx) = command.handler.get_graphics(&command, &context){
-        match gfx {
-            GraphicsCommand::Qrcode(_qr) => todo!(),
-            GraphicsCommand::Barcode(_br) => todo!(),
-            GraphicsCommand::Image(img) => {
-                let filepath = format!("test/gfx{:?}.pbm", context.graphics.graphics_count);
-                if let Ok(_) = fs::write(filepath, img.as_pbm()) {}
-                context.graphics.graphics_count += 1;
-            },
-            _ => {}
-        }
-    }
-
-    if let Some(text) = command.handler.get_text(&command, &context){ print!("{}", text) }
-
-    //Not going to be implemented but if the command wants to transmit data it can implement this
-    if let Some(_return_bytes) = command.handler.transmit(&command, &context){};
-
-}
-```
-
-The plan is to create a rendering pipeline that makes a predicable set of calls to abstract away the need to loop commands. The pipeline would be a trait that has various rendering methods like:
-
-* Render text
-* Render an image
-* Render a rectangle
-* Render a line
-
-The idea is that if a renderer implements these methods alone, they can render the esc.pos format.
-
-Thanks for listening.
 
 ## Fonts included in this repo do not fall under this repos licence
 

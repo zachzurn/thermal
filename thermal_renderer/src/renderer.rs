@@ -111,6 +111,15 @@ pub trait CommandRenderer {
                 match device_command {
                     DeviceCommand::BeginPrint => self.begin_render(context),
                     DeviceCommand::EndPrint=> self.end_render(context),
+                    DeviceCommand::FeedLine(num_lines) => {
+                        context.graphics.y += context.line_height_pixels() as usize * *num_lines as usize;
+                    }
+                    DeviceCommand::Feed(num) => {
+                        context.graphics.y += context.motion_unit_y_pixels() as usize * *num as usize;
+                    }
+                    DeviceCommand::FullCut | DeviceCommand::PartialCut => {
+                        context.graphics.y += context.line_height_pixels() as usize * 2;
+                    }
                     _ => {}
                 }
             }

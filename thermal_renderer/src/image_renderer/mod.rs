@@ -34,7 +34,6 @@ impl ImageRenderer {
 
 impl CommandRenderer for ImageRenderer {
     fn begin_render(&mut self, context: &mut Context){
-        println!("BEGIN RENDER {}", context.available_width_pixels());
         self.image.set_width(context.available_width_pixels() as usize);
     }
 
@@ -73,9 +72,16 @@ impl CommandRenderer for ImageRenderer {
     }
 
     fn end_render(&mut self, context: &mut Context){
-        println!("END RENDER");
-
         self.maybe_render_text(context);
+
+        //Simulate post cut feeding
+        self.image.add_top_margin(context.line_height_pixels() as usize * 2);
+
+        //Add in the left and right margin;
+        self.image.expand_to_width((context.graphics.paper_width * context.graphics.dots_per_inch as f32) as usize);
+
+        //Feed to the y height to ensure we catch any cut advances
+        self.image.ensure_height(context.graphics.y);
 
         self.image.save_png(format!("{}/{}.png", self.out_path.to_string(), nuid::next()));
 

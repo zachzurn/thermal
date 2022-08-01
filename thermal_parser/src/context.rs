@@ -232,6 +232,11 @@ impl Context {
         (self.text.font_size as f32 * pixels_per_point) as u32
     }
 
+    pub fn points_to_pixels(&self, points: f32) -> u32 {
+        let pixels_per_point = self.graphics.dots_per_inch as f32 / 96f32;
+        (points * pixels_per_point) as u32
+    }
+
     pub fn graphics_x_offset(&self, width: u32) -> u32 {
         if width > self.available_width_pixels() { return 0 }
         match self.text.justify {
