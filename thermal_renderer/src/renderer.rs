@@ -1,9 +1,5 @@
-extern crate  fast_image_resize;
-
-use std::num::NonZeroU32;
-use fast_image_resize::{ImageView, ResizeAlg};
 use thermal_parser::command::{Command, CommandType, DeviceCommand};
-use thermal_parser::context::{Context, HumanReadableInterface, TextJustify};
+use thermal_parser::context::{Context, HumanReadableInterface};
 use thermal_parser::graphics::GraphicsCommand;
 
 pub trait CommandRenderer {
@@ -54,13 +50,11 @@ pub trait CommandRenderer {
 
                             self.begin_graphics(context);
 
-                            let mut i = 1;
                             context.graphics.x = context.graphics_x_offset((barcode.points.len() * barcode.point_width as usize) as u32) as usize;
 
                             for p in barcode.points {
                                 if p > 0 { self.draw_rect(context, barcode.point_width as usize, barcode.point_height as usize) }
                                 context.graphics.x += barcode.point_width as usize;
-                                i += 1;
                             }
 
                             context.graphics.x = 0;
@@ -126,12 +120,12 @@ pub trait CommandRenderer {
         }
     }
 
-    fn begin_render(&mut self, context: &mut Context){}
-    fn begin_graphics(&mut self, context: &mut Context){}
-    fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize){}
-    fn end_graphics(&mut self, context: &mut Context){}
-    fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize){}
-    fn draw_text(&mut self, context: &mut Context, text: String){}
-    fn draw_device_command(&mut self, context: &mut Context, command: &DeviceCommand){}
-    fn end_render(&mut self,context: &mut Context){}
+    fn begin_render(&mut self, context: &mut Context);
+    fn begin_graphics(&mut self, context: &mut Context);
+    fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize);
+    fn end_graphics(&mut self, context: &mut Context);
+    fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize);
+    fn draw_text(&mut self, context: &mut Context, text: String);
+    fn draw_device_command(&mut self, context: &mut Context, command: &DeviceCommand);
+    fn end_render(&mut self,context: &mut Context);
 }

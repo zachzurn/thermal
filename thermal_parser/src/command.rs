@@ -29,9 +29,8 @@ impl DeviceCommand {
             Self::Pulse => "Pulse".to_string(),
             Self::EndPrint => "End Print".to_string(),
             Self::BeginPrint => "Begin Print".to_string(),
-            Self::Transmit(b) => "Transmit Data Back".to_string(),
-            Self::MoveX(n) => "Move Horizontally".to_string(),
-            _ => "Device Command".to_string()
+            Self::Transmit(_b) => "Transmit Data Back".to_string(),
+            Self::MoveX(_n) => "Move Horizontally".to_string()
         }
     }
 }

@@ -1,20 +1,18 @@
 extern crate fontdue;
-extern crate textwrap;
 extern crate png;
+extern crate textwrap;
 
-use std::path::Path;
 use std::fs::File;
 use std::io::BufWriter;
-
+use std::path::Path;
 use std::rc::Rc;
-use fontdue::Font;
-use fontdue::layout::{CharacterData, GlyphRasterConfig};
-use png::BitDepth;
-use textwrap::{WordSeparator, core::Word};
-use textwrap::core::Fragment;
 
-use thermal_parser::command::DeviceCommand;
-use thermal_parser::context::{Context, TextContext, TextJustify, TextStrikethrough, TextUnderline};
+use fontdue::Font;
+use fontdue::layout::CharacterData;
+use png::BitDepth;
+use textwrap::WordSeparator;
+
+use thermal_parser::context::{Context, TextJustify, TextStrikethrough, TextUnderline};
 
 pub struct FontFamily {
     pub regular: fontdue::Font,
@@ -34,8 +32,8 @@ pub struct TextSpan {
     pub stretch_width: f32,
     pub stretch_height: f32,
     pub inverted: bool,
-    pub justify: TextJustify,
-    c_width: usize,
+    pub upside_down: bool,
+    pub justify: TextJustify
 }
 
 impl TextSpan {
@@ -66,8 +64,8 @@ impl TextSpan {
             stretch_width: style.width_mult as f32,
             stretch_height: style.height_mult as f32,
             inverted: style.invert,
-            justify: context.text.justify.clone(),
-            c_width: 0
+            upside_down: style.upside_down,
+            justify: context.text.justify.clone()
         }
     }
 
@@ -87,7 +85,7 @@ impl TextSpan {
 pub struct TextLayout {
     pub spans: Vec<TextSpan>,
     pub line_height: usize,
-    pub justify: thermal_parser::context::TextJustify
+    pub tab_len: usize
 }
 
 /// A simple image renderer designed for thermal image generation
@@ -120,42 +118,40 @@ impl ThermalImage {
     }
 
     pub fn draw_rect(&mut self, x: usize, y: usize, w: usize, h: usize){
-        self.put_pixels(x, y, w, h, vec![0u8; w * h], false);
+        self.put_pixels(x, y, w, h, vec![0u8; w * h], false, true);
     }
 
     pub fn draw_text(&mut self, x: usize, y: usize, width: usize, layout: &mut TextLayout) -> (usize, usize) {
         let mut temp_x = 0;
-        let mut newline = Vec::<(&TextSpan, String)>::new();
+        let newline = Vec::<(&TextSpan, String, usize)>::new();
         let mut lines = vec![newline.clone()];
 
         for span in &mut layout.spans {
             let char_width = span.char_width();
             let words = WordSeparator::UnicodeBreakProperties.find_words(span.text.as_str());
 
-            //TODO DEAL WITH TABS \t
-
             for word in words {
                 if word.word.contains('\t'){
-                    println!("TAB");
+                    let mut tab_len = layout.tab_len * span.char_width();
+                    while tab_len < temp_x { tab_len += tab_len; }
+                    if tab_len < width { temp_x = tab_len }
                     continue;
                 }
 
                 if word.word.contains('\r'){
-                    temp_x = 0;
-                    continue;
+                    temp_x = 0; continue;
                 }
 
                 if word.word.contains('\n'){
                     lines.push(newline.clone());
-                    continue;
+                    temp_x = 0; continue;
                 }
 
                 let word_len = word.word.len() + word.whitespace.len();
                 if word_len * char_width < width - temp_x {
-                    lines.last_mut().unwrap().push((span, format!("{}{}", word.word, word.whitespace)));
+                    lines.last_mut().unwrap().push((span, format!("{}{}", word.word, word.whitespace), temp_x));
                     temp_x += word_len * char_width;
                 } else if word_len * char_width > width {
-                    //break the word up based on available chars
                     let broken = word.break_apart(width / char_width);
 
                     for broke in broken {
@@ -163,10 +159,10 @@ impl ThermalImage {
                         if width as f32 - (broke_word_len * char_width as f32) < char_width as f32 {
                             lines.push(newline.clone());
                             temp_x = 0;
-                            lines.last_mut().unwrap().push((span, format!("{}{}", broke.word, broke.whitespace)));
+                            lines.last_mut().unwrap().push((span, format!("{}{}", broke.word, broke.whitespace), temp_x));
                             lines.push(newline.clone());
                         } else {
-                            lines.last_mut().unwrap().push((span, format!("{}{}", broke.word, broke.whitespace)));
+                            lines.last_mut().unwrap().push((span, format!("{}{}", broke.word, broke.whitespace), temp_x));
                             temp_x += broke_word_len as usize * char_width;
                         }
                     }
@@ -174,7 +170,7 @@ impl ThermalImage {
                     //New line and then add word
                     lines.push(newline.clone());
                     temp_x = 0;
-                    lines.last_mut().unwrap().push((span, format!("{}{}", word.word, word.whitespace)));
+                    lines.last_mut().unwrap().push((span, format!("{}{}", word.word, word.whitespace), temp_x));
                     temp_x += word_len * char_width;
                 }
             }
@@ -207,7 +203,7 @@ impl ThermalImage {
             }
 
             for word in &line {
-                let (w,h) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
+                let (w,_) = self.render_word(word.2, new_y, word.1.as_str(), word.0);
                 new_x += w;
             }
             new_x = x;
@@ -224,13 +220,12 @@ impl ThermalImage {
         let mut w = 0;
         let mut h = (font_metrics.ascent + font_metrics.descent.abs()).ceil() as usize;
         let mut cur_x = x;
-        let mut cur_y = y;
 
         let baseline = f32::ceil(font_metrics.ascent + font_metrics.descent);
 
         //Need a solution for graphemes maybe
         for char in text.chars() {
-            let (metrics, mut bitmap) = font.rasterize(char, span.size as f32);
+            let (metrics, bitmap) = font.rasterize(char, span.size as f32);
 
             let glyph_index = font.lookup_glyph_index(char);
             let char_data = CharacterData::classify(char, glyph_index);
@@ -248,7 +243,7 @@ impl ThermalImage {
             let y_offset = f32::ceil((baseline - metrics.bounds.height) + (-1.0 * metrics.bounds.ymin)) as usize;
             let x_offset = cur_x + metrics.bounds.xmin.round().abs() as usize;
 
-            self.put_pixels(x_offset, cur_y + y_offset, metrics.width, metrics.height, bitmap, true);
+            self.put_pixels(x_offset, y + y_offset, metrics.width, metrics.height, bitmap, true, true);
             cur_x += span.char_width();
             w += span.char_width();
             h = h.max(metrics.height + y_offset);
@@ -268,22 +263,21 @@ impl ThermalImage {
             self.draw_rect(strike_x, strike_y - span.strikethrough, w, span.strikethrough);
         }
 
-        if span.inverted {
-            self.invert_pixels(x,y,w,h);
-        }
+        if span.inverted { self.invert_pixels(x,y,w,h); }
+
+        if span.upside_down { self.flip_pixels(x,y,w,h); }
 
         (w,h)
     }
 
     pub fn invert_pixels(&mut self, x: usize, y: usize, width: usize, height: usize){
         if x + width > self.width { return };
-
         self.ensure_height(y + height);
 
         let mut cur_y = y;
         let mut cur_x = x;
 
-        for row in 0..height {
+        for _ in y..y+height {
             let idx = cur_y * self.width + cur_x;
             for i in 0..width {
                 self.bytes[idx + i] = 255 - self.bytes[idx + i];
@@ -294,7 +288,25 @@ impl ThermalImage {
         }
     }
 
-    pub fn put_pixels(&mut self, x: usize, y: usize, width: usize, height: usize, pixels: Vec<u8>, invert: bool) -> bool{
+    pub fn flip_pixels(&mut self, x: usize, y: usize, width: usize, height: usize){
+        if x + width > self.width { return };
+        self.ensure_height(y + height);
+
+        let mut sub_image = Vec::<u8>::with_capacity(width * height);
+
+        for cur_y in y..y+height {
+            let idx = cur_y * self.width + x;
+            for cur_x in x..width {
+                sub_image.push(self.bytes[idx + cur_x]);
+            }
+        }
+
+        sub_image.reverse();
+
+        self.put_pixels(x,y,width,height,sub_image, false, false);
+    }
+
+    pub fn put_pixels(&mut self, x: usize, y: usize, width: usize, height: usize, pixels: Vec<u8>, invert: bool, multiply: bool) -> bool{
         let mut cur_x = x;
         let mut cur_y = y;
 
@@ -308,12 +320,20 @@ impl ThermalImage {
 
         self.ensure_height(y + height);
 
-        for pixel in pixels {
-            let idx = cur_y * self.width + cur_x;
-            //we use a darken here to simulate thermal printing which is additive
-            self.bytes[idx] = if invert { u8::min(255 - pixel, self.bytes[idx]) } else { u8::min(pixel, self.bytes[idx]) };
-            if cur_x == x + width - 1 { cur_x = x; cur_y+=1; } else { cur_x += 1; }
+        if multiply {
+            for pixel in pixels {
+                let idx = cur_y * self.width + cur_x;
+                self.bytes[idx] = if invert { u8::min(255 - pixel, self.bytes[idx]) } else { u8::min(pixel, self.bytes[idx]) };
+                if cur_x == x + width - 1 { cur_x = x; cur_y+=1; } else { cur_x += 1; }
+            }
+        } else {
+            for pixel in pixels {
+                let idx = cur_y * self.width + cur_x;
+                self.bytes[idx] = if invert { 255 - pixel } else { pixel };
+                if cur_x == x + width - 1 { cur_x = x; cur_y+=1; } else { cur_x += 1; }
+            }
         }
+
         true
     }
 
@@ -323,7 +343,7 @@ impl ThermalImage {
         if cur_len >= len { return }
         let to_add = len - cur_len;
 
-        for i in 0..to_add {
+        for _ in 0..to_add {
             self.bytes.push(255u8);
         }
     }
@@ -346,7 +366,7 @@ impl ThermalImage {
         let left_bytes = vec![255u8; left];
         let right_bytes = vec![255u8; right];
 
-        for i in 0..height {
+        for _ in 0..height {
             self.bytes.splice(insert_idx..insert_idx, left_bytes.clone());
             insert_idx += left + old_width;
 

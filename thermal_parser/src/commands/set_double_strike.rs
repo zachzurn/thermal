@@ -1,5 +1,5 @@
 use crate::{command::*, constants::*};
-use crate::context::{Context, TextStrikethrough, TextUnderline};
+use crate::context::{Context, TextStrikethrough};
 
 #[derive(Clone)]
 struct Handler;

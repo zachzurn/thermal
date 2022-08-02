@@ -1,15 +1,12 @@
 use std::path::PathBuf;
-use std::rc::Rc;
 use thermal_parser::command::Command;
 use thermal_parser::context::Context;
 use thermal_renderer::image_renderer::ImageRenderer;
 use thermal_renderer::renderer::CommandRenderer;
 
-use thermal_renderer::image_renderer::thermal_image::*;
-
 #[test]
 fn it_renders_1(){
-    it_renders("test_receipt_2.bin");
+    it_renders("test_receipt_1.bin");
 }
 
 fn it_renders(filename: &str) {

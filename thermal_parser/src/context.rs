@@ -73,7 +73,8 @@ pub struct TextContext {
     pub upside_down: bool,
     pub line_spacing: u8,
     pub color: Color,
-    pub smoothing: bool
+    pub smoothing: bool,
+    pub tab_len: u8 //character width for tabs
 }
 
 #[derive(Clone)]
@@ -154,7 +155,8 @@ impl Context {
                 upside_down: false,
                 line_spacing: 15,
                 color: Color::Black,
-                smoothing: false
+                smoothing: false,
+                tab_len: 10
             },
             barcode: BarcodeContext {
                 human_readable: HumanReadableInterface::None,
