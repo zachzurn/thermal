@@ -15,10 +15,10 @@ struct Handler {
 impl CommandHandler for Handler {
     fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
         let stretch = match self.scaling {
-            0x01 => (1, 1),
-            0x02 => (2, 1),
-            0x03 => (1, 2),
-            0x04 => (2, 2),
+            0 | 48 => (1, 1),
+            1 | 49 => (2, 1),
+            2 | 50 => (1, 2),
+            3 | 52 => (2, 2),
             _ => (1, 1)
         };
 
@@ -35,22 +35,24 @@ impl CommandHandler for Handler {
         let data_len = data.len();
 
         if !self.accept_data {
-            if data_len <= 4 {
+            if data_len < 4 {
                 data.push(byte);
                 return true;
             }
-            self.scaling = *data.get(0).unwrap(); // 0x01 normal 0x02 double width  0x03  double height 0x04 quadruple
-            let w1 = *data.get(1).unwrap() as u32;
-            let w2 = *data.get(2).unwrap() as u32;
-            let h1 = *data.get(3).unwrap() as u32;
-            let h2 = byte as u32;
+            self.scaling = *data.get(0).unwrap();
+            let xl = *data.get(1).unwrap() as u32;
+            let xh = *data.get(2).unwrap() as u32;
+            let yl = *data.get(3).unwrap() as u32;
+            let yh = byte as u32;
 
-            self.width = w1 + w2 * 256;
-            self.height = h1 + h2 * 256;
+            self.width = xl + xh * 256;
+            self.height = yl + yh * 256;
             self.capacity = self.width * self.height;
+            self.width = self.width * 8;
 
             data.clear();
 
+            self.accept_data = true;
             return true;
         }
 
