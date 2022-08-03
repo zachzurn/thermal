@@ -68,7 +68,8 @@ impl Image {
         let mut bytes = Vec::<u8>::new();
 
         //number of bytes we need to use for the last column of each row of data
-        let padding = self.width % 8;
+        let mut padding = self.width % 8;
+        if padding == 0 { padding = 8; }
         let mut col = 0;
 
         for byte in &self.pixels {
