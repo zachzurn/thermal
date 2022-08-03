@@ -49,6 +49,7 @@ pub struct Image {
     pub height: u32,
     pub pixel_type: PixelType,
     pub stretch: (u8, u8),
+    pub advances_xy: bool,
 }
 
 impl Image {
@@ -95,8 +96,6 @@ impl Image {
     }
 
     pub fn from_raster_data(data: &Vec<u8>) -> Option<Image> {
-
-
         if data.len() < 8 { return None; };
 
         let a = *data.get(0).unwrap();
@@ -120,7 +119,7 @@ impl Image {
 
         let pixels = data[8..].to_vec();
 
-        Some(Image { pixels, width, height, pixel_type, stretch })
+        Some(Image { pixels, width, height, pixel_type, stretch, advances_xy: true })
     }
 
     pub fn from_raster_data_with_ref(data: &Vec<u8>, storage: ImageRefStorage) -> Option<(ImageRef, Image)> {
@@ -137,6 +136,9 @@ impl Image {
         let width = x1 as u32 + x2 as u32 * 256;
         let height = y1 as u32 + y2 as u32 * 256;
 
+        //b (above) specifies number of color data stored,
+        // we are ignoring this for now if b > 1
+        // [byte(color) bytes(capacity)] [byte(color) bytes(capacity)]
         let pixel_type = match a {
             48 => PixelType::Monochrome(1),
             52 => PixelType::MultipleTone(1, b),
@@ -147,17 +149,64 @@ impl Image {
 
         let pixels = data[8..].to_vec();
 
-        Some((ImageRef { kc1, kc2, storage }, Image { pixels, width, height, pixel_type, stretch }))
+        Some((ImageRef { kc1, kc2, storage }, Image { pixels, width, height, pixel_type, stretch, advances_xy: true }))
     }
 
-    pub fn from_table_data(_data: &Vec<u8>) -> Option<Image> {
-        //TODO
-        None
+    pub fn from_column_data(data: &Vec<u8>) -> Option<Image> {
+        if data.len() < 8 { return None; };
+
+        let a = *data.get(0).unwrap();
+        let bx = *data.get(1).unwrap();
+        let by = *data.get(2).unwrap();
+        let c = *data.get(3).unwrap();
+        let x1 = *data.get(4).unwrap();
+        let x2 = *data.get(5).unwrap();
+        let y1 = *data.get(6).unwrap();
+        let y2 = *data.get(7).unwrap();
+        let width = x1 as u32 + x2 as u32 * 256;
+        let height = y1 as u32 + y2 as u32 * 256;
+
+        let pixel_type = match a {
+            48 => PixelType::Monochrome(c),
+            52 => PixelType::MultipleTone(c, 1),
+            _ => PixelType::Unknown
+        };
+
+        let stretch = (bx, by);
+
+        let pixels = data[8..].to_vec();
+
+        Some(Image { pixels, width, height, pixel_type, stretch, advances_xy: false })
     }
 
-    pub fn from_table_data_with_ref(_data: &Vec<u8>, _storage: ImageRefStorage) -> Option<(ImageRef, Image)> {
-        //TODO
-        None
+    pub fn from_column_data_with_ref(data: &Vec<u8>, storage: ImageRefStorage) -> Option<(ImageRef, Image)> {
+        if data.len() < 8 { return None; };
+
+        let a = *data.get(0).unwrap();
+        let kc1 = *data.get(1).unwrap();
+        let kc2 = *data.get(2).unwrap();
+        let b = *data.get(3).unwrap();
+        let x1 = *data.get(4).unwrap();
+        let x2 = *data.get(5).unwrap();
+        let y1 = *data.get(6).unwrap();
+        let y2 = *data.get(7).unwrap();
+        let width = x1 as u32 + x2 as u32 * 256;
+        let height = y1 as u32 + y2 as u32 * 256;
+
+        //b (above) specifies number of color data stored,
+        // we are ignoring this for now if b > 1
+        // [byte(color) bytes(capacity)] [byte(color) bytes(capacity)]
+        let pixel_type = match a {
+            48 => PixelType::Monochrome(1),
+            52 => PixelType::MultipleTone(1, b),
+            _ => PixelType::Unknown
+        };
+
+        let stretch = (1, 1);
+
+        let pixels = data[8..].to_vec();
+
+        Some((ImageRef { kc1, kc2, storage }, Image { pixels, width, height, pixel_type, stretch, advances_xy: false }))
     }
 }
 

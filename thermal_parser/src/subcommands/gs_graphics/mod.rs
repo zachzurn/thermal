@@ -19,7 +19,7 @@ pub mod print_download_graphics;
 pub mod print_nv_graphic;
 pub mod set_dot_density;
 pub mod store_buffer_graphics_raster;
-pub mod store_buffer_graphics_table;
+pub mod store_buffer_graphics_column;
 
 pub fn all() -> Rc<Vec<Command>> {
     let all: Vec<Command> = vec![
@@ -41,7 +41,7 @@ pub fn all() -> Rc<Vec<Command>> {
         print_nv_graphic::new(),
         set_dot_density::new(),
         store_buffer_graphics_raster::new(),
-        store_buffer_graphics_table::new(),
+        store_buffer_graphics_column::new(),
     ];
 
     Rc::new(all)

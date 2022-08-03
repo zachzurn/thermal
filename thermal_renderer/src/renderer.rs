@@ -71,11 +71,13 @@ pub trait CommandRenderer {
                             }
                         }
                         GraphicsCommand::Image(image) => {
-                            context.graphics.x = context.graphics_x_offset(image.width) as usize;
+                            if image.advances_xy { context.graphics.x = context.graphics_x_offset(image.width) as usize; }
                             self.draw_image(context, image.as_grayscale(), image.width as usize, image.height as usize);
-                            context.graphics.x = 0;
-                            context.graphics.y += image.height as usize;
-                            context.graphics.y += context.line_height_pixels() as usize;
+                            if image.advances_xy {
+                                context.graphics.x = 0;
+                                context.graphics.y += image.height as usize;
+                                context.graphics.y += context.line_height_pixels() as usize;
+                            }
                         }
                         GraphicsCommand::Rectangle(_) => {}
                         GraphicsCommand::Line(_) => {}

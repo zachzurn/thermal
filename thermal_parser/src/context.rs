@@ -85,8 +85,8 @@ pub struct GraphicsContext {
     pub margin_left: f32,
     pub margin_right: f32,
     pub dots_per_inch: u16,
-    pub v_motion_unit: f32,
-    pub h_motion_unit: f32,
+    pub v_motion_unit: u8,
+    pub h_motion_unit: u8,
     pub graphics_count: u16,
     pub stored_graphics: HashMap<ImageRef, Image>,
     pub buffer_graphics: Option<Image>,
@@ -153,7 +153,7 @@ impl Context {
                 width_mult: 1,
                 height_mult: 1,
                 upside_down: false,
-                line_spacing: 15,
+                line_spacing: 30, //pixels
                 color: Color::Black,
                 smoothing: false,
                 tab_len: 10
@@ -197,8 +197,8 @@ impl Context {
                 margin_left: 0.15, //inches
                 margin_right: 0.15, //inches
                 dots_per_inch: 210, //pixels
-                v_motion_unit: 0.01, //inches
-                h_motion_unit: 0.01, //inches
+                v_motion_unit: 1, //Pixels
+                h_motion_unit: 1, //Pixels
                 graphics_count: 0,
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
                 buffer_graphics: None
@@ -260,14 +260,14 @@ impl Context {
     }
 
     pub fn motion_unit_y_pixels(&self) -> u32{
-        (self.graphics.v_motion_unit * self.graphics.dots_per_inch as f32) as u32
+        self.graphics.v_motion_unit as u32
     }
 
     pub fn motion_unit_x_pixels(&self) -> u32{
-        (self.graphics.h_motion_unit * self.graphics.dots_per_inch as f32) as u32
+        self.graphics.h_motion_unit as u32
     }
 
     pub fn line_height_pixels(&self) -> u32 {
-        (self.text.line_spacing as f32 * self.motion_unit_y_pixels() as f32) as u32
+        self.text.line_spacing as u32 * self.motion_unit_y_pixels() as u32
     }
 }

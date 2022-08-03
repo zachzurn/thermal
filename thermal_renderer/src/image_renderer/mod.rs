@@ -42,16 +42,24 @@ impl CommandRenderer for ImageRenderer {
     }
 
     fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize){
-        self.image.draw_rect(context.graphics.x as usize, context.graphics.y as usize, w, h);
+        self.image.draw_rect(context.graphics.x, context.graphics.y, w, h);
     }
     fn end_graphics(&mut self, _context: &mut Context){}
 
     fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize){
         self.maybe_render_text(context);
-        self.image.put_pixels(context.graphics.x, context.graphics.y, width, height, bytes, context.text.invert, true);
+        self.image.put_pixels(context.graphics.x, context.graphics.y, width, height, bytes, false, true);
+        if context.text.upside_down { self.image.flip_pixels(context.graphics.x, context.graphics.y, width, height) }
     }
 
     fn draw_text(&mut self, context: &mut Context, text: String){
+        //Here we are avoiding using text layout for single newlines
+        //by advancing the newline manually when the text layout is empty
+        if self.text_layout.is_none() && text.eq("\n") {
+            context.graphics.y += context.text.line_spacing as usize;
+            return;
+        }
+
         let span = TextSpan::new(self.image.font.clone(), text.to_string(), context);
 
         if self.text_layout.is_none() {

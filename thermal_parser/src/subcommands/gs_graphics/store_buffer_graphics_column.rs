@@ -5,7 +5,7 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        if let Some(img) = Image::from_table_data(&command.data) {
+        if let Some(img) = Image::from_column_data(&command.data) {
             context.graphics.buffer_graphics = Some(img)
         }
     }
