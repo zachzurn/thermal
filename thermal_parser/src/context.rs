@@ -142,7 +142,7 @@ impl Context {
             text: TextContext {
                 character_set: 0,
                 code_table: 0,
-                font_size: 11,
+                font_size: 10,
                 justify: TextJustify::Left,
                 font: Font::A,
                 bold: false,
@@ -194,8 +194,8 @@ impl Context {
                 x: 0,
                 y: 0,
                 paper_width: 3.0, //inches
-                margin_left: 0.15, //inches
-                margin_right: 0.15, //inches
+                margin_left: 0.1, //inches
+                margin_right: 0.1, //inches
                 dots_per_inch: 210, //pixels
                 v_motion_unit: 1, //Pixels
                 h_motion_unit: 1, //Pixels

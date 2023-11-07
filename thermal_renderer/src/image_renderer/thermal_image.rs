@@ -203,7 +203,7 @@ impl ThermalImage {
             }
 
             for word in &line {
-                let (w,_) = self.render_word(word.2, new_y, word.1.as_str(), word.0);
+                let (w,_) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
                 new_x += w;
             }
             new_x = x;
@@ -239,7 +239,6 @@ impl ThermalImage {
                 continue;
             }
 
-            //This may need some adjustment, seems like at small sizes the letters don't line up properly (specifically the i)
             let y_offset = f32::ceil((baseline - metrics.bounds.height) + (-1.0 * metrics.bounds.ymin)) as usize;
             let x_offset = cur_x + metrics.bounds.xmin.round().abs() as usize;
 
