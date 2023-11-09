@@ -14,7 +14,7 @@ impl CommandHandler for Handler {
 
         //bit 1,2,3 masked and shifted all the way to the right // ***
         //01010101 -> 01010000 -> 00000101
-        context.text.width_mult = ((0b01110000 & n)>>4) + 1;
+        context.text.width_mult = ((0b01110000 & n) >> 4) + 1;
     }
 }
 

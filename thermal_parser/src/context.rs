@@ -1,20 +1,38 @@
-use std::collections::HashMap;
 use crate::graphics;
+use std::collections::HashMap;
 
 use crate::graphics::{Image, ImageRef};
 
 #[derive(Clone)]
-pub enum TextJustify { Left, Center, Right }
+pub enum TextJustify {
+    Left,
+    Center,
+    Right,
+}
 
 #[derive(Clone, PartialEq)]
-pub enum TextStrikethrough { Off, On, Double }
+pub enum TextStrikethrough {
+    Off,
+    On,
+    Double,
+}
 
 #[derive(Clone, PartialEq)]
-pub enum TextUnderline { Off, On, Double }
+pub enum TextUnderline {
+    Off,
+    On,
+    Double,
+}
 
 #[derive(Clone)]
 pub enum Font {
-    A, B, C, D, E, SpecialA, SpecialB,
+    A,
+    B,
+    C,
+    D,
+    E,
+    SpecialA,
+    SpecialB,
 }
 
 impl Font {
@@ -27,7 +45,7 @@ impl Font {
             4 | 52 => Font::E,
             97 => Font::SpecialA,
             98 => Font::SpecialB,
-            _ => Font::A
+            _ => Font::A,
         }
     }
 }
@@ -41,11 +59,10 @@ pub enum HumanReadableInterface {
 }
 
 #[derive(Clone)]
-pub enum Color{
+pub enum Color {
     Black,
-    Red
+    Red,
 }
-
 
 #[derive(Clone)]
 pub struct Context {
@@ -74,7 +91,7 @@ pub struct TextContext {
     pub line_spacing: u8,
     pub color: Color,
     pub smoothing: bool,
-    pub tab_len: u8 //character width for tabs
+    pub tab_len: u8, //character width for tabs
 }
 
 #[derive(Clone)]
@@ -137,7 +154,7 @@ pub struct Code2DContext {
 
 impl Context {
     fn default() -> Context {
-        Context{
+        Context {
             default: None,
             text: TextContext {
                 character_set: 0,
@@ -156,7 +173,7 @@ impl Context {
                 line_spacing: 30, //pixels
                 color: Color::Black,
                 smoothing: false,
-                tab_len: 10
+                tab_len: 10,
             },
             barcode: BarcodeContext {
                 human_readable: HumanReadableInterface::None,
@@ -193,16 +210,16 @@ impl Context {
             graphics: GraphicsContext {
                 x: 0,
                 y: 0,
-                paper_width: 3.0, //inches
-                margin_left: 0.1, //inches
-                margin_right: 0.1, //inches
+                paper_width: 3.0,   //inches
+                margin_left: 0.1,   //inches
+                margin_right: 0.1,  //inches
                 dots_per_inch: 210, //pixels
-                v_motion_unit: 1, //Pixels
-                h_motion_unit: 1, //Pixels
+                v_motion_unit: 1,   //Pixels
+                h_motion_unit: 1,   //Pixels
                 graphics_count: 0,
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
-                buffer_graphics: None
-            }
+                buffer_graphics: None,
+            },
         }
     }
 
@@ -222,8 +239,9 @@ impl Context {
         }
     }
 
-    pub fn available_width_pixels(&self) -> u32{
-        let print_area = self.graphics.paper_width - (self.graphics.margin_left + self.graphics.margin_right);
+    pub fn available_width_pixels(&self) -> u32 {
+        let print_area =
+            self.graphics.paper_width - (self.graphics.margin_left + self.graphics.margin_right);
         let print_area_pixels = print_area * self.graphics.dots_per_inch as f32;
         print_area_pixels.round() as u32
     }
@@ -240,7 +258,9 @@ impl Context {
     }
 
     pub fn graphics_x_offset(&self, width: u32) -> u32 {
-        if width > self.available_width_pixels() { return 0 }
+        if width > self.available_width_pixels() {
+            return 0;
+        }
         match self.text.justify {
             TextJustify::Center => {
                 let center_remaining = self.available_width_pixels() - width;
@@ -250,20 +270,16 @@ impl Context {
                     0
                 }
             }
-            TextJustify::Right => {
-                self.available_width_pixels() - width
-            }
-            _ => {
-                0
-            }
+            TextJustify::Right => self.available_width_pixels() - width,
+            _ => 0,
         }
     }
 
-    pub fn motion_unit_y_pixels(&self) -> u32{
+    pub fn motion_unit_y_pixels(&self) -> u32 {
         self.graphics.v_motion_unit as u32
     }
 
-    pub fn motion_unit_x_pixels(&self) -> u32{
+    pub fn motion_unit_x_pixels(&self) -> u32 {
         self.graphics.h_motion_unit as u32
     }
 

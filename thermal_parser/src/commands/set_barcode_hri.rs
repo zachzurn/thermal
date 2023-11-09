@@ -10,7 +10,7 @@ impl CommandHandler for Handler {
             1 | 49 => HumanReadableInterface::Above,
             2 | 50 => HumanReadableInterface::Below,
             3 | 51 => HumanReadableInterface::Both,
-            _ => HumanReadableInterface::None
+            _ => HumanReadableInterface::None,
         }
     }
 }

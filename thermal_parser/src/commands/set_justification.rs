@@ -10,7 +10,7 @@ impl CommandHandler for Handler {
             0 | 48 => TextJustify::Left,
             1 | 49 => TextJustify::Center,
             2 | 50 => TextJustify::Right,
-            _ => TextJustify::Left
+            _ => TextJustify::Left,
         }
     }
 }

@@ -6,7 +6,9 @@ pub struct Handler;
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         let n = *command.data.get(0).unwrap_or(&1u8);
-        if n < 2 || n > 16 { return; }
+        if n < 2 || n > 16 {
+            return;
+        }
         context.code2d.aztec_size = n;
     }
 }

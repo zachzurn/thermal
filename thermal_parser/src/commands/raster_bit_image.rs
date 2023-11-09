@@ -19,7 +19,7 @@ impl CommandHandler for Handler {
             1 | 49 => (2, 1),
             2 | 50 => (1, 2),
             3 | 52 => (2, 2),
-            _ => (1, 1)
+            _ => (1, 1),
         };
 
         //possibly implement scaling here
@@ -29,7 +29,7 @@ impl CommandHandler for Handler {
             height: self.height,
             pixel_type: PixelType::Monochrome(1),
             stretch,
-            advances_xy: true
+            advances_xy: true,
         }))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
@@ -57,7 +57,9 @@ impl CommandHandler for Handler {
             return true;
         }
 
-        if data_len >= self.capacity as usize { return false; }
+        if data_len >= self.capacity as usize {
+            return false;
+        }
         data.push(byte);
         true
     }

@@ -59,7 +59,9 @@ impl Image {
 
         let mut data: Vec<u8> = vec![0x50, 0x34, 0x0A];
 
-        for b in dimbytes { data.push(*b) }
+        for b in dimbytes {
+            data.push(*b)
+        }
 
         data.extend(self.pixels.clone());
         data
@@ -70,7 +72,9 @@ impl Image {
 
         //number of bytes we need to use for the last column of each row of data
         let mut padding = self.width % 8;
-        if padding == 0 { padding = 8; }
+        if padding == 0 {
+            padding = 8;
+        }
         let mut col = 0;
 
         for byte in &self.pixels {
@@ -96,7 +100,9 @@ impl Image {
     }
 
     pub fn from_raster_data(data: &Vec<u8>) -> Option<Image> {
-        if data.len() < 8 { return None; };
+        if data.len() < 8 {
+            return None;
+        };
 
         let a = *data.get(0).unwrap();
         let bx = *data.get(1).unwrap();
@@ -112,18 +118,30 @@ impl Image {
         let pixel_type = match a {
             48 => PixelType::Monochrome(c),
             52 => PixelType::MultipleTone(c, 1),
-            _ => PixelType::Unknown
+            _ => PixelType::Unknown,
         };
 
         let stretch = (bx, by);
 
         let pixels = data[8..].to_vec();
 
-        Some(Image { pixels, width, height, pixel_type, stretch, advances_xy: true })
+        Some(Image {
+            pixels,
+            width,
+            height,
+            pixel_type,
+            stretch,
+            advances_xy: true,
+        })
     }
 
-    pub fn from_raster_data_with_ref(data: &Vec<u8>, storage: ImageRefStorage) -> Option<(ImageRef, Image)> {
-        if data.len() < 8 { return None; };
+    pub fn from_raster_data_with_ref(
+        data: &Vec<u8>,
+        storage: ImageRefStorage,
+    ) -> Option<(ImageRef, Image)> {
+        if data.len() < 8 {
+            return None;
+        };
 
         let a = *data.get(0).unwrap();
         let kc1 = *data.get(1).unwrap();
@@ -142,18 +160,30 @@ impl Image {
         let pixel_type = match a {
             48 => PixelType::Monochrome(1),
             52 => PixelType::MultipleTone(1, b),
-            _ => PixelType::Unknown
+            _ => PixelType::Unknown,
         };
 
         let stretch = (1, 1);
 
         let pixels = data[8..].to_vec();
 
-        Some((ImageRef { kc1, kc2, storage }, Image { pixels, width, height, pixel_type, stretch, advances_xy: true }))
+        Some((
+            ImageRef { kc1, kc2, storage },
+            Image {
+                pixels,
+                width,
+                height,
+                pixel_type,
+                stretch,
+                advances_xy: true,
+            },
+        ))
     }
 
     pub fn from_column_data(data: &Vec<u8>) -> Option<Image> {
-        if data.len() < 8 { return None; };
+        if data.len() < 8 {
+            return None;
+        };
 
         let a = *data.get(0).unwrap();
         let bx = *data.get(1).unwrap();
@@ -169,18 +199,30 @@ impl Image {
         let pixel_type = match a {
             48 => PixelType::Monochrome(c),
             52 => PixelType::MultipleTone(c, 1),
-            _ => PixelType::Unknown
+            _ => PixelType::Unknown,
         };
 
         let stretch = (bx, by);
 
         let pixels = data[8..].to_vec();
 
-        Some(Image { pixels, width, height, pixel_type, stretch, advances_xy: false })
+        Some(Image {
+            pixels,
+            width,
+            height,
+            pixel_type,
+            stretch,
+            advances_xy: false,
+        })
     }
 
-    pub fn from_column_data_with_ref(data: &Vec<u8>, storage: ImageRefStorage) -> Option<(ImageRef, Image)> {
-        if data.len() < 8 { return None; };
+    pub fn from_column_data_with_ref(
+        data: &Vec<u8>,
+        storage: ImageRefStorage,
+    ) -> Option<(ImageRef, Image)> {
+        if data.len() < 8 {
+            return None;
+        };
 
         let a = *data.get(0).unwrap();
         let kc1 = *data.get(1).unwrap();
@@ -199,14 +241,24 @@ impl Image {
         let pixel_type = match a {
             48 => PixelType::Monochrome(1),
             52 => PixelType::MultipleTone(1, b),
-            _ => PixelType::Unknown
+            _ => PixelType::Unknown,
         };
 
         let stretch = (1, 1);
 
         let pixels = data[8..].to_vec();
 
-        Some((ImageRef { kc1, kc2, storage }, Image { pixels, width, height, pixel_type, stretch, advances_xy: false }))
+        Some((
+            ImageRef { kc1, kc2, storage },
+            Image {
+                pixels,
+                width,
+                height,
+                pixel_type,
+                stretch,
+                advances_xy: false,
+            },
+        ))
     }
 }
 
@@ -221,7 +273,9 @@ pub struct ImageRef {
 
 impl ImageRef {
     pub fn from_data(data: &Vec<u8>, storage: ImageRefStorage) -> Option<ImageRef> {
-        if data.len() < 2 { return None; }
+        if data.len() < 2 {
+            return None;
+        }
         Some(ImageRef {
             kc1: *data.get(0).unwrap(),
             kc2: *data.get(1).unwrap(),

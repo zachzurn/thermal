@@ -29,7 +29,9 @@ impl CommandHandler for Handler {
                     rows = d2;
                 }
             }
-            _ => { return; }
+            _ => {
+                return;
+            }
         }
 
         context.code2d.datamatrix_rows = rows;

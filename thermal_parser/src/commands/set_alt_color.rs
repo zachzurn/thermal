@@ -8,7 +8,7 @@ impl CommandHandler for Handler {
         let n = *command.data.get(0).unwrap_or(&0u8);
         context.text.color = match n {
             1 | 49 => Color::Red,
-            _ => Color::Black
+            _ => Color::Black,
         }
     }
 }

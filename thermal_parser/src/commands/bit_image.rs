@@ -7,7 +7,7 @@ struct Handler {
     capacity: u32,
     size: u32,
     accept_data: bool,
-    stretch: (u8, u8)
+    stretch: (u8, u8),
 }
 
 impl CommandHandler for Handler {
@@ -18,14 +18,16 @@ impl CommandHandler for Handler {
             height: self.height,
             pixel_type: PixelType::Monochrome(0),
             stretch: self.stretch,
-            advances_xy: false
+            advances_xy: false,
         }))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
         let data_len = data.len();
 
         if self.accept_data {
-            if self.size >= self.capacity { return false; }
+            if self.size >= self.capacity {
+                return false;
+            }
 
             data.push(byte);
 
@@ -54,7 +56,7 @@ impl CommandHandler for Handler {
         }
 
         if m == 1 || m == 33 {
-            self.stretch = (2,2);
+            self.stretch = (2, 2);
         }
 
         self.accept_data = true;
@@ -75,7 +77,7 @@ pub fn new() -> Command {
             capacity: 0,
             size: 0,
             accept_data: false,
-            stretch: (1,1)
+            stretch: (1, 1),
         }),
     )
 }

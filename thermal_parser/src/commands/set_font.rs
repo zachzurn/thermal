@@ -13,7 +13,6 @@ impl CommandHandler for Handler {
         } else {
             context.text.font_size = context.text.font_size - 2;
         }
-
     }
 }
 

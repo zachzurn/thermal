@@ -1,15 +1,15 @@
-use std::mem;
-use crate::{command::Command, command_sets::*};
 use crate::command::CommandType;
+use crate::{command::Command, command_sets::*};
+use std::mem;
 
-pub struct Parser{
+pub struct Parser {
     cmd_set: CommandSet,
     match_depth: u8,
     command_matches: Vec<Command>,
     current_command: Option<Command>,
     current_command_is_default: bool,
     command_buffer: Vec<u8>,
-    on_command_found: Box<dyn FnMut(Command)>
+    on_command_found: Box<dyn FnMut(Command)>,
 }
 
 impl Parser {
@@ -21,11 +21,11 @@ impl Parser {
             current_command_is_default: false,
             command_buffer: Vec::<u8>::new(),
             current_command: None,
-            on_command_found
+            on_command_found,
         }
     }
 
-    pub fn parse_bytes(&mut self, bytes: &Vec<u8>){
+    pub fn parse_bytes(&mut self, bytes: &Vec<u8>) {
         self.emit_command(self.cmd_set.begin_parsing.clone());
 
         for byte in bytes {
@@ -48,11 +48,11 @@ impl Parser {
         self.current_command_is_default = false;
     }
 
-    fn emit_command(&mut self,mut cmd: Command){
+    fn emit_command(&mut self, mut cmd: Command) {
         if cmd.kind == CommandType::Subcommand {
-            let command= &mut cmd;
+            let command = &mut cmd;
 
-            if let Some(subcommand) = command.handler.get_subcommand(){
+            if let Some(subcommand) = command.handler.get_subcommand() {
                 (self.on_command_found)(subcommand)
             }
         } else {
@@ -65,7 +65,9 @@ impl Parser {
         // default command, we don't need to do any filtering
         if self.match_depth == 0 && !self.current_command_is_default {
             if let Some(cmd) = &mut self.current_command {
-                if cmd.push(*byte) { return };
+                if cmd.push(*byte) {
+                    return;
+                };
             }
         }
 
@@ -74,11 +76,17 @@ impl Parser {
 
         //Look for matching commands
         let mut new_command_matches: Vec<Command> = Vec::with_capacity(0);
-        let subset = if self.match_depth == 0 { &self.cmd_set.commands } else { &self.command_matches };
+        let subset = if self.match_depth == 0 {
+            &self.cmd_set.commands
+        } else {
+            &self.command_matches
+        };
 
         for cmd in subset.iter() {
             if let Some(b) = cmd.commands.get(self.match_depth as usize) {
-                if b == byte { new_command_matches.push(cmd.clone()) }
+                if b == byte {
+                    new_command_matches.push(cmd.clone())
+                }
             }
         }
 
@@ -90,7 +98,7 @@ impl Parser {
                 //Here we make sure all command bytes are matched
                 if matched_command.commands.len() - 1 != self.match_depth as usize {
                     self.match_depth += 1;
-                    return
+                    return;
                 }
 
                 self.current_command_is_default = false;
@@ -104,7 +112,7 @@ impl Parser {
                     self.emit_command(new_cmd_unwrapped);
                 }
             }
-            return
+            return;
         }
 
         //If the matched command set is empty we either make a new default command
@@ -112,13 +120,19 @@ impl Parser {
         if self.command_matches.is_empty() {
             let mut new_cmd = None;
 
-            if self.command_buffer.len() > 0 && self.cmd_set.unknown.commands.contains(self.command_buffer.first().unwrap()) {
+            if self.command_buffer.len() > 0
+                && self
+                    .cmd_set
+                    .unknown
+                    .commands
+                    .contains(self.command_buffer.first().unwrap())
+            {
                 let mut unknown_command = self.cmd_set.unknown.clone();
                 unknown_command.data = self.command_buffer.clone();
                 unknown_command.data.push(*byte);
                 new_cmd = Some(unknown_command);
             } else if self.current_command_is_default {
-                if let Some(cmd) = &mut self.current_command{
+                if let Some(cmd) = &mut self.current_command {
                     cmd.push(*byte);
                 }
             } else {
@@ -131,13 +145,13 @@ impl Parser {
             self.current_command_is_default = true;
             self.match_depth = 0;
 
-            if new_cmd.is_some(){
+            if new_cmd.is_some() {
                 mem::swap(&mut self.current_command, &mut new_cmd);
                 self.emit_command(new_cmd.unwrap()); //new_command has become the previous command after the swap
                 return;
             }
 
-            return
+            return;
         }
         self.match_depth += 1;
     }

@@ -10,7 +10,7 @@ impl CommandHandler for Handler {
             0 | 48 => context.text.underline = TextUnderline::Off,
             1 | 49 => context.text.underline = TextUnderline::On,
             2 | 50 => context.text.underline = TextUnderline::Double,
-            _ => context.text.underline = TextUnderline::Off
+            _ => context.text.underline = TextUnderline::Off,
         }
     }
 }

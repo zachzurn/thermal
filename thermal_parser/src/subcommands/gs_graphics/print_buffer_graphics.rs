@@ -6,11 +6,9 @@ pub struct Handler;
 impl CommandHandler for Handler {
     fn get_graphics(&self, _command: &Command, context: &Context) -> Option<GraphicsCommand> {
         return match &context.graphics.buffer_graphics {
-            Some(img) => {
-                Some(GraphicsCommand::Image(img.clone()))
-            }
-            None => None
-        }
+            Some(img) => Some(GraphicsCommand::Image(img.clone())),
+            None => None,
+        };
     }
 }
 

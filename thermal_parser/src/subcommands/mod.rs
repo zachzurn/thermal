@@ -30,7 +30,9 @@ impl SubCommandHandler {
     fn detect_kind_use_m(&mut self) {
         for c in self.commands.iter() {
             if let Some(first_char) = c.commands.get(0) {
-                if *first_char != self.m { continue; }
+                if *first_char != self.m {
+                    continue;
+                }
             }
 
             for (pos, byte) in c.commands.iter().enumerate() {
@@ -53,13 +55,18 @@ impl SubCommandHandler {
         }
 
         if data_len == 6 {
-            self.capacity = data[0] as u32 + data[1] as u32 * 256 + data[2] as u32 * 65536 + data[3] as u32;
+            self.capacity =
+                data[0] as u32 + data[1] as u32 * 256 + data[2] as u32 * 65536 + data[3] as u32;
             self.capacity -= 2;
             self.m = *data.get(4).unwrap();
             self.subcommand_id = *data.get(5).unwrap();
         }
 
-        if self.use_m { self.detect_kind_use_m() } else { self.detect_kind() }
+        if self.use_m {
+            self.detect_kind_use_m()
+        } else {
+            self.detect_kind()
+        }
         self.accept_data = true;
     }
 }
@@ -134,7 +141,7 @@ impl CommandHandler for SubCommandHandler {
         //swap subcommand
         let mut subcommand = None;
         mem::swap(&mut self.subcommand, &mut subcommand);
-        return subcommand
+        return subcommand;
     }
 }
 

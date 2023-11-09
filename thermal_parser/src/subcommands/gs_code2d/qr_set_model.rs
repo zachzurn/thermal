@@ -8,7 +8,9 @@ impl CommandHandler for Handler {
         let n1 = *command.data.get(0).unwrap_or(&49u8);
         let _n2 = *command.data.get(1).unwrap_or(&0u8);
         let mut model = n1 - 48;
-        if model == 3 { model = 0 }
+        if model == 3 {
+            model = 0
+        }
 
         //0 = micro
         //1 = model 1

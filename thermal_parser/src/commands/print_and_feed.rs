@@ -4,7 +4,11 @@ use crate::{command::*, constants::*, context::*};
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn get_device_command(&self, command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
+    fn get_device_command(
+        &self,
+        command: &Command,
+        _context: &Context,
+    ) -> Option<Vec<DeviceCommand>> {
         let n = *command.data.get(0).unwrap_or(&0u8);
         Some(vec![DeviceCommand::Feed(n as i16)])
     }

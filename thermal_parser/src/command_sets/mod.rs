@@ -1,4 +1,4 @@
-use crate::{command::*};
+use crate::command::*;
 
 pub struct CommandSet {
     //list of supported commands
@@ -10,7 +10,7 @@ pub struct CommandSet {
 
     //Used for indicating the beginning end ending of parsing
     pub begin_parsing: Command,
-    pub end_parsing: Command
+    pub end_parsing: Command,
 }
 
 pub mod esc_pos;

@@ -14,14 +14,30 @@ impl CommandHandler for Handler {
         //Ratio based error correction
         if m == 49 {
             let a = codeword_count as f32 * n as f32 * 0.01;
-            if a < 4f32 { level = 1 }
-            if a < 11f32 { level = 2 }
-            if a < 21f32 { level = 3 }
-            if a < 46f32 { level = 4 }
-            if a < 101f32 { level = 5 }
-            if a < 201f32 { level = 6 }
-            if a < 401f32 { level = 7 }
-            if a > 400f32 { level = 8 }
+            if a < 4f32 {
+                level = 1
+            }
+            if a < 11f32 {
+                level = 2
+            }
+            if a < 21f32 {
+                level = 3
+            }
+            if a < 46f32 {
+                level = 4
+            }
+            if a < 101f32 {
+                level = 5
+            }
+            if a < 201f32 {
+                level = 6
+            }
+            if a < 401f32 {
+                level = 7
+            }
+            if a > 400f32 {
+                level = 8
+            }
         }
 
         context.code2d.pdf417_err_correction = level;

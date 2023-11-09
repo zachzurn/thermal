@@ -40,7 +40,7 @@ pub fn new() -> CommandSet {
         set_international_charset::new(),
         set_italic_off::new(), //NOT part of ESCPOS - not a truly valid esc/pos command but it doesn't conflict with anything in the spec
         set_italic_off_2::new(), //NOT part of ESCPOS
-        set_italic_on::new(), //NOT part of ESCPOS
+        set_italic_on::new(),  //NOT part of ESCPOS
         set_italic_on_2::new(), //NOT part of ESCPOS
         set_justification::new(),
         set_line_spacing::new(),

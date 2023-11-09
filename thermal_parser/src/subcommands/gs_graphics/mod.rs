@@ -18,8 +18,8 @@ pub mod print_buffer_graphics;
 pub mod print_download_graphics;
 pub mod print_nv_graphic;
 pub mod set_dot_density;
-pub mod store_buffer_graphics_raster;
 pub mod store_buffer_graphics_column;
+pub mod store_buffer_graphics_raster;
 
 pub fn all() -> Rc<Vec<Command>> {
     let all: Vec<Command> = vec![

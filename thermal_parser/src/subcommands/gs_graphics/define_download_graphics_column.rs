@@ -5,7 +5,9 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        if let Some((img_ref, img)) = Image::from_column_data_with_ref(&command.data, ImageRefStorage::Ram) {
+        if let Some((img_ref, img)) =
+            Image::from_column_data_with_ref(&command.data, ImageRefStorage::Ram)
+        {
             context.graphics.stored_graphics.insert(img_ref, img);
         }
     }

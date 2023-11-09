@@ -4,7 +4,11 @@ use crate::{command::*, constants::*, context::*};
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
+    fn get_device_command(
+        &self,
+        _command: &Command,
+        _context: &Context,
+    ) -> Option<Vec<DeviceCommand>> {
         Some(vec![DeviceCommand::Cancel])
     }
 }

@@ -9,7 +9,7 @@ impl CommandHandler for Handler {
             Some(code2d) => {
                 return Some(GraphicsCommand::Code2D(code2d.clone()));
             }
-            None => return None
+            None => return None,
         }
     }
 }

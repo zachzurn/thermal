@@ -60,47 +60,98 @@ impl CommandHandler for BarcodeHandler {
         match self.kind {
             BarcodeType::Code128 => {
                 //all code128 data has two bytes that set the type, we are converting this to the barcoders format
-                let adjusted_data = data.replace("{A", "À").replace("{B", "Ɓ").replace("{C", "Ć");
+                let adjusted_data = data
+                    .replace("{A", "À")
+                    .replace("{B", "Ɓ")
+                    .replace("{C", "Ć");
                 if let Ok(barcode) = Code128::new(adjusted_data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode { points: barcode.encode(), text: adjusted_data, point_width, point_height, hri }));
+                    return Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: adjusted_data,
+                        point_width,
+                        point_height,
+                        hri,
+                    }));
                 }
             }
             BarcodeType::Nw7Codabar => {
                 if let Ok(barcode) = Codabar::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode { points: barcode.encode(), text: data.to_string(), point_width, point_height, hri }));
+                    return Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: data.to_string(),
+                        point_width,
+                        point_height,
+                        hri,
+                    }));
                 }
             }
             BarcodeType::Code39 => {
                 if let Ok(barcode) = Code39::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode { points: barcode.encode(), text: data.to_string(), point_width, point_height, hri }));
+                    return Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: data.to_string(),
+                        point_width,
+                        point_height,
+                        hri,
+                    }));
                 }
             }
             BarcodeType::Code93 => {
                 if let Ok(barcode) = Code93::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode { points: barcode.encode(), text: data.to_string(), point_width, point_height, hri }));
+                    return Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: data.to_string(),
+                        point_width,
+                        point_height,
+                        hri,
+                    }));
                 }
             }
             BarcodeType::Ean13 => {
                 if let Ok(barcode) = EAN13::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode { points: barcode.encode(), text: data.to_string(), point_width, point_height, hri }));
+                    return Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: data.to_string(),
+                        point_width,
+                        point_height,
+                        hri,
+                    }));
                 }
             }
             BarcodeType::UpcA => {
                 if let Ok(barcode) = UPCA::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode { points: barcode.encode(), text: data.to_string(), point_width, point_height, hri }));
+                    return Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: data.to_string(),
+                        point_width,
+                        point_height,
+                        hri,
+                    }));
                 }
             }
             BarcodeType::Ean8 => {
                 if let Ok(barcode) = EAN8::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode { points: barcode.encode(), text: data.to_string(), point_width, point_height, hri }));
+                    return Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: data.to_string(),
+                        point_width,
+                        point_height,
+                        hri,
+                    }));
                 }
             }
             BarcodeType::Itf => {
                 if let Ok(barcode) = TF::interleaved(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode { points: barcode.encode(), text: data.to_string(), point_width, point_height, hri }));
+                    return Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: data.to_string(),
+                        point_width,
+                        point_height,
+                        hri,
+                    }));
                 }
             }
-            _ => return None
+            _ => return None,
         }
         None
     }
@@ -132,9 +183,17 @@ impl CommandHandler for BarcodeHandler {
         };
 
         if matches!(self.kind, BarcodeType::Unknown) {
-            return format!("Unknown Barcode Format with {} encoding and a type id of {} and data {:02X?}", encoding_str, self.kind_id, command.data);
+            return format!(
+                "Unknown Barcode Format with {} encoding and a type id of {} and data {:02X?}",
+                encoding_str, self.kind_id, command.data
+            );
         }
-        format!("{} Barcode with {} bytes: {}", type_str, command.data.len(), from_utf8(&command.data as &[u8]).unwrap_or("[No Data]"))
+        format!(
+            "{} Barcode with {} bytes: {}",
+            type_str,
+            command.data.len(),
+            from_utf8(&command.data as &[u8]).unwrap_or("[No Data]")
+        )
     }
 
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
@@ -159,11 +218,17 @@ impl CommandHandler for BarcodeHandler {
                 83 => BarcodeType::Gs1DatabarLimited,
                 84 => BarcodeType::Gs1DatabarExpanded,
                 85 => BarcodeType::Code128Auto,
-                _ => BarcodeType::Unknown
+                _ => BarcodeType::Unknown,
             };
 
             //I'm seeing some conflicting implementations for function definitions
-            if byte <= 6 { self.encoding = EncodingFunction::NulTerminated; } else if byte >= 65 && byte <= 79 { self.encoding = EncodingFunction::ExplicitSize; } else { self.encoding = EncodingFunction::Unknown }
+            if byte <= 6 {
+                self.encoding = EncodingFunction::NulTerminated;
+            } else if byte >= 65 && byte <= 79 {
+                self.encoding = EncodingFunction::ExplicitSize;
+            } else {
+                self.encoding = EncodingFunction::Unknown
+            }
             self.accept_data = true;
 
             return true;
@@ -196,17 +261,17 @@ impl CommandHandler for BarcodeHandler {
 
 pub fn new() -> Command {
     Command::new(
-      "Barcode",
-      vec![GS, 'k' as u8],
-      CommandType::Graphics,
-      DataType::Custom,
-      Box::new(BarcodeHandler {
+        "Barcode",
+        vec![GS, 'k' as u8],
+        CommandType::Graphics,
+        DataType::Custom,
+        Box::new(BarcodeHandler {
             kind: BarcodeType::Unknown,
             kind_id: 0,
             encoding: EncodingFunction::Unknown,
             capacity: 0,
             has_capacity: false,
             accept_data: false,
-      }),
+        }),
     )
 }

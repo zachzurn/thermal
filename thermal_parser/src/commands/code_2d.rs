@@ -3,10 +3,10 @@ use crate::{command::*, constants::*, subcommands};
 
 pub fn new() -> Command {
     Command::new(
-      "QR Code",
-      vec![GS, '(' as u8, 'k' as u8],
-      CommandType::Subcommand,
-      DataType::Custom,
-      subcommands::new(false, true, subcommands::gs_code2d::all()),
+        "QR Code",
+        vec![GS, '(' as u8, 'k' as u8],
+        CommandType::Subcommand,
+        DataType::Custom,
+        subcommands::new(false, true, subcommands::gs_code2d::all()),
     )
 }

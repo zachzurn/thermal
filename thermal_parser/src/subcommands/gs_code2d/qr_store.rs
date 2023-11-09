@@ -8,18 +8,17 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-
         let data = command.data.to_owned();
-        let version = match context.code2d.qr_model{
+        let version = match context.code2d.qr_model {
             0 => Version::Micro(4),
             1 => Version::Normal(4),
-            _ => Version::Normal(4)
+            _ => Version::Normal(4),
         };
         let error_correction = match context.code2d.qr_err_correction {
             1 => EcLevel::M,
             2 => EcLevel::Q,
             3 => EcLevel::H,
-            _ => EcLevel::L
+            _ => EcLevel::L,
         };
 
         let result = QrCode::with_version(data, version, error_correction);
@@ -38,7 +37,7 @@ impl CommandHandler for Handler {
                     points: converted_points,
                     width: qr.width() as u32,
                     point_width: context.code2d.qr_size as u32,
-                    point_height: context.code2d.qr_size as u32
+                    point_height: context.code2d.qr_size as u32,
                 };
 
                 context.code2d.symbol_storage = Some(qrcode);

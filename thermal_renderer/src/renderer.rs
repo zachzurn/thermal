@@ -22,7 +22,9 @@ pub trait CommandRenderer {
                             self.begin_graphics(context);
 
                             let mut i = 1;
-                            let origin_x = context.graphics_x_offset((code_2d.points.len() * code_2d.point_width as usize) as u32) as usize;
+                            let origin_x = context.graphics_x_offset(
+                                (code_2d.points.len() * code_2d.point_width as usize) as u32,
+                            ) as usize;
 
                             for p in code_2d.points {
                                 if i != 1 && i % code_2d.width == 1 {
@@ -30,7 +32,13 @@ pub trait CommandRenderer {
                                     context.graphics.y += code_2d.point_height as usize;
                                 }
 
-                                if p > 0 { self.draw_rect(context, code_2d.point_width as usize, code_2d.point_height as usize) }
+                                if p > 0 {
+                                    self.draw_rect(
+                                        context,
+                                        code_2d.point_width as usize,
+                                        code_2d.point_height as usize,
+                                    )
+                                }
                                 context.graphics.x += code_2d.point_width as usize;
                                 i += 1;
                             }
@@ -40,7 +48,6 @@ pub trait CommandRenderer {
                             self.end_graphics(context);
                         }
                         GraphicsCommand::Barcode(barcode) => {
-
                             match context.barcode.human_readable {
                                 HumanReadableInterface::Above | HumanReadableInterface::Both => {
                                     self.draw_text(context, barcode.text.to_string());
@@ -50,10 +57,18 @@ pub trait CommandRenderer {
 
                             self.begin_graphics(context);
 
-                            context.graphics.x = context.graphics_x_offset((barcode.points.len() * barcode.point_width as usize) as u32) as usize;
+                            context.graphics.x = context.graphics_x_offset(
+                                (barcode.points.len() * barcode.point_width as usize) as u32,
+                            ) as usize;
 
                             for p in barcode.points {
-                                if p > 0 { self.draw_rect(context, barcode.point_width as usize, barcode.point_height as usize) }
+                                if p > 0 {
+                                    self.draw_rect(
+                                        context,
+                                        barcode.point_width as usize,
+                                        barcode.point_height as usize,
+                                    )
+                                }
                                 context.graphics.x += barcode.point_width as usize;
                             }
 
@@ -71,8 +86,16 @@ pub trait CommandRenderer {
                             }
                         }
                         GraphicsCommand::Image(image) => {
-                            if image.advances_xy { context.graphics.x = context.graphics_x_offset(image.width) as usize; }
-                            self.draw_image(context, image.as_grayscale(), image.width as usize, image.height as usize);
+                            if image.advances_xy {
+                                context.graphics.x =
+                                    context.graphics_x_offset(image.width) as usize;
+                            }
+                            self.draw_image(
+                                context,
+                                image.as_grayscale(),
+                                image.width as usize,
+                                image.height as usize,
+                            );
                             if image.advances_xy {
                                 context.graphics.x = 0;
                                 context.graphics.y += image.height as usize;
@@ -90,28 +113,40 @@ pub trait CommandRenderer {
             CommandType::ContextControl => {
                 command.handler.apply_context(command, context);
 
-                self.handle_device_commands(&command.handler.get_device_command(command, context), context);
+                self.handle_device_commands(
+                    &command.handler.get_device_command(command, context),
+                    context,
+                );
             }
             CommandType::Control => {
-                self.handle_device_commands(&command.handler.get_device_command(command, context), context);
+                self.handle_device_commands(
+                    &command.handler.get_device_command(command, context),
+                    context,
+                );
             }
             _ => {}
         }
     }
 
-    fn handle_device_commands(&mut self, device_commands: &Option<Vec<DeviceCommand>>, context: &mut Context){
+    fn handle_device_commands(
+        &mut self,
+        device_commands: &Option<Vec<DeviceCommand>>,
+        context: &mut Context,
+    ) {
         if let Some(device_commands) = device_commands {
             for device_command in device_commands {
                 self.draw_device_command(context, device_command);
 
                 match device_command {
                     DeviceCommand::BeginPrint => self.begin_render(context),
-                    DeviceCommand::EndPrint=> self.end_render(context),
+                    DeviceCommand::EndPrint => self.end_render(context),
                     DeviceCommand::FeedLine(num_lines) => {
-                        context.graphics.y += context.line_height_pixels() as usize * *num_lines as usize;
+                        context.graphics.y +=
+                            context.line_height_pixels() as usize * *num_lines as usize;
                     }
                     DeviceCommand::Feed(num) => {
-                        context.graphics.y += context.motion_unit_y_pixels() as usize * *num as usize;
+                        context.graphics.y +=
+                            context.motion_unit_y_pixels() as usize * *num as usize;
                     }
                     DeviceCommand::FullCut | DeviceCommand::PartialCut => {
                         context.graphics.y += context.line_height_pixels() as usize * 2;
@@ -129,5 +164,5 @@ pub trait CommandRenderer {
     fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize);
     fn draw_text(&mut self, context: &mut Context, text: String);
     fn draw_device_command(&mut self, context: &mut Context, command: &DeviceCommand);
-    fn end_render(&mut self,context: &mut Context);
+    fn end_render(&mut self, context: &mut Context);
 }

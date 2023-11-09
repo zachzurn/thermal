@@ -10,7 +10,7 @@ impl CommandHandler for Handler {
 
         if x > 0 {
             context.graphics.h_motion_unit = (context.graphics.dots_per_inch / x as u16) as u8;
-        }else {
+        } else {
             if let Some(default_context) = &context.default {
                 context.graphics.h_motion_unit = default_context.graphics.h_motion_unit;
             }

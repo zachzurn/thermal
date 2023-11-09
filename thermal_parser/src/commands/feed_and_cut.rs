@@ -4,25 +4,24 @@ use crate::{command::*, constants::*, context::*};
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn get_device_command(&self, command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
+    fn get_device_command(
+        &self,
+        command: &Command,
+        _context: &Context,
+    ) -> Option<Vec<DeviceCommand>> {
         let m = *command.data.get(0).unwrap_or(&0u8);
         let n = *command.data.get(1).unwrap_or(&0u8);
 
         return match m {
-            0 | 48 => {
-                Some(vec![DeviceCommand::FullCut])
-            }
-            1 | 49 => {
-                Some(vec![DeviceCommand::PartialCut])
-            }
-            65 | 97 | 103 => {
-                Some(vec![DeviceCommand::FullCut, DeviceCommand::Feed(n as i16)])
-            }
-            66 | 98 | 104 => {
-                Some(vec![DeviceCommand::PartialCut, DeviceCommand::Feed(n as i16)])
-            }
-            _ => None
-        }
+            0 | 48 => Some(vec![DeviceCommand::FullCut]),
+            1 | 49 => Some(vec![DeviceCommand::PartialCut]),
+            65 | 97 | 103 => Some(vec![DeviceCommand::FullCut, DeviceCommand::Feed(n as i16)]),
+            66 | 98 | 104 => Some(vec![
+                DeviceCommand::PartialCut,
+                DeviceCommand::Feed(n as i16),
+            ]),
+            _ => None,
+        };
     }
 
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {

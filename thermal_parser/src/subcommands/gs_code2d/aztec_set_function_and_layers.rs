@@ -11,11 +11,13 @@ impl CommandHandler for Handler {
         let mode = match n1 {
             0 | 48 => 0,
             1 | 49 => 1,
-            _ => 0
+            _ => 0,
         };
 
         let mut layers = 0;
-        if n2 > 0 && n2 < 33 { layers = n2 }
+        if n2 > 0 && n2 < 33 {
+            layers = n2
+        }
 
         context.code2d.aztec_mode = mode;
         context.code2d.aztec_layers = layers;

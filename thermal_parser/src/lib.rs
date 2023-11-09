@@ -1,11 +1,11 @@
-pub mod constants;
 pub mod command;
-pub mod commands;
-pub mod subcommands;
 pub mod command_sets;
-pub mod graphics;
+pub mod commands;
+pub mod constants;
 pub mod context;
+pub mod graphics;
 pub mod parser;
+pub mod subcommands;
 pub mod util;
 
 pub fn new_esc_pos_parser(on_command_found: Box<dyn FnMut(command::Command)>) -> parser::Parser {

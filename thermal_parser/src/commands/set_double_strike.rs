@@ -1,5 +1,5 @@
-use crate::{command::*, constants::*};
 use crate::context::{Context, TextStrikethrough};
+use crate::{command::*, constants::*};
 
 #[derive(Clone)]
 struct Handler;
@@ -10,8 +10,11 @@ impl CommandHandler for Handler {
         let enable = (n & 0x00000001) == 1;
         let mut strike = context.text.strikethrough.clone();
 
-        if enable { strike = TextStrikethrough::Double }
-        else if strike == TextStrikethrough::Double { strike = TextStrikethrough::On }
+        if enable {
+            strike = TextStrikethrough::Double
+        } else if strike == TextStrikethrough::Double {
+            strike = TextStrikethrough::On
+        }
 
         context.text.strikethrough = strike;
     }

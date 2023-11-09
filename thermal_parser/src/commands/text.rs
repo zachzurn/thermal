@@ -23,10 +23,10 @@ impl CommandHandler for Handler {
 
 pub fn new() -> Command {
     Command::new(
-      "Text",
-      vec![],
-      CommandType::Text,
-      DataType::Text,
-      Box::new(Handler {}),
+        "Text",
+        vec![],
+        CommandType::Text,
+        DataType::Text,
+        Box::new(Handler {}),
     )
 }

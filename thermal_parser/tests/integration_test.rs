@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use thermal_parser::{context::*, command::Command};
+use thermal_parser::{command::Command, context::*};
 
 #[test]
 fn it_parses_column_format() {
@@ -31,18 +31,22 @@ fn it_parses_test_3() {
     test_binary_file("test_receipt_3.bin", true);
 }
 
-
-fn test_binary_file(filename: &str, debug: bool){
+fn test_binary_file(filename: &str, debug: bool) {
     let bytes = std::fs::read(get_test_bin(filename)).unwrap();
     let context = Context::new();
 
     let on_new_command = move |cmd: Command| {
-        if debug { println!("{}", cmd.handler.debug(&cmd, &context)) };
+        if debug {
+            println!("{}", cmd.handler.debug(&cmd, &context))
+        };
     };
     let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
     command_parser.parse_bytes(&bytes);
 }
 
 fn get_test_bin(name: &str) -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources").join("test").join(name)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("resources")
+        .join("test")
+        .join(name)
 }

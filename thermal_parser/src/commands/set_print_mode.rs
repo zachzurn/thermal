@@ -12,7 +12,11 @@ impl CommandHandler for Handler {
         context.text.bold = if bits[3] { true } else { false };
         context.text.height_mult = if bits[4] { 2 } else { 1 };
         context.text.width_mult = if bits[5] { 2 } else { 1 };
-        context.text.underline = if bits[7] { TextUnderline::On } else { TextUnderline::Off }
+        context.text.underline = if bits[7] {
+            TextUnderline::On
+        } else {
+            TextUnderline::Off
+        }
     }
 }
 

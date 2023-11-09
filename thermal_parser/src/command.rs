@@ -1,6 +1,6 @@
-use std::rc::Rc;
 use crate::context::Context;
 use crate::graphics::GraphicsCommand;
+use std::rc::Rc;
 
 #[derive(Clone, PartialEq)]
 pub enum DeviceCommand {
@@ -30,7 +30,7 @@ impl DeviceCommand {
             Self::EndPrint => "End Print".to_string(),
             Self::BeginPrint => "Begin Print".to_string(),
             Self::Transmit(_b) => "Transmit Data Back".to_string(),
-            Self::MoveX(_n) => "Move Horizontally".to_string()
+            Self::MoveX(_n) => "Move Horizontally".to_string(),
         }
     }
 }
@@ -70,13 +70,26 @@ pub struct Command {
 
 #[derive(Clone)]
 struct EmptyHandler;
-impl CommandHandler for EmptyHandler{}
+impl CommandHandler for EmptyHandler {}
 
 impl Command {
-    pub fn new(name_str: &str, commands: Vec<u8>, kind: CommandType, data_kind: DataType, handler: Box<dyn CommandHandler>) -> Self {
+    pub fn new(
+        name_str: &str,
+        commands: Vec<u8>,
+        kind: CommandType,
+        data_kind: DataType,
+        handler: Box<dyn CommandHandler>,
+    ) -> Self {
         let data: Vec<u8> = vec![];
         let name: String = name_str.to_string();
-        Self { commands: Rc::new(commands), name: Rc::new(name), data, kind, data_kind, handler }
+        Self {
+            commands: Rc::new(commands),
+            name: Rc::new(name),
+            data,
+            kind,
+            data_kind,
+            handler,
+        }
     }
 
     // returns true if the byte was consumed or false if it was rejected
@@ -88,9 +101,21 @@ impl Command {
                 return self.handler.push(&mut self.data, byte);
             }
             DataType::Empty => return false,
-            DataType::Single => if data_len >= 1 { return false; },
-            DataType::Double => if data_len >= 2 { return false; },
-            DataType::Triple => if data_len >= 3 { return false; }
+            DataType::Single => {
+                if data_len >= 1 {
+                    return false;
+                }
+            }
+            DataType::Double => {
+                if data_len >= 2 {
+                    return false;
+                }
+            }
+            DataType::Triple => {
+                if data_len >= 3 {
+                    return false;
+                }
+            }
             DataType::Text | DataType::Unknown => {} //Text and unknown collect bytes until the next match
         }
         self.data.push(byte); //Always push byte if not returned early
@@ -104,8 +129,8 @@ pub trait CloneCommandHandler {
 }
 
 impl<T> CloneCommandHandler for T
-    where
-        T: CommandHandler + Clone + 'static,
+where
+    T: CommandHandler + Clone + 'static,
 {
     fn clone_command_handler(&self) -> Box<dyn CommandHandler> {
         Box::new(self.clone())
@@ -120,20 +145,32 @@ impl Clone for Box<dyn CommandHandler> {
 
 pub trait CommandHandler: CloneCommandHandler {
     //Renders text
-    fn get_text(&self, _command: &Command, _context: &Context) -> Option<String> { None }
+    fn get_text(&self, _command: &Command, _context: &Context) -> Option<String> {
+        None
+    }
 
     //Renders a graphic
-    fn get_graphics(&self, _command: &Command, _context: &Context) -> Option<GraphicsCommand> { None }
+    fn get_graphics(&self, _command: &Command, _context: &Context) -> Option<GraphicsCommand> {
+        None
+    }
 
     //Applies context
     fn apply_context(&self, _command: &Command, _context: &mut Context) {}
 
     //Gets a device command to execute
-    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> { None }
+    fn get_device_command(
+        &self,
+        _command: &Command,
+        _context: &Context,
+    ) -> Option<Vec<DeviceCommand>> {
+        None
+    }
 
     //For debugging commands
     fn debug(&self, command: &Command, _context: &Context) -> String {
-        if command.data.is_empty() { return format!("{}", command.name.to_string()); }
+        if command.data.is_empty() {
+            return format!("{}", command.name.to_string());
+        }
         format!("{} {:02X?}", command.name.to_string(), command.data)
     }
 
@@ -143,5 +180,7 @@ pub trait CommandHandler: CloneCommandHandler {
     }
 
     //Returns the subcommand for a command, see subcommand module
-    fn get_subcommand(&mut self) -> Option<Command> { None }
+    fn get_subcommand(&mut self) -> Option<Command> {
+        None
+    }
 }
