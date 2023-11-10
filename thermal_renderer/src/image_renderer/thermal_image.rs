@@ -16,8 +16,6 @@ use thermal_parser::context::{Context, TextJustify, TextStrikethrough, TextUnder
 
 const THRESHOLD: u8 = 120;
 const SCALE_THRESHOLD: u8 = 140;
-const BLACK: u8 = 0;
-const WHITE: u8 = 255;
 
 pub struct FontFamily {
     pub regular: fontdue::Font,
@@ -219,6 +217,7 @@ impl ThermalImage {
         let mut new_y = y;
 
         for line in lines.into_iter() {
+            let mut line_height_mult = 1;
             let mut precalculated_width = 0;
             let mut justify = TextJustify::Left;
             let mut iter = 0;
@@ -238,11 +237,14 @@ impl ThermalImage {
             }
 
             for word in &line {
+                if word.0.stretch_height > 1.0 {
+                    line_height_mult = word.0.stretch_height as usize;
+                }
                 let (w, _) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
                 new_x += w;
             }
             new_x = x;
-            new_y += layout.line_height as usize
+            new_y += layout.line_height as usize * line_height_mult;
         }
 
         (new_x, new_y)
@@ -296,7 +298,7 @@ impl ThermalImage {
 
             self.put_pixels(
                 x_offset,
-                y + y_offset,
+                y + y_offset * span.stretch_height as usize,
                 metrics.width * span.stretch_width as usize,
                 metrics.height * span.stretch_height as usize,
                 bitmap,
@@ -305,18 +307,20 @@ impl ThermalImage {
             );
             cur_x += span.char_width();
             w += span.char_width();
-            h = h.max(metrics.height + y_offset);
+            h = h.max((metrics.height * span.stretch_height as usize) + y_offset);
         }
 
         if span.underline > 0 {
-            let under_y = y + (baseline + span.underline as f32).ceil() as usize;
+            let under_y = (y
+                + (font_metrics.ascent * span.stretch_height) as usize
+                + span.underline) as usize;
             let under_x = x;
 
             self.draw_rect(under_x, under_y, w, span.underline);
         }
 
         if span.strikethrough > 0 {
-            let strike_y = y + ((baseline / 2f32) - span.strikethrough as f32 / 2f32) as usize;
+            let strike_y = y + ((font_metrics.ascent * span.stretch_height) / 2.0) as usize;
             let strike_x = x;
 
             self.draw_rect(
