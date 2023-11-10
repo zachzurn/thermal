@@ -6,7 +6,7 @@ use thermal_renderer::renderer::CommandRenderer;
 
 #[test]
 fn it_renders_1() {
-    it_renders("test_receipt_1.bin");
+    it_renders("test_receipt_2.bin");
 }
 
 fn it_renders(filename: &str) {

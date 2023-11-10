@@ -1,4 +1,4 @@
-use crate::{command::*, constants::*, context::*, util::bitflags_msb};
+use crate::{command::*, constants::*, context::*, util::bitflags_lsb};
 
 #[derive(Clone)]
 struct Handler;
@@ -6,7 +6,7 @@ struct Handler;
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         let n = *command.data.get(0).unwrap_or(&1u8);
-        let bits = bitflags_msb(n);
+        let bits = bitflags_lsb(n);
 
         context.text.font = if bits[0] { Font::B } else { Font::A };
         context.text.bold = if bits[3] { true } else { false };

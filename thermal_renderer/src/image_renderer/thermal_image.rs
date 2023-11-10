@@ -14,6 +14,11 @@ use textwrap::WordSeparator;
 
 use thermal_parser::context::{Context, TextJustify, TextStrikethrough, TextUnderline};
 
+const THRESHOLD: u8 = 120;
+const SCALE_THRESHOLD: u8 = 140;
+const BLACK: u8 = 0;
+const WHITE: u8 = 255;
+
 pub struct FontFamily {
     pub regular: fontdue::Font,
     pub bold: fontdue::Font,
@@ -70,7 +75,7 @@ impl TextSpan {
 
     pub fn char_width(&self) -> usize {
         let metrics = self.font.regular.metrics(' ', self.size as f32);
-        (metrics.advance_width * self.stretch_width) as usize
+        metrics.advance_width.floor() as usize * self.stretch_width as usize
     }
 
     pub fn get_font(&self) -> &Font {
@@ -263,6 +268,15 @@ impl ThermalImage {
         for char in text.chars() {
             let (metrics, bitmap) = font.rasterize(char, span.size as f32);
 
+            let mut bitmap = bitmap;
+            bitmap = self.scale_bitmap(
+                &bitmap,
+                metrics.width,
+                metrics.height,
+                span.stretch_width as usize,
+                span.stretch_height as usize,
+            );
+
             let glyph_index = font.lookup_glyph_index(char);
             let char_data = CharacterData::classify(char, glyph_index);
 
@@ -283,8 +297,8 @@ impl ThermalImage {
             self.put_pixels(
                 x_offset,
                 y + y_offset,
-                metrics.width,
-                metrics.height,
+                metrics.width * span.stretch_width as usize,
+                metrics.height * span.stretch_height as usize,
                 bitmap,
                 true,
                 true,
@@ -322,6 +336,37 @@ impl ThermalImage {
         }
 
         (w, h)
+    }
+
+    pub fn scale_bitmap(
+        &mut self,
+        bitmap: &Vec<u8>,
+        width: usize,
+        height: usize,
+        stretch_width: usize,
+        stretch_height: usize,
+    ) -> Vec<u8> {
+        let sw = width * stretch_width;
+        let sh = height * stretch_height;
+
+        let mut scaled = Vec::with_capacity(sw * sh);
+
+        for y in 0..height {
+            for _ in 0..stretch_height {
+                for x in 0..width {
+                    for _ in 0..stretch_width {
+                        let pixel = if bitmap[width * y + x] < SCALE_THRESHOLD {
+                            0
+                        } else {
+                            255
+                        };
+                        scaled.push(pixel)
+                    }
+                }
+            }
+        }
+
+        scaled
     }
 
     pub fn invert_pixels(&mut self, x: usize, y: usize, width: usize, height: usize) {
@@ -390,6 +435,10 @@ impl ThermalImage {
         if multiply {
             for pixel in pixels {
                 let idx = cur_y * self.width + cur_x;
+
+                //ensure black or white only
+                let pixel = if pixel < THRESHOLD { 0 } else { 255 };
+
                 self.bytes[idx] = if invert {
                     u8::min(255 - pixel, self.bytes[idx])
                 } else {
