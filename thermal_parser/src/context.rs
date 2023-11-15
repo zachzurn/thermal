@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use crate::graphics::{Image, ImageRef};
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum TextJustify {
     Left,
     Center,
@@ -24,7 +24,7 @@ pub enum TextUnderline {
     Double,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Font {
     A,
     B,

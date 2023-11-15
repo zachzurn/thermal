@@ -1,7 +1,6 @@
 use crate::image_renderer::thermal_image::{FontFamily, TextLayout, TextSpan, ThermalImage};
 use crate::renderer::CommandRenderer;
 use std::rc::Rc;
-use std::time::Duration;
 use thermal_parser::command::DeviceCommand;
 use thermal_parser::context::Context;
 
@@ -141,15 +140,7 @@ impl CommandRenderer for ImageRenderer {
 impl ImageRenderer {
     fn unique_out_path(&mut self) -> String {
         self.out_count = self.out_count.wrapping_add(1);
-        let now = std::time::SystemTime::now()
-            .duration_since(std::time::UNIX_EPOCH)
-            .unwrap_or(Duration::new(0, 0));
-        format!(
-            "{}/{}_{}.png",
-            self.out_path.to_string(),
-            now.as_secs() / 60,
-            self.out_count
-        )
+        format!("{}.png", self.out_path.to_string())
     }
     pub fn maybe_render_text(&mut self, context: &mut Context) {
         if let Some(layout) = &mut self.text_layout {

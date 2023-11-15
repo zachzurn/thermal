@@ -536,7 +536,6 @@ impl ThermalImage {
         encoder.set_depth(BitDepth::Eight);
 
         let mut writer = encoder.write_header().unwrap();
-
         writer.write_image_data(&self.bytes).unwrap(); // Save
     }
 }
