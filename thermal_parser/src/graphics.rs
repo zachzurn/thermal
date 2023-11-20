@@ -33,12 +33,14 @@ pub struct Code2D {
     pub point_height: u32,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum PixelType {
-    Monochrome(u8),
+    //1 byte per pixel
+    MonochromeByte,
     //1 bit per pixel one color, the u8 selects the color (1 - 4)
-    MultipleTone(u8, u8),
+    Monochrome(u8),
     //the first u8 selects the color (1 - 4), second how many colors are in the data
+    MultipleTone(u8, u8),
     Unknown,
 }
 
@@ -53,6 +55,7 @@ pub struct Image {
 }
 
 impl Image {
+    /// Used for debugging only
     pub fn as_pbm(&self) -> Vec<u8> {
         let dim = format!("{} {}", self.width, self.height);
         let dimbytes = dim.as_bytes();
@@ -67,7 +70,11 @@ impl Image {
         data
     }
 
+    /// Always returns 1 pixel per byte.
     pub fn as_grayscale(&self) -> Vec<u8> {
+        if self.pixel_type == PixelType::MonochromeByte {
+            return self.pixels.clone();
+        }
         let mut bytes = Vec::<u8>::new();
 
         //number of bytes we need to use for the last column of each row of data
@@ -260,6 +267,81 @@ impl Image {
             },
         ))
     }
+}
+
+/// Converts column data, which is encoded in
+/// 1 bit per pixel (LSB) into 1 byte per pixel.
+/// column data also needs to be rotated and
+/// flipped in order to print correctly.
+///
+/// Ideally, the operations can be done directly
+/// on the bits. If you are reading this and can
+/// contribute a function for doing this, we will
+/// pull it into the repo.
+pub fn column_to_raster(pixels: &[u8], final_width: usize, final_height: usize) -> Vec<u8> {
+    let width = final_height;
+    let height = final_width;
+    let mut bytes = Vec::<u8>::new();
+
+    //number of bytes we need to use for the last column of each row of data
+    let mut padding = width % 8;
+    if padding == 0 {
+        padding = 8;
+    }
+    let mut col = 0;
+
+    for byte in pixels {
+        col += 8;
+        if col >= width {
+            for n in 0..padding {
+                bytes.push(if *byte & 1 << (7 - n) != 0 { 0 } else { 255 });
+            }
+            col = 0;
+        } else {
+            bytes.push(if *byte & 1 << 7 != 0 { 0 } else { 255 });
+            bytes.push(if *byte & 1 << 6 != 0 { 0 } else { 255 });
+            bytes.push(if *byte & 1 << 5 != 0 { 0 } else { 255 });
+            bytes.push(if *byte & 1 << 4 != 0 { 0 } else { 255 });
+            bytes.push(if *byte & 1 << 3 != 0 { 0 } else { 255 });
+            bytes.push(if *byte & 1 << 2 != 0 { 0 } else { 255 });
+            bytes.push(if *byte & 1 << 1 != 0 { 0 } else { 255 });
+            bytes.push(if *byte & 1 << 0 != 0 { 0 } else { 255 });
+        }
+    }
+
+    let rot = rotate_90_clockwise(bytes, final_height, final_width);
+    flip_right_to_left(rot, final_width, final_height)
+}
+
+fn rotate_90_clockwise(data: Vec<u8>, width: usize, height: usize) -> Vec<u8> {
+    let mut result = vec![0; data.len()];
+
+    for y in 0..height {
+        for x in 0..width {
+            let src_index = y * width + x;
+            let dest_x = height - 1 - y;
+            let dest_y = x;
+            let dest_index = dest_y * height + dest_x; // Note: height is used for new row length
+            result[dest_index] = data[src_index];
+        }
+    }
+
+    result
+}
+
+fn flip_right_to_left(data: Vec<u8>, width: usize, height: usize) -> Vec<u8> {
+    let mut result = vec![0; data.len()];
+
+    for y in 0..height {
+        for x in 0..width {
+            let src_index = y * width + x;
+            let dest_x = width - 1 - x; // Flip the x-coordinate
+            let dest_index = y * width + dest_x; // Calculate the destination index
+            result[dest_index] = data[src_index];
+        }
+    }
+
+    result
 }
 
 //Images that were added to storage can be
