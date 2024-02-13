@@ -31,6 +31,11 @@ fn it_parses_test_3() {
     test_binary_file("test_receipt_3.bin", true);
 }
 
+#[test]
+fn it_parses_image_with_transmit() {
+    test_binary_file("image_with_transmit.bin", true);
+}
+
 fn test_binary_file(filename: &str, debug: bool) {
     let bytes = std::fs::read(get_test_bin(filename)).unwrap();
     let context = Context::new();
