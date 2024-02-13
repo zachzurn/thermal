@@ -1,13 +1,14 @@
 <img src="readme/thermal.png" width="124" height="124" style="float:right; margin-left: 30px;">
 
-# Thermal
-Thermal Emulator (esc/pos) being built in Rust.
+# Thermal: ESC/POS Parser and Renderer in Rust
+Thermal is a toolkit for parsing and rendering ESC/POS commands, capable of producing JPEG and HTML outputs. It's developed in Rust and is currently in a development stage, not yet recommended for production use. Contributions and feedback are welcome.
 
-This is my first Rust project, so things will be very messy. Feedback and contribution is welcome.
+# Components
+Thermal consists of two main components: the Thermal Parser and the Thermal Renderer.
 
 # Thermal Parser
 
-Parse esc/pos commands from binary data. This crate is purely a parser and does not have any rendering code in it. See thermal_parser folder in the repo.
+This component parses ESC/POS commands from binary data. It's designed purely as a parser without rendering capabilities.
 
 ```rust
 
@@ -30,15 +31,9 @@ command_parser.parse_bytes(&bytes);
 
 ```
 
-# Thermal Renderer (Image)
+# Thermal Renderer (Image, HTML)
 
-Image rendering is mostly complete. There are some word wrapping issues and a couple of unimplemented features.
-
-The image renderer uses a pretty basic and possibly inefficient hand rolled renderer that uses Fontdue for chatacter rasterization. Text layout is also hand rolled and still needs some work.
-
-It currently supports Barcodes, QR Codes, Text formatting (bold, italic, underline, strikethough, invert, justification).
-
-The image renderer implements the CommandRenderer trait. This allows you to implement a couple of commands (see next section) in order to roll your own renderer.
+The renderer supports image and HTML outputs, including barcodes, QR codes, and text formatting. It's built with a focus on customization, allowing for the implementation of additional rendering features.
 
 ```rust
 
@@ -116,11 +111,11 @@ impl CommandRenderer for MyOwnRenderer {
 
 
 ## Goals:
-* Cover the whole esc/pos spec besides deprecated commands
-* Provide a simple rendering pipeline that makes it easy to render in various formats
+* Cover the whole esc/pos spec besides deprecated commands 
+* Provide a simple rendering pipeline that makes it easy to render in various formats ✅
 * Render to markdown
-* Render to an image
-* Render to HTML with SVG barcodes and QR Codes
+* Render to an image ✅
+* Render to HTML with SVG barcodes and QR Codes ✅
 * Allow for the creation of virtual USB and Ethernet printer emulators
 
 
