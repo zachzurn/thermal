@@ -52,6 +52,7 @@ pub fn new() -> CommandSet {
         set_underline::new(),
         set_upside_down::new(),
         transmit_printer_id::new(),
+        set_page_mode::new(),
     ];
 
     CommandSet {
