@@ -52,3 +52,4 @@ pub mod text;
 pub mod transmit_printer_id;
 pub mod unknown;
 pub mod set_page_mode;
+pub mod set_absolute_vertical_print_position;
