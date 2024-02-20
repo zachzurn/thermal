@@ -53,6 +53,7 @@ pub fn new() -> CommandSet {
         set_upside_down::new(),
         transmit_printer_id::new(),
         set_page_mode::new(),
+        print_area::new(),
     ];
 
     CommandSet {
