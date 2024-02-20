@@ -1,6 +1,8 @@
+use std::collections::HashMap;
 use crate::context::Context;
 use crate::graphics::GraphicsCommand;
 use std::rc::Rc;
+use lazy_static::lazy_static;
 
 #[derive(Clone, PartialEq)]
 pub enum DeviceCommand {
@@ -71,6 +73,20 @@ pub struct Command {
 #[derive(Clone)]
 struct EmptyHandler;
 impl CommandHandler for EmptyHandler {}
+
+type PageModeCommands = HashMap<Vec<u8>, &'static str>;
+
+lazy_static! {
+    static ref PAGE_MODE_COMMANDS: PageModeCommands = {
+        let mut map = HashMap::new();
+        map.insert(vec![27, 12], "ESC FF");
+        map.insert(vec![27, 76], "ESC L");
+        map.insert(vec![27, 84], "ESC T");
+        map.insert(vec![27, 87], "ESC W");
+        map.insert(vec![29, 36], "GS $");
+        map
+    };
+}
 
 impl Command {
     pub fn new(
@@ -182,5 +198,13 @@ pub trait CommandHandler: CloneCommandHandler {
     //Returns the subcommand for a command, see subcommand module
     fn get_subcommand(&mut self) -> Option<Command> {
         None
+    }
+
+    fn is_command_allowed(&self, command: &Command) -> bool {
+        if let (Some(first), Some(second)) = (command.commands.get(0), command.commands.get(1)) {
+            PAGE_MODE_COMMANDS.contains_key(&[*first, *second])
+        } else {
+            false
+        }
     }
 }

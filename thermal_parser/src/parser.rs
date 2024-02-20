@@ -1,6 +1,7 @@
 use crate::command::CommandType;
 use crate::{command::Command, command_sets::*};
 use std::mem;
+use crate::context::Context;
 
 pub struct Parser {
     cmd_set: CommandSet,
@@ -10,10 +11,11 @@ pub struct Parser {
     current_command_is_default: bool,
     command_buffer: Vec<u8>,
     on_command_found: Box<dyn FnMut(Command)>,
+    context: Context
 }
 
 impl Parser {
-    pub fn new(cmd_set: CommandSet, on_command_found: Box<dyn FnMut(Command)>) -> Self {
+    pub fn new(cmd_set: CommandSet, on_command_found: Box<dyn FnMut(Command)>, context: Context) -> Self {
         Self {
             cmd_set,
             match_depth: 0,
@@ -22,6 +24,7 @@ impl Parser {
             command_buffer: Vec::<u8>::new(),
             current_command: None,
             on_command_found,
+            context
         }
     }
 
@@ -49,14 +52,22 @@ impl Parser {
     }
 
     fn emit_command(&mut self, mut cmd: Command) {
-        if cmd.kind == CommandType::Subcommand {
-            let command = &mut cmd;
+        // Check if the command is allowed and if it's in page mode
+        let command_allowed = cmd.handler.is_command_allowed(&cmd);
+        let page_mode = self.context.is_page_mode;
 
-            if let Some(subcommand) = command.handler.get_subcommand() {
-                (self.on_command_found)(subcommand)
+        // Check if the command should be filtered
+        let should_filter = page_mode && !command_allowed;
+
+        // If the command should not be filtered, emit it
+        if !should_filter {
+            if cmd.kind == CommandType::Subcommand {
+                if let Some(subcommand) = cmd.handler.get_subcommand() {
+                    (self.on_command_found)(subcommand);
+                }
+            } else {
+                (self.on_command_found)(cmd);
             }
-        } else {
-            (self.on_command_found)(cmd);
         }
     }
 
