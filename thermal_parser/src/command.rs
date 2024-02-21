@@ -84,6 +84,7 @@ lazy_static! {
         map.insert(vec![27, 84], "ESC T");
         map.insert(vec![27, 87], "ESC W");
         map.insert(vec![29, 36], "GS $");
+        map.insert(vec![27, 83], "ESC S");
         map
     };
 }
@@ -145,8 +146,8 @@ pub trait CloneCommandHandler {
 }
 
 impl<T> CloneCommandHandler for T
-where
-    T: CommandHandler + Clone + 'static,
+    where
+        T: CommandHandler + Clone + 'static,
 {
     fn clone_command_handler(&self) -> Box<dyn CommandHandler> {
         Box::new(self.clone())
@@ -173,6 +174,25 @@ pub trait CommandHandler: CloneCommandHandler {
     //Applies context
     fn apply_context(&self, _command: &Command, _context: &mut Context) {}
 
+    fn is_command_allowed(&self, _command: &Command, _context: &mut Context) -> bool {
+        // Check if page mode is enabled
+        if _context.is_page_mode {
+            // If page mode is enabled, proceed with command verification
+            if let Some(first) = _command.commands.get(0) {
+                if let Some(second) = _command.commands.get(1) {
+                    let key = vec![*first, *second];
+                    return PAGE_MODE_COMMANDS.contains_key(&key);
+                }
+            }
+            // If page mode is enabled but command indexes are not found, return false
+            false
+        } else {
+            // If page mode is not enabled, return true without further verification
+            true
+        }
+    }
+
+
     //Gets a device command to execute
     fn get_device_command(
         &self,
@@ -198,13 +218,5 @@ pub trait CommandHandler: CloneCommandHandler {
     //Returns the subcommand for a command, see subcommand module
     fn get_subcommand(&mut self) -> Option<Command> {
         None
-    }
-
-    fn is_command_allowed(&self, command: &Command) -> bool {
-        if let (Some(first), Some(second)) = (command.commands.get(0), command.commands.get(1)) {
-            PAGE_MODE_COMMANDS.contains_key(&[*first, *second])
-        } else {
-            false
-        }
     }
 }
