@@ -1,3 +1,4 @@
+use crate::command::{Command, CommandHandler, CommandType, DataType, DeviceCommand};
 use crate::constants::{GS};
 use crate::context::Context;
 
@@ -10,11 +11,15 @@ impl CommandHandler for Handler {
         command: &Command,
         _context: &Context,
     ) -> Option<Vec<DeviceCommand>> {
-        let nl = *command.data.get(0).unwrap_or(&0u8);
-        let nh = *command.data.get(1).unwrap_or(&0u8);
-        println!("xL: {}, xH: {}",
-                 nl, nh);
-        Some(vec![DeviceCommand::MoveX(nl as u16 + nh as u16 * 256)])
+        if _context.is_page_mode {
+            let nl = *command.data.get(0).unwrap_or(&0u8);
+            let nh = *command.data.get(1).unwrap_or(&0u8);
+            println!("xL: {}, xH: {}",
+                     nl, nh);
+            Some(vec![DeviceCommand::MoveX(nl as u16 + nh as u16 * 256)])
+        }
+        None
+
     }
 }
 
