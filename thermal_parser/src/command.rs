@@ -52,6 +52,7 @@ pub enum DataType {
     Single,
     Double,
     Triple,
+    Octet,
     Text,
     Custom,
     Subcommand,
@@ -113,6 +114,11 @@ impl Command {
             }
             DataType::Triple => {
                 if data_len >= 3 {
+                    return false;
+                }
+            }
+            DataType::Octet => {
+                if data_len >= 8 {
                     return false;
                 }
             }
