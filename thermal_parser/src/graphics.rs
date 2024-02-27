@@ -280,7 +280,6 @@ impl Image {
 /// pull it into the repo.
 pub fn column_to_raster(pixels: &[u8], final_width: usize, final_height: usize) -> Vec<u8> {
     let width = final_height;
-    let height = final_width;
     let mut bytes = Vec::<u8>::new();
 
     //number of bytes we need to use for the last column of each row of data

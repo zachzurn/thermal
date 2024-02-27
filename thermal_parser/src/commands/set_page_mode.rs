@@ -1,15 +1,14 @@
+use crate::context::Context;
 use crate::{command::*, constants::*};
-use crate::context::{Context};
 
 #[derive(Clone)]
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn apply_context(&self, command: &Command, context: &mut Context) {
+    fn apply_context(&self, _command: &Command, context: &mut Context) {
         context.is_page_mode = true;
     }
 }
-
 
 pub fn new() -> Command {
     Command::new(
