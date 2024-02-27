@@ -40,6 +40,11 @@ fn receipt_4() {
     it_renders("test_receipt_4.bin");
 }
 
+#[test]
+fn thick_barcode() {
+    it_renders("thick_barcode.bin");
+}
+
 fn it_renders(filename: &str) {
     it_renders_image(filename);
     it_renders_html(filename);
