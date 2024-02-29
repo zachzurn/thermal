@@ -71,7 +71,7 @@ pub struct Context {
     pub barcode: BarcodeContext,
     pub code2d: Code2DContext,
     pub graphics: GraphicsContext,
-    pub is_page_mode: bool,
+    pub page: PageModeContext,
 }
 
 #[derive(Clone)]
@@ -153,6 +153,34 @@ pub struct Code2DContext {
     pub datamatrix_width: u8,
 }
 
+#[derive(Clone)]
+pub enum PrintDirection {
+    Left2Right,
+    Right2Left,
+    Top2Bottom,
+    Bottom2Top,
+}
+
+#[derive(Clone)]
+pub struct PageModeContext {
+    //Is page mode enabled
+    pub enabled: bool,
+    //Starting offset from graphics x
+    pub offset_x: usize,
+    //Starting offset from graphics y
+    pub offset_y: usize,
+    //Page mode current x, starts at 0
+    pub x: usize,
+    //Page mode current y, starts at 0
+    pub y: usize,
+    //Page mode width
+    pub w: usize,
+    //Page mode height
+    pub h: usize,
+    //Page mode print direction
+    pub dir: PrintDirection,
+}
+
 impl Context {
     fn default() -> Context {
         Context {
@@ -221,7 +249,16 @@ impl Context {
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
                 buffer_graphics: None,
             },
-            is_page_mode: false,
+            page: PageModeContext {
+                enabled: false,
+                offset_x: 0,
+                offset_y: 0,
+                x: 0,
+                y: 0,
+                w: 0,
+                h: 0,
+                dir: PrintDirection::Left2Right,
+            },
         }
     }
 

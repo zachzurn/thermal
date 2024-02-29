@@ -151,6 +151,14 @@ pub trait CommandRenderer {
                     DeviceCommand::FullCut | DeviceCommand::PartialCut => {
                         context.graphics.y += context.line_height_pixels() as usize * 2;
                     }
+                    DeviceCommand::BeginPageMode => {
+                        context.page.enabled = true;
+                        self.begin_page(context);
+                    }
+                    DeviceCommand::EndPageMode(print) => {
+                        self.end_page(context, *print);
+                        context.page.enabled = false
+                    }
                     _ => {}
                 }
             }
@@ -158,6 +166,8 @@ pub trait CommandRenderer {
     }
 
     fn begin_render(&mut self, context: &mut Context);
+    fn begin_page(&mut self, context: &mut Context);
+    fn end_page(&mut self, context: &mut Context, print: bool);
     fn begin_graphics(&mut self, context: &mut Context);
     fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize);
     fn end_graphics(&mut self, context: &mut Context);

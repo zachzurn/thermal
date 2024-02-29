@@ -8,6 +8,7 @@ pub mod thermal_image;
 
 pub struct ImageRenderer {
     pub image: ThermalImage,
+    pub page_image: ThermalImage,
     pub text_layout: Option<TextLayout>,
     pub out_path: String,
     out_count: u32,
@@ -45,6 +46,7 @@ impl ImageRenderer {
 
         Self {
             image: ThermalImage::new(fonts.clone(), 0),
+            page_image: ThermalImage::new(fonts.clone(), 0),
             text_layout: None,
             out_path,
             out_count: 0,
@@ -58,13 +60,40 @@ impl CommandRenderer for ImageRenderer {
             .set_width(context.available_width_pixels() as usize);
     }
 
+    fn begin_page(&mut self, context: &mut Context) {
+        self.maybe_render_text(context);
+    }
+
+    fn end_page(&mut self, context: &mut Context, print: bool) {
+        self.maybe_render_text(context);
+        if print {
+            let (w, h, pixels) = self.page_image.consume();
+            self.image.put_pixels(
+                context.graphics.x,
+                context.graphics.y,
+                w,
+                h,
+                pixels,
+                false,
+                false,
+            );
+        } else {
+            self.image.empty();
+        }
+    }
+
     fn begin_graphics(&mut self, context: &mut Context) {
         self.maybe_render_text(context);
     }
 
     fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize) {
-        self.image
-            .draw_rect(context.graphics.x, context.graphics.y, w, h);
+        if (context.page.enabled) {
+            self.page_image
+                .draw_rect(context.page.x, context.page.y, w, h);
+        } else {
+            self.image
+                .draw_rect(context.graphics.x, context.graphics.y, w, h);
+        }
     }
     fn end_graphics(&mut self, _context: &mut Context) {}
 
@@ -143,6 +172,7 @@ impl ImageRenderer {
         format!("{}.png", self.out_path.to_string())
     }
     pub fn maybe_render_text(&mut self, context: &mut Context) {
+        // TODO add in a directional property to draw_text and provide it during page mode and use left2right during standard
         if let Some(layout) = &mut self.text_layout {
             let (_, y) = self.image.draw_text(
                 context.graphics.x as usize,

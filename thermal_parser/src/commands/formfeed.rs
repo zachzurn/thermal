@@ -1,11 +1,20 @@
+use crate::command::DeviceCommand::{EndPageMode, EndPrint};
 use crate::{command::*, constants::*, context::*};
 
 #[derive(Clone)]
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn get_text(&self, _command: &Command, _context: &Context) -> Option<String> {
-        Some("\x0c".to_string())
+    //! Ends page mode if it is enabled. Otherwise, ends the print job.
+    fn get_device_command(
+        &self,
+        _command: &Command,
+        context: &Context,
+    ) -> Option<Vec<DeviceCommand>> {
+        if context.page.enabled {
+            return Some(vec![EndPageMode(true)]);
+        }
+        Some(vec![EndPrint])
     }
 }
 
@@ -13,7 +22,7 @@ pub fn new() -> Command {
     Command::new(
         "Form Feed",
         vec![FF],
-        CommandType::Text,
+        CommandType::Control,
         DataType::Empty,
         Box::new(Handler {}),
     )

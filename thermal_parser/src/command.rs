@@ -1,5 +1,6 @@
 use crate::context::Context;
 use crate::graphics::GraphicsCommand;
+use std::fmt::format;
 use std::rc::Rc;
 
 #[derive(Clone, PartialEq)]
@@ -13,6 +14,8 @@ pub enum DeviceCommand {
     Cancel,
     Pulse,
     EndPrint,
+    BeginPageMode,
+    EndPageMode(bool),
     Transmit(Vec<u8>),
     MoveX(u16),
 }
@@ -29,6 +32,8 @@ impl DeviceCommand {
             Self::Pulse => "Pulse".to_string(),
             Self::EndPrint => "End Print".to_string(),
             Self::BeginPrint => "Begin Print".to_string(),
+            Self::BeginPageMode => "Begin Page Mode".to_string(),
+            Self::EndPageMode(b) => format!("End Page Mode, Print buffer? {}", b),
             Self::Transmit(_b) => "Transmit Data Back".to_string(),
             Self::MoveX(_n) => "Move Horizontally".to_string(),
         }
