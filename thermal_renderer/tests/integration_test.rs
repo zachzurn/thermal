@@ -45,6 +45,11 @@ fn thick_barcode() {
     it_renders("thick_barcode.bin");
 }
 
+#[test]
+fn corrupt_start_of_binary() {
+    it_renders("corrupt_start_of_binary.bin");
+}
+
 fn it_renders(filename: &str) {
     it_renders_image(filename);
     it_renders_html(filename);

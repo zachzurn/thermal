@@ -147,7 +147,13 @@ impl Parser {
 
             if new_cmd.is_some() {
                 mem::swap(&mut self.current_command, &mut new_cmd);
-                self.emit_command(new_cmd.unwrap()); //new_command has become the previous command after the swap
+                if new_cmd.is_some() {
+                    //new_command has become the previous command after the swap
+                    self.emit_command(new_cmd.unwrap());
+                } else {
+                    //Generally an unknown command at the start of the binary
+                    self.emit_command(self.cmd_set.unknown.clone());
+                }
                 return;
             }
 
