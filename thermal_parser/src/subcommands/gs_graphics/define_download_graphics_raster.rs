@@ -13,7 +13,6 @@ impl CommandHandler for Handler {
     }
 }
 
-//Deletes the NV graphics data defined by the key codes (kc1 and kc2).
 pub fn new() -> Command {
     Command::new(
         "Define Download Graphics in Raster Format",
