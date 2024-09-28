@@ -1,4 +1,5 @@
 use std::path::PathBuf;
+use thermal_parser::thermal_file::parse_str;
 use thermal_parser::{command::Command, context::*};
 
 #[test]
@@ -34,6 +35,25 @@ fn it_parses_test_3() {
 #[test]
 fn it_parses_image_with_transmit() {
     test_binary_file("image_with_transmit.bin", true);
+}
+
+#[test]
+fn it_parses_receipt_with_barcode_thermal_file() {
+    test_thermal_file("receipt_with_barcode.thermal", true)
+}
+
+fn test_thermal_file(filename: &str, debug: bool) {
+    let text = std::fs::read_to_string(get_test_bin(filename)).unwrap();
+    let bytes = parse_str(&text);
+    let context = Context::new();
+
+    let on_new_command = move |cmd: Command| {
+        if debug {
+            println!("{}", cmd.handler.debug(&cmd, &context))
+        };
+    };
+    let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
+    command_parser.parse_bytes(&bytes);
 }
 
 fn test_binary_file(filename: &str, debug: bool) {
