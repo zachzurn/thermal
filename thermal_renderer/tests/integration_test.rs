@@ -56,6 +56,21 @@ fn receipt_with_barcode() {
     it_renders("receipt_with_barcode.thermal");
 }
 
+#[test]
+fn bad_image() {
+    it_renders("bad_image.thermal");
+}
+
+#[test]
+fn print_graphics() {
+    it_renders("print_graphics.thermal");
+}
+
+#[test]
+fn issuing_reciepts() {
+    it_renders("issuing_receipts.thermal");
+}
+
 fn it_renders(filename: &str) {
     it_renders_image(filename);
     it_renders_html(filename);
