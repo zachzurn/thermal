@@ -6,7 +6,7 @@
 # Receipt Renderer in Rust (ESC/POS)
 Thermal is a toolkit for parsing and rendering ESC/POS commands, capable of producing JPEG and HTML outputs.
 
-[Read the docs]([https://github.com/facebook/react/wiki/Sites-Using-React](https://github.com/zachzurn/thermal/wiki))
+[Read the docs](https://github.com/zachzurn/thermal/wiki)
 
 ## Goals:
 * Cover the whole esc/pos spec besides deprecated commands 
