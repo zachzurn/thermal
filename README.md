@@ -15,6 +15,7 @@ Thermal is a toolkit for parsing and rendering ESC/POS commands, capable of prod
 * Render to an image ✅
 * Render to HTML with SVG barcodes and QR Codes ✅
 * Allow for the creation of virtual USB and Ethernet printer emulators
+* Support all single byte codepages (Need help on this. See wiki)
 
 
 ## Fonts included in this repo do not fall under this repos licence
