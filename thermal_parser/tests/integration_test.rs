@@ -47,6 +47,11 @@ fn it_parses_receipt_with_barcode_thermal_file() {
     test_thermal_file("receipt_with_barcode.thermal", true)
 }
 
+#[test]
+fn it_parses_code_pages() {
+    test_thermal_file("code_pages.thermal", true)
+}
+
 fn test_thermal_file(filename: &str, debug: bool) {
     let text = std::fs::read_to_string(get_test_bin(filename)).unwrap();
     let bytes = parse_str(&text);

@@ -3,6 +3,7 @@ pub mod command_sets;
 pub mod commands;
 pub mod constants;
 pub mod context;
+pub mod decoder;
 pub mod graphics;
 pub mod parser;
 pub mod subcommands;

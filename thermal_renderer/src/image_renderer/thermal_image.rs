@@ -230,6 +230,15 @@ impl ThermalImage {
                 iter += 1;
             }
 
+            //Prevent issues with line widths that are way too long
+            if precalculated_width > width {
+                println!(
+                    "Precalc width too wide {} is less than {}",
+                    width, precalculated_width
+                );
+                precalculated_width = width;
+            }
+
             match justify {
                 TextJustify::Center => new_x = (width - precalculated_width) / 2,
                 TextJustify::Right => new_x = width - precalculated_width,

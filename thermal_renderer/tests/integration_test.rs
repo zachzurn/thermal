@@ -67,8 +67,13 @@ fn print_graphics() {
 }
 
 #[test]
-fn issuing_reciepts() {
+fn issuing_receipts() {
     it_renders("issuing_receipts.thermal");
+}
+
+#[test]
+fn code_pages() {
+    it_renders("code_pages.thermal")
 }
 
 fn it_renders(filename: &str) {

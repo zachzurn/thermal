@@ -1,3 +1,4 @@
+use crate::decoder::{get_codepage, Codepage};
 use crate::graphics;
 use std::collections::HashMap;
 
@@ -78,6 +79,7 @@ pub struct Context {
 pub struct TextContext {
     pub character_set: u8,
     pub code_table: u8,
+    pub decoder: Codepage,
     pub font_size: u8,
     pub justify: TextJustify,
     pub font: Font,
@@ -160,6 +162,7 @@ impl Context {
             text: TextContext {
                 character_set: 0,
                 code_table: 0,
+                decoder: get_codepage(0, 0),
                 font_size: 10,
                 justify: TextJustify::Left,
                 font: Font::A,
@@ -287,5 +290,9 @@ impl Context {
 
     pub fn line_height_pixels(&self) -> u32 {
         self.text.line_spacing as u32 * self.motion_unit_y_pixels() as u32
+    }
+
+    pub fn update_decoder(&mut self) {
+        self.text.decoder = get_codepage(self.text.code_table, self.text.character_set);
     }
 }
