@@ -11,7 +11,7 @@ impl CommandHandler for Handler {
         _command: &Command,
         context: &Context,
     ) -> Option<Vec<DeviceCommand>> {
-        if context.page.enabled {
+        if context.page_mode.enabled {
             return Some(vec![EndPageMode(true)]);
         }
         Some(vec![EndPrint])

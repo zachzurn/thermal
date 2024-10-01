@@ -152,12 +152,12 @@ pub trait CommandRenderer {
                         context.graphics.y += context.line_height_pixels() as usize * 2;
                     }
                     DeviceCommand::BeginPageMode => {
-                        context.page.enabled = true;
+                        context.page_mode.enabled = true;
                         self.begin_page(context);
                     }
                     DeviceCommand::EndPageMode(print) => {
                         self.end_page(context, *print);
-                        context.page.enabled = false
+                        context.page_mode.enabled = false
                     }
                     _ => {}
                 }

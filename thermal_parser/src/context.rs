@@ -72,7 +72,7 @@ pub struct Context {
     pub barcode: BarcodeContext,
     pub code2d: Code2DContext,
     pub graphics: GraphicsContext,
-    pub page: PageModeContext,
+    pub page_mode: PageModeContext,
 }
 
 #[derive(Clone)]
@@ -252,7 +252,7 @@ impl Context {
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
                 buffer_graphics: None,
             },
-            page: PageModeContext {
+            page_mode: PageModeContext {
                 enabled: false,
                 offset_x: 0,
                 offset_y: 0,

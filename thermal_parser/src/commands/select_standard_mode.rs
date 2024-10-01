@@ -6,7 +6,7 @@ struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, _command: &Command, context: &mut Context) {
-        context.is_page_mode = false;
+        context.page_mode.enabled = false;
     }
 }
 

@@ -87,9 +87,9 @@ impl CommandRenderer for ImageRenderer {
     }
 
     fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize) {
-        if (context.page.enabled) {
+        if context.page_mode.enabled {
             self.page_image
-                .draw_rect(context.page.x, context.page.y, w, h);
+                .draw_rect(context.page_mode.x, context.page_mode.y, w, h);
         } else {
             self.image
                 .draw_rect(context.graphics.x, context.graphics.y, w, h);

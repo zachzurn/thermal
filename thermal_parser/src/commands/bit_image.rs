@@ -91,7 +91,7 @@ pub fn new() -> Command {
             width: 0,
             height: 0,
             capacity: 0,
-            col_encoded: false,
+            col_encoded: true,
             size: 0,
             accept_data: false,
             stretch: (1, 1),

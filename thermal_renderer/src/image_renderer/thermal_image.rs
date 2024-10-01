@@ -4,7 +4,7 @@ extern crate textwrap;
 
 use std::fs::File;
 use std::io::BufWriter;
-use std::mem::{swap, take};
+use std::mem::take;
 use std::path::Path;
 use std::rc::Rc;
 
@@ -529,16 +529,16 @@ impl ThermalImage {
         self.width = new_width;
     }
 
-    //! consume the pixels
+    // consume the pixels
     pub fn consume(&mut self) -> (usize, usize, Vec<u8>) {
-        let mut pixels = take(&mut self.bytes);
+        let pixels = take(&mut self.bytes);
         let w = self.width;
         let h = pixels.len() / self.width;
         self.width = 0;
         (w, h, pixels)
     }
 
-    //! empty the pixels
+    // empty the pixels
     pub fn empty(&mut self) {
         self.bytes.clear()
     }

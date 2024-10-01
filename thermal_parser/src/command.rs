@@ -1,6 +1,5 @@
 use crate::context::Context;
 use crate::graphics::GraphicsCommand;
-use std::fmt::format;
 use std::rc::Rc;
 
 #[derive(Clone, PartialEq)]

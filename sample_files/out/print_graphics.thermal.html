@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Thermal</title>
+
+    <style>
+        section {
+            font-family: monospace;
+            font-size: 16px;
+            line-height: 1.2;
+            margin: 0 auto;
+            text-align: left;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+        }
+
+        article{
+            overflow: hidden;
+        }
+
+        span {
+            display: inline-block;
+        }
+
+        .cnt {
+            text-wrap: wrap;
+        }
+
+        .ac{
+            text-align: center;
+        }
+
+        .ac span {
+            transform-origin: center top;
+        }
+
+        .ar {
+            text-align: right;
+        }
+
+        .ar span {
+            transform-origin: right top;
+        }
+
+        .al {
+            text-align: left;
+        }
+
+        .al span {
+            transform-origin: left top;
+        }
+
+        .b{
+            font-weight: bold;
+        }
+
+        .i{
+            font-style: italic;
+        }
+
+        .u{
+            text-decoration: underline;
+        }
+
+        .s{
+            text-decoration: line-through;
+        }
+
+        .dw{
+            /* NOT FULLY SUPPORTED, NEED A BETTER IMPLEMENTATION */
+            transform: scaleX(2);
+        }
+
+        .dh{
+            /* NOT FULLY SUPPORTED, NEED A BETTER IMPLEMENTATION */
+            transform: scaleY(2);
+        }
+
+        img {
+            display: inline-block;
+        }
+
+
+    </style>
+</head>
+<body>
+    <section style="max-width: 456px; padding-left: 15px; padding-right: 15px;"><article><div class='cnt al'></div><div class='cnt al'><img width='92' src='data:image/png;base64, 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' /></div><div class='cnt al'></div><div class='cnt al'><img width='92' src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAIAAAAB4CAAAAAAflKVjAAAF+klEQVR4Ae3gAZAkSZIkSRKLqpm7R0REZmZmVlVVVVV3d3d3d/fMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMdHd3d3dXV1VVVVVmZkZGRIS7m5kKz0xmV3d1d3dPz8zMzMxMovjvhTD/nSTMfycJ899Jwvx3kjD/nSTMfycJ899Jwvx3kjD/nSTMfycJ8yzC/BeTMM8kwPwXkzBXCMD8F5Mwl4nLzH8tCQMgrjD/IQQA5l8iYQBxP/PvJgAMCDAvjIQB8UyW+fcSAOaZBJgXRMKAuMwgzL+TAMyzCcA8XxIGEIARYP59ZIF5IAFgng8Jc4WMADD/LjIC80ACwDwvCXOFuJ/595ARYJ6DAMzzkDDPJO5n/u1kQIB5IAFgnpuEeSZxP/NvJwMIzHMQAOa5SJj7icuMzL+ZDIDAPAcBYJ6ThLmfADDC/FvJXCHMcxIA5jlImGcRGASYfyOZZxLmOQgA8xwkzLMIIwDMv5HMs8g8BwFgHkjCPJssrjD/JjIPIMwDCADzQBLm2cSzmH8Lmecgnod5IAnzAOJ+5t9C5nmI52AeSMI8gHgW868nzPMn7mceSMI8kLif+dcTz2aemwAwDyRhHkg8i/lXE2CuEJeZ5yDzHCTMcxDPYv6VBIB5IHGFuUzmOUiY5yCexfwricvM8yEAyzwnCfOcxLOYfx3xTOb5E+Y5SZjnJJ7N/GuI52Cei8A8FwnzXMSzmH8N8S8yz0XCPBfxbOZfQfxLzHOTMM9NPJt50Yl/iXluEua5iQcyLyrxLzDPQ8I8D/GczItEvHDmeUmY5yGeh/mXiRfKPB8S5nmJ52X+ReKFMM+PhHk+xPNh/gXiBTPPl4R5PsTzY1448QKZ50/CPC/xApgXRrwg5gWQMM9LvADmhRLPn3lBJMzzEC+QeWHE82VeIAnzPMQLZF4Y8fyYF0zCPDfxQpgXRjwv80JImOcmXgjzwojnYV4YCfPcxAtmmRdCPDfzQkmY5yZeICPzQojnYl44CfPcxAtiEOYFE8/J/AskzHMTL4BBlnnBxAOYf5mEeW7i+TMII/OCCDD/GhLmuYnny4AwMi+IwPyrSJjnJp4PAyADMs+fAPOvImGem3geBgBhQOb5E5h/HQnz3MRzMveTAZB5vgTmX0fCPA/xbObZhAGQeX4E5l9JwjwPmedHYACQeV4C868lYZ6HzPMhMFfIPC+B+deSMM9L5rkJMPeTeW4C868mYZ6XzHMRYJ5F5rkIzL+ehHleMs9BAOYBZJ6TwPzrSZjnQ+bZBIB5IJnnIDD/BhLm+ZB5JnGZeS4yDyQw/wYS5vmRARAAYJ6bzAMIzL+FhHl+ZEBcYZ4PWZhnEph/CwnzfIn7medLGIEBBObfRMI8X+IK8wIIgwCDwPybSJjnTwDmBRIY8Uzm30bCPH8CzAsmMOKZzL+NhHn+ZF44gcUzmX8bCfMCyLxQAov7mX8TCfMCyLxwwuJZzL+FhHkBZF448UDm30LCvCAyL5x4IPNvIGFeEJkXTjwH868nYV4gmRdOPJD515MwL5DMv0A8gPnXkzAvmMy/QDyL+TeQMC+YzL9ERmD+jSTMCyHzL5D595AwL4TMv0Tm30HCvDAy/wKZfwcJ88LI/Atk/h0kzAsl8y+Q+beTMC+UzL9A5t9OwrxwMi+UwPybSZgXTuaFEZh/OwnzL5B5wQSA+beSMP8CmRdIAGD+rSTMv0DmBRD3M/9GEuZfIvP8iGcz/0YS5l8i89zEczL/RhLmXyTzAOJ5mX8jCfMvknkm8fyZfyMJ8y+TAfGCmX8jCfMvEy+c+beSMC8C8UKZfysJ8yIQL4z5N5MwLwrxgpl/OwnzohAvkPl3kDAvEvECmH8PCfMiEc+f+XeRMC8a8fyYfx8J86IRz8v8e0mYF5F4LubfT8K8qMQDmf8IEuZFJp7F/MeQMC86cZn5DyNh/jtJmP9OEua/k4T57yTx34t/BG/fj4hOSXwcAAAAAElFTkSuQmCC' /></div><div class='cnt al'></div></article></section>
+</body>
+</html>

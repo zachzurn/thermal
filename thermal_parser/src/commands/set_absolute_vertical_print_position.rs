@@ -9,9 +9,9 @@ impl CommandHandler for Handler {
     fn get_device_command(
         &self,
         command: &Command,
-        _context: &Context,
+        context: &Context,
     ) -> Option<Vec<DeviceCommand>> {
-        if _context.is_page_mode {
+        if context.page_mode.enabled {
             let nl = *command.data.get(0).unwrap_or(&0u8);
             let nh = *command.data.get(1).unwrap_or(&0u8);
             println!("xL: {}, xH: {}", nl, nh);

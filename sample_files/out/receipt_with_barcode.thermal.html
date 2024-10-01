@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Thermal</title>
+
+    <style>
+        section {
+            font-family: monospace;
+            font-size: 16px;
+            line-height: 1.2;
+            margin: 0 auto;
+            text-align: left;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+        }
+
+        article{
+            overflow: hidden;
+        }
+
+        span {
+            display: inline-block;
+        }
+
+        .cnt {
+            text-wrap: wrap;
+        }
+
+        .ac{
+            text-align: center;
+        }
+
+        .ac span {
+            transform-origin: center top;
+        }
+
+        .ar {
+            text-align: right;
+        }
+
+        .ar span {
+            transform-origin: right top;
+        }
+
+        .al {
+            text-align: left;
+        }
+
+        .al span {
+            transform-origin: left top;
+        }
+
+        .b{
+            font-weight: bold;
+        }
+
+        .i{
+            font-style: italic;
+        }
+
+        .u{
+            text-decoration: underline;
+        }
+
+        .s{
+            text-decoration: line-through;
+        }
+
+        .dw{
+            /* NOT FULLY SUPPORTED, NEED A BETTER IMPLEMENTATION */
+            transform: scaleX(2);
+        }
+
+        .dh{
+            /* NOT FULLY SUPPORTED, NEED A BETTER IMPLEMENTATION */
+            transform: scaleY(2);
+        }
+
+        img {
+            display: inline-block;
+        }
+
+
+    </style>
+</head>
+<body>
+    <section style="max-width: 456px; padding-left: 15px; padding-right: 15px;"><article><div class='cnt al'></div><div class='cnt ac'><img width='173' src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAPAAAAAoCAAAAADlUygMAAAFh0lEQVR4Ae3gAZAkSZIkSRKLqpm7R0REZmZmVlVVVVV3d3d3d/fMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMdHd3d3dXV1VVVVVmZkZGRIS7m5kKz0xmV3d1d3dPz8zMzMxMovj/BfH/CwLz/4cQmP8/hMD8/yEE5v8PITD/fwiBeSZhnk2YK8QV5gphnk0YEA9gnpt4AHOZeE7mCnGFuUI8JwMIwADiAQwA4jmZZxIC80zCPJswl4n7mcuEeTZhQDyQeS7igQyAeE7mMnE/c5l4TgYQgAHEAxkA8ZzMMwmBuZ8w9xPmMoEBEBgAYZ5NGBDmfgLznIS5n8AAwjwvgQEQGABhnpcwlwlzP4F5NmGekxCY+wlzP2EuE+YKYQCEeTZhQJhnEZjnIMyzCAwI87yEuUJgAGGelzCXCfMsAvMswjwnITDPIswVwlwmMFcIDCDMswkDwjybMM9BmGcTBoR5HgLzTMIAwjwvYS4T5tmEeRZhnpMQmGcR5gphLhPmfsIAwjybMCDMswnzHIR5NmFAmOchzLMIA8I8L2EuE+bZhHkWYZ6TEJhnEwZAmCuEuZ8wgDDPJgwI82zCPAdhnk0YEOa5CcyzCAPCPC9hLhPm2YR5FmGekxCYZxMGQJjLhHk2YUCYZxMGhHk2YZ6DMM8mDAjz3IR5bsI8L2EuE+bZhHkWYZ6TEJgHEAaEuUKYZxMGhHk2YUCYZxPmOQjzbMKAMM9NmOcmzPMS5jJhnk2YZxHmOQmBeQBhQJgrhHk2YUCYZxMGhHkWgXkOwjyLwIAwz02Y5ybM8xLmMmGeRWCeRZjnJATmgYQR5pmEeTZhQJhnEwaEuZ/APCdh7icwgDDPTZjnJszzEuYyYe4nMM8mzHMSAvNAwgjzTMI8mzAgzLMJA+KBzHMRD2QAhHluwjw3YZ6XMJeJBzIPIMxzEgLzHASY+wnzbMKAMM8mDIgHMM9NPIC5TDwHAwjz3MRzMJcJc5l4APNAwjwnITDPQYC5nzDPJgwI82zCgDCAMM+PMIAwzyKegwGEeW7iOZjLhLlMmBdAmOckBOY5CfMswjybMCDMswkDwgAI83wIAyDM/YR5bsI8N2GelzCXCfMCCPOchMA8J2GeRZhnEwaEeTZhQBgAYZ4PYQCEuZ8wz02Y5ybM8xLmMmFeAGGekxCY5yTMswjzbMKAMM8mDAhzmTDPS5jLhHkmYZ6bMM9NmOclzGXCvADCPCchMM9JmGcR5tmEAWGeTRgQ5jJhnpcwlwnzTMI8N2GemzDPS5jLhHkBhHlOQmCekzDPIsyzCQPCPJswIMwVwjwPYa4Q5gphnpswz02Y5yXMZcK8AMI8JyEwz0mYZxPmfsIAwjybMCDMFcI8D2GuEOYKYZ6HMM8iDAjzvIS5TJgXQJjnJATmOQnzbMLcTxhAYO4nMCDMMwnz3IR5JmEuE+Z5CPMswoAwz0uYy4R5AYR5TkJgnpMwzyYwVwgMgDD3EwYQ5pmEeW7CPJMwlwnzPATmmYQBhHlewlwmzAsgzHMSAvOchHkAYa4Q5jKBuUJgAGHuJ8xzEeZ+wgAI87yEuUJgAGGelzCXCfMCCPOchMA8J2EeQGAABOYKgQEQGABh7icwz0mY+wkMIMzzEhgAgQEQ5nkJc5kwL4Awz0kIzHMS5oHE/cz9xP3MZcI8i8A8B2GeRWBAPCdzmbifuUw8JwMIwADCvADCPCchMM9JmOcgrjDPJq4wVwjzLALzHIR5FoEB8ZzMFeIKc4V4TgYQgAGEeQGEeU5CYP7/EALz/4cQmP8/hMD8/yEE5v8PIf5/Qfz/wj8CiGG7OJ7SDEcAAAAASUVORK5CYII' /></div><div class='cnt ac'><span class=''>Thank you</span><span class=''></span><br/><span class=''></span><span class=''>NOVEMBER 1, 2012 15:00</span></div><div class='cnt al'><span class=''>TM-Hxxx</span><span class=''>	</span><span class=''>  6.00</span><span class=''></span><br/><span class=''></span><span class=''>PS-xxx</span><span class=''>	</span><span class=''>  1.70</span><span class=''></span><br/><span class=''></span><span class=''></span><br/><span class=''></span><span class='dh'>TOTAL</span><span class='dh'>	</span><span class='dh'>  7.70</span><span class='dh'></span><br/><span class='dh'></span><span class=''>------------------------------------------</span><span class=''></span><br/><span class=''></span><span class=''>PAID</span><span class=''>	</span><span class=''> 10.00</span><span class=''></span><br/><span class=''></span><span class=''>CHANGE</span><span class=''>	</span><span class=''>  2.30</span></div><div class='cnt ac'><span class=''><< Bonus points : 14 >></span></div><div class='cnt ac'><img width='173' src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAPAAAAAoCAAAAADlUygMAAAFh0lEQVR4Ae3gAZAkSZIkSRKLqpm7R0REZmZmVlVVVVV3d3d3d/fMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMdHd3d3dXV1VVVVVmZkZGRIS7m5kKz0xmV3d1d3dPz8zMzMxMovj/BfH/CwLz/4cQmP8/hMD8/yEE5v8PITD/fwiBeSZhnk2YK8QV5gphnk0YEA9gnpt4AHOZeE7mCnGFuUI8JwMIwADiAQwA4jmZZxIC80zCPJswl4n7mcuEeTZhQDyQeS7igQyAeE7mMnE/c5l4TgYQgAHEAxkA8ZzMMwmBuZ8w9xPmMoEBEBgAYZ5NGBDmfgLznIS5n8AAwjwvgQEQGABhnpcwlwlzP4F5NmGekxCY+wlzP2EuE+YKYQCEeTZhQJhnEZjnIMyzCAwI87yEuUJgAGGelzCXCfMsAvMswjwnITDPIswVwlwmMFcIDCDMswkDwjybMM9BmGcTBoR5HgLzTMIAwjwvYS4T5tmEeRZhnpMQmGcR5gphLhPmfsIAwjybMCDMswnzHIR5NmFAmOchzLMIA8I8L2EuE+bZhHkWYZ6TEJhnEwZAmCuEuZ8wgDDPJgwI82zCPAdhnk0YEOa5CcyzCAPCPC9hLhPm2YR5FmGekxCYZxMGQJjLhHk2YUCYZxMGhHk2YZ6DMM8mDAjz3IR5bsI8L2EuE+bZhHkWYZ6TEJgHEAaEuUKYZxMGhHk2YUCYZxPmOQjzbMKAMM9NmOcmzPMS5jJhnk2YZxHmOQmBeQBhQJgrhHk2YUCYZxMGhHkWgXkOwjyLwIAwz02Y5ybM8xLmMmGeRWCeRZjnJATmgYQR5pmEeTZhQJhnEwaEuZ/APCdh7icwgDDPTZjnJszzEuYyYe4nMM8mzHMSAvNAwgjzTMI8mzAgzLMJA+KBzHMRD2QAhHluwjw3YZ6XMJeJBzIPIMxzEgLzHASY+wnzbMKAMM8mDIgHMM9NPIC5TDwHAwjz3MRzMJcJc5l4APNAwjwnITDPQYC5nzDPJgwI82zCgDCAMM+PMIAwzyKegwGEeW7iOZjLhLlMmBdAmOckBOY5CfMswjybMCDMswkDwgAI83wIAyDM/YR5bsI8N2GelzCXCfMCCPOchMA8J2GeRZhnEwaEeTZhQBgAYZ4PYQCEuZ8wz02Y5ybM8xLmMmFeAGGekxCY5yTMswjzbMKAMM8mDAhzmTDPS5jLhHkmYZ6bMM9NmOclzGXCvADCPCchMM9JmGcR5tmEAWGeTRgQ5jJhnpcwlwnzTMI8N2GemzDPS5jLhHkBhHlOQmCekzDPIsyzCQPCPJswIMwVwjwPYa4Q5gphnpswz02Y5yXMZcK8AMI8JyEwz0mYZxPmfsIAwjybMCDMFcI8D2GuEOYKYZ6HMM8iDAjzvIS5TJgXQJjnJATmOQnzbMLcTxhAYO4nMCDMMwnz3IR5JmEuE+Z5CPMswoAwz0uYy4R5AYR5TkJgnpMwzyYwVwgMgDD3EwYQ5pmEeW7CPJMwlwnzPATmmYQBhHlewlwmzAsgzHMSAvOchHkAYa4Q5jKBuUJgAGHuJ8xzEeZ+wgAI87yEuUJgAGGelzCXCfMCCPOchMA8J2EeQGAABOYKgQEQGABh7icwz0mY+wkMIMzzEhgAgQEQ5nkJc5kwL4Awz0kIzHMS5oHE/cz9xP3MZcI8i8A8B2GeRWBAPCdzmbifuUw8JwMIwADCvADCPCchMM9JmOcgrjDPJq4wVwjzLALzHIR5FoEB8ZzMFeIKc4V4TgYQgAGEeQGEeU5CYP7/EALz/4cQmP8/hMD8/yEE5v8PIf5/Qfz/wj8CiGG7OJ7SDEcAAAAASUVORK5CYII' /></div><div class='cnt ac'><span class=''>Thank you</span><span class=''></span><br/><span class=''></span><span class=''>NOVEMBER 1, 2012 15:00</span></div><div class='cnt al'><span class=''>TM-Hxxx</span><span class=''>	</span><span class=''>  6.00</span><span class=''></span><br/><span class=''></span><span class=''>PS-xxx</span><span class=''>	</span><span class=''>  1.70</span><span class=''></span><br/><span class=''></span><span class=''></span><br/><span class=''></span><span class='dh'>TOTAL</span><span class='dh'>	</span><span class='dh'>  7.70</span><span class='dh'></span><br/><span class='dh'></span><span class=''>------------------------------------------</span><span class=''></span><br/><span class=''></span><span class=''>PAID</span><span class=''>	</span><span class=''> 10.00</span><span class=''></span><br/><span class=''></span><span class=''>CHANGE</span><span class=''>	</span><span class=''>  2.30</span></div><div class='cnt ac'><span class=''><< Bonus points : 14 >></span></div></article></section>
+</body>
+</html>

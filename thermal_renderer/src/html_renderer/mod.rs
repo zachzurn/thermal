@@ -6,6 +6,8 @@ use std::path::PathBuf;
 use thermal_parser::command::DeviceCommand;
 use thermal_parser::context::{Context, TextJustify, TextStrikethrough, TextUnderline};
 
+static TEMPLATE: &str = include_str!("../../resources/templates/thermal.html");
+
 pub struct HtmlRenderer {
     pub out_path: String,
     pub content: Vec<String>,
@@ -25,15 +27,10 @@ pub struct HtmlRenderer {
 
 impl HtmlRenderer {
     pub fn new(out_path: String) -> Self {
-        let template_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("resources")
-            .join("templates")
-            .join("thermal.html");
-
         Self {
             out_path,
             content: vec![],
-            template: std::fs::read_to_string(template_path).unwrap(),
+            template: TEMPLATE.to_string(),
             font_size_pixels: 0,
             receipt_width_pixels: 0,
             receipt_margin_left_pixels: 0,
@@ -60,6 +57,10 @@ impl CommandRenderer for HtmlRenderer {
         self.receipt_margin_right_pixels = (context.graphics.margin_left * dpi) as usize;
         self.start_container(context);
     }
+
+    fn begin_page(&mut self, _context: &mut Context) {}
+
+    fn end_page(&mut self, _context: &mut Context, _print: bool) {}
 
     fn begin_graphics(&mut self, context: &mut Context) {
         self.end_container();

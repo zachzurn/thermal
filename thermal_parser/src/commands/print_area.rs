@@ -5,7 +5,7 @@ struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        if context.is_page_mode {
+        if context.page_mode.enabled {
             let x_l = *command.data.get(0).unwrap_or(&0u8);
             let x_h = *command.data.get(1).unwrap_or(&0u8);
             let y_l = *command.data.get(2).unwrap_or(&0u8);
@@ -26,20 +26,17 @@ impl CommandHandler for Handler {
             let print_area_height =
                 (u16::from(dy_l) + u16::from(dy_h) * 256) * context.graphics.v_motion_unit as u16;
 
-            // Adjustments for exceeding printable area
-            let adjusted_width =
-                if horizontal_logical_origin + print_area_width > context.graphics.x as u16 {
-                    context.graphics.x as u16 - horizontal_logical_origin
-                } else {
-                    print_area_width
-                };
+            let adjusted_width = if context.graphics.x as u16 >= horizontal_logical_origin {
+                context.graphics.x as u16 - horizontal_logical_origin
+            } else {
+                0
+            };
 
-            let adjusted_height =
-                if vertical_logical_origin + print_area_height > context.graphics.y as u16 {
-                    context.graphics.y as u16 - vertical_logical_origin
-                } else {
-                    print_area_height
-                };
+            let adjusted_height = if context.graphics.y as u16 >= vertical_logical_origin {
+                context.graphics.y as u16 - vertical_logical_origin
+            } else {
+                0
+            };
 
             context.graphics.y = adjusted_height as usize;
             context.graphics.x = adjusted_width as usize;
