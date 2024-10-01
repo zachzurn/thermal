@@ -157,10 +157,10 @@ pub struct Code2DContext {
 
 #[derive(Clone, Debug)]
 pub enum PrintDirection {
-    Left2Right,
-    Right2Left,
-    Top2Bottom,
-    Bottom2Top,
+    TopLeft2Right,
+    BottomRight2Left,
+    TopRight2Bottom,
+    BottomLeft2Top,
 }
 
 #[derive(Clone)]

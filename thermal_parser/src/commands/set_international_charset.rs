@@ -1,7 +1,6 @@
 //! Sets the international character set.
 //!
 //! The base Codepage will be different based on the international character set.
-//! This is not currently implemented in terms of decoding to utf 8.
 //!
 //! An example of how this works. In the USA character set a # sign would be the £ character instead.
 //!

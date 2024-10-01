@@ -1,3 +1,8 @@
+//!
+//! This command ends Page Mode and prints the contents
+//! of the Page Mode buffer.
+//!
+
 use crate::{command::*, constants::*, context::*};
 
 #[derive(Clone)]
