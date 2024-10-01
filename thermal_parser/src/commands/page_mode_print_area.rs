@@ -26,20 +26,15 @@ impl CommandHandler for Handler {
             let print_area_height =
                 (u16::from(dy_l) + u16::from(dy_h) * 256) * context.graphics.v_motion_unit as u16;
 
-            let adjusted_width = if context.graphics.x as u16 >= horizontal_logical_origin {
-                context.graphics.x as u16 - horizontal_logical_origin
-            } else {
-                0
-            };
+            context.page_mode.x = horizontal_logical_origin as usize;
+            context.page_mode.y = vertical_logical_origin as usize;
+            context.page_mode.w = print_area_width as usize;
+            context.page_mode.h = print_area_height as usize;
 
-            let adjusted_height = if context.graphics.y as u16 >= vertical_logical_origin {
-                context.graphics.y as u16 - vertical_logical_origin
-            } else {
-                0
-            };
-
-            context.graphics.y = adjusted_height as usize;
-            context.graphics.x = adjusted_width as usize;
+            println!(
+                "PAGE AREA SET x{} y{} w{} h{}",
+                context.page_mode.x, context.page_mode.y, context.page_mode.w, context.page_mode.h
+            );
         }
     }
 }

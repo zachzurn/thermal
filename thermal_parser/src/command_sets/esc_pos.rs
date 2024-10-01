@@ -54,7 +54,9 @@ pub fn new() -> CommandSet {
         transmit_printer_id::new(),
         set_page_mode::new(),
         set_absolute_vertical_print_position::new(),
-        print_area::new(),
+        page_mode_print_area::new(),
+        page_mode_print_direction::new(),
+        page_mode_print_data::new(),
         select_standard_mode::new(),
     ];
 

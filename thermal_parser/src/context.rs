@@ -155,7 +155,7 @@ pub struct Code2DContext {
     pub datamatrix_width: u8,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum PrintDirection {
     Left2Right,
     Right2Left,
