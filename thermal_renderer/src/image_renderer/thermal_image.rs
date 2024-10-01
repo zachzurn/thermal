@@ -118,14 +118,80 @@ impl ThermalImage {
     }
 
     //Print direction is a weird one that we emulate
-    // by rotating the image
-    pub fn set_print_direction(&mut self, direction: PrintDirection) {
-        let current_rotation = match self.print_direction {
+    // by rotating the image and rendering as normal
+    pub fn set_print_direction(&mut self, direction: &PrintDirection) {
+        //Values are 0 to 3 which represent 90 degree rotations
+        let current = Self::get_rotation(&self.print_direction);
+        let new = Self::get_rotation(direction);
+
+        //0 to 3 to rotate
+        let rot = (4 - current + new) % 4;
+
+        println!("rotation {:?}", rot);
+
+        //Rotate pixels
+        match rot {
+            1 => self.rotate_90(),
+            2 => self.rotate_180(),
+            3 => self.rotate_270(),
+            _ => {},
+        }
+    }
+
+    fn get_rotation(direction: &PrintDirection) -> i32 {
+        match direction {
+            PrintDirection::Top2Bottom => 3,
+            PrintDirection::Right2Left => 2,
+            PrintDirection::Bottom2Top => 1,
             PrintDirection::Left2Right => 0,
-            PrintDirection::Bottom2Top => 0,
-            PrintDirection::Right2Left => 0,
-            PrintDirection::Top2Bottom => 0
-        };
+        }
+    }
+
+    fn rotate_90(&mut self) {
+        println!("Rotating 90");
+        let w = self.width;
+        let h = self.bytes.len() / w;
+        let mut rotated_image = vec![0; w * h];
+
+        for y in 0..h {
+            for x in 0..w {
+                rotated_image[x * h + (h - 1 - y)] = self.bytes[y * w + x];
+            }
+        }
+
+        self.bytes = rotated_image;
+        self.width = h;
+    }
+
+    fn rotate_180(&mut self) {
+        println!("Rotating 180");
+        let w = self.width;
+        let h = self.bytes.len() / w;
+        let mut rotated_image = vec![0; w * h];
+
+        for y in 0..h {
+            for x in 0..w {
+                rotated_image[(h - 1 - y) * w + (w - 1 - x)] = self.bytes[y * w + x];
+            }
+        }
+
+        self.bytes = rotated_image;
+    }
+
+    fn rotate_270(&mut self) {
+        println!("Rotating 270");
+        let w = self.width;
+        let h = self.bytes.len() / w;
+        let mut rotated_image = vec![0; w * h];
+
+        for y in 0..h {
+            for x in 0..w {
+                rotated_image[(w - 1 - x) * h + y] = self.bytes[y * w + x];
+            }
+        }
+
+        self.bytes = rotated_image;
+        self.width = h;
     }
 
     //Setting the width clears any bytes
@@ -494,6 +560,14 @@ impl ThermalImage {
         true
     }
 
+    pub fn get_height(&self) -> usize {
+        if self.width == 0 {
+            0
+        } else {
+            self.bytes.len() / self.width
+        }
+    }
+
     pub fn ensure_height(&mut self, height: usize) {
         let len = self.width * height;
         let cur_len = self.bytes.len();
@@ -543,10 +617,10 @@ impl ThermalImage {
     }
 
     pub fn copy(&mut self) -> (usize, usize, Vec<u8>) {
+        if self.width == 0 { return (0, 0, vec![]); }
         let pixels = take(&mut self.bytes);
         let w = self.width;
         let h = pixels.len() / self.width;
-        self.width = 0;
         (w, h, pixels)
     }
 

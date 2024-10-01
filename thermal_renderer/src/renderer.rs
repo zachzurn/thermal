@@ -5,7 +5,6 @@ use thermal_parser::graphics::GraphicsCommand;
 pub trait CommandRenderer {
     //default implementation
     fn process_command(&mut self, context: &mut Context, command: &Command) {
-        println!("{}", command.handler.debug(command, context));
         match command.kind {
             CommandType::Text => {
                 let maybe_text = command.handler.get_text(command, context);
@@ -17,93 +16,10 @@ pub trait CommandRenderer {
                 let maybe_gfx = command.handler.get_graphics(command, context);
 
                 if let Some(gfx) = maybe_gfx {
-                    match gfx {
-                        GraphicsCommand::Code2D(code_2d) => {
-                            self.begin_graphics(context);
-
-                            let mut i = 1;
-                            let origin_x = context.graphics_x_offset(
-                                (code_2d.points.len() * code_2d.point_width as usize) as u32,
-                            ) as usize;
-
-                            for p in code_2d.points {
-                                if i != 1 && i % code_2d.width == 1 {
-                                    context.graphics.x = origin_x;
-                                    context.graphics.y += code_2d.point_height as usize;
-                                }
-
-                                if p > 0 {
-                                    self.draw_rect(
-                                        context,
-                                        code_2d.point_width as usize,
-                                        code_2d.point_height as usize,
-                                    )
-                                }
-                                context.graphics.x += code_2d.point_width as usize;
-                                i += 1;
-                            }
-
-                            context.graphics.x = 0;
-
-                            self.end_graphics(context);
-                        }
-                        GraphicsCommand::Barcode(barcode) => {
-                            match context.barcode.human_readable {
-                                HumanReadableInterface::Above | HumanReadableInterface::Both => {
-                                    self.draw_text(context, barcode.text.to_string());
-                                }
-                                _ => {}
-                            }
-
-                            self.begin_graphics(context);
-
-                            context.graphics.x = context.graphics_x_offset(
-                                (barcode.points.len() * barcode.point_width as usize) as u32,
-                            ) as usize;
-
-                            for p in barcode.points {
-                                if p > 0 {
-                                    self.draw_rect(
-                                        context,
-                                        barcode.point_width as usize,
-                                        barcode.point_height as usize,
-                                    )
-                                }
-                                context.graphics.x += barcode.point_width as usize;
-                            }
-
-                            context.graphics.x = 0;
-                            context.graphics.y += barcode.point_height as usize;
-                            context.graphics.y += context.line_height_pixels() as usize;
-
-                            self.end_graphics(context);
-
-                            match context.barcode.human_readable {
-                                HumanReadableInterface::Below | HumanReadableInterface::Both => {
-                                    self.draw_text(context, barcode.text.to_string());
-                                }
-                                _ => {}
-                            }
-                        }
-                        GraphicsCommand::Image(image) => {
-                            if image.advances_xy {
-                                context.graphics.x =
-                                    context.graphics_x_offset(image.width) as usize;
-                            }
-                            self.draw_image(
-                                context,
-                                image.as_grayscale(),
-                                image.width as usize,
-                                image.height as usize,
-                            );
-                            if image.advances_xy {
-                                context.graphics.x = 0;
-                                context.graphics.y += image.height as usize;
-                                context.graphics.y += context.line_height_pixels() as usize;
-                            }
-                        }
-                        GraphicsCommand::Rectangle(_) => {}
-                        GraphicsCommand::Line(_) => {}
+                    if context.page_mode.enabled {
+                        self.handle_graphics(&gfx, context);
+                    } else {
+                        self.handle_page_mode_graphics(&gfx, context);
                     }
                 }
             }
@@ -141,12 +57,23 @@ pub trait CommandRenderer {
                     DeviceCommand::BeginPrint => self.begin_render(context),
                     DeviceCommand::EndPrint => self.end_render(context),
                     DeviceCommand::FeedLine(num_lines) => {
-                        context.graphics.y +=
-                            context.line_height_pixels() as usize * *num_lines as usize;
+                        let advance = context.line_height_pixels() as usize * *num_lines as usize;
+
+                        if context.page_mode.enabled {
+                            context.page_mode.y += advance;
+                        } else {
+                            context.graphics.y += advance;
+
+                        }
                     }
                     DeviceCommand::Feed(num) => {
-                        context.graphics.y +=
-                            context.motion_unit_y_pixels() as usize * *num as usize;
+                        let advance = context.motion_unit_y_pixels() as usize * *num as usize;
+
+                        if context.page_mode.enabled {
+                            context.page_mode.y += advance;
+                        } else {
+                            context.graphics.y += advance;
+                        }
                     }
                     DeviceCommand::FullCut | DeviceCommand::PartialCut => {
                         context.graphics.y += context.line_height_pixels() as usize * 2;
@@ -162,14 +89,197 @@ pub trait CommandRenderer {
                     DeviceCommand::ChangePageModeDirection => {
                         self.page_direction_changed(context);
                     }
+                    DeviceCommand::ChangePageArea => {
+                        self.page_area_changed(context);
+                    }
                     _ => {}
                 }
             }
         }
     }
 
+    fn handle_graphics(&mut self, gfx: &GraphicsCommand, context: &mut Context) {
+        match gfx {
+            GraphicsCommand::Code2D(code_2d) => {
+                self.begin_graphics(context);
+
+                let mut i = 1;
+                let origin_x = context.graphics_x_offset(
+                    (code_2d.points.len() * code_2d.point_width as usize) as u32,
+                ) as usize;
+
+                for p in &code_2d.points {
+                    if i != 1 && i % code_2d.width == 1 {
+                        context.graphics.x = origin_x;
+                        context.graphics.y += code_2d.point_height as usize;
+                    }
+
+                    if *p > 0 {
+                        self.draw_rect(
+                            context,
+                            code_2d.point_width as usize,
+                            code_2d.point_height as usize,
+                        )
+                    }
+                    context.graphics.x += code_2d.point_width as usize;
+                    i += 1;
+                }
+
+                context.graphics.x = 0;
+
+                self.end_graphics(context);
+            }
+            GraphicsCommand::Barcode(barcode) => {
+                match context.barcode.human_readable {
+                    HumanReadableInterface::Above | HumanReadableInterface::Both => {
+                        self.draw_text(context, barcode.text.to_string());
+                    }
+                    _ => {}
+                }
+
+                self.begin_graphics(context);
+
+                context.graphics.x = context.graphics_x_offset(
+                    (barcode.points.len() * barcode.point_width as usize) as u32,
+                ) as usize;
+
+                for p in &barcode.points {
+                    if *p > 0 {
+                        self.draw_rect(
+                            context,
+                            barcode.point_width as usize,
+                            barcode.point_height as usize,
+                        )
+                    }
+                    context.graphics.x += barcode.point_width as usize;
+                }
+
+                context.graphics.x = 0;
+                context.graphics.y += barcode.point_height as usize;
+                context.graphics.y += context.line_height_pixels() as usize;
+
+                self.end_graphics(context);
+
+                match context.barcode.human_readable {
+                    HumanReadableInterface::Below | HumanReadableInterface::Both => {
+                        self.draw_text(context, barcode.text.to_string());
+                    }
+                    _ => {}
+                }
+            }
+            GraphicsCommand::Image(image) => {
+                if image.advances_xy {
+                    context.graphics.x =
+                        context.graphics_x_offset(image.width) as usize;
+                }
+                self.draw_image(
+                    context,
+                    image.as_grayscale(),
+                    image.width as usize,
+                    image.height as usize,
+                );
+                if image.advances_xy {
+                    context.graphics.x = 0;
+                    context.graphics.y += image.height as usize;
+                    context.graphics.y += context.line_height_pixels() as usize;
+                }
+            }
+            GraphicsCommand::Rectangle(_) => {}
+            GraphicsCommand::Line(_) => {}
+        }
+    }
+
+    fn handle_page_mode_graphics(&mut self, gfx: &GraphicsCommand, context: &mut Context){
+        match gfx {
+            GraphicsCommand::Code2D(code_2d) => {
+                self.begin_graphics(context);
+
+                let mut i = 1;
+                let origin_x = context.page_mode.x;
+
+                for p in &code_2d.points {
+                    if i != 1 && i % code_2d.width == 1 {
+                        context.page_mode.x = origin_x;
+                        context.page_mode.y += code_2d.point_height as usize;
+                    }
+
+                    if *p > 0 {
+                        self.draw_rect(
+                            context,
+                            code_2d.point_width as usize,
+                            code_2d.point_height as usize,
+                        )
+                    }
+                    context.page_mode.x += code_2d.point_width as usize;
+                    i += 1;
+                }
+
+                context.page_mode.x = 0;
+
+                self.end_graphics(context);
+            }
+            GraphicsCommand::Barcode(barcode) => {
+                match context.barcode.human_readable {
+                    HumanReadableInterface::Above | HumanReadableInterface::Both => {
+                        self.draw_text(context, barcode.text.to_string());
+                    }
+                    _ => {}
+                }
+
+                self.begin_graphics(context);
+
+                context.graphics.x = context.graphics_x_offset(
+                    (barcode.points.len() * barcode.point_width as usize) as u32,
+                ) as usize;
+
+                for p in &barcode.points {
+                    if *p > 0 {
+                        self.draw_rect(
+                            context,
+                            barcode.point_width as usize,
+                            barcode.point_height as usize,
+                        )
+                    }
+                    context.graphics.x += barcode.point_width as usize;
+                }
+
+                context.graphics.x = 0;
+                context.graphics.y += barcode.point_height as usize;
+                context.graphics.y += context.line_height_pixels() as usize;
+
+                self.end_graphics(context);
+
+                match context.barcode.human_readable {
+                    HumanReadableInterface::Below | HumanReadableInterface::Both => {
+                        self.draw_text(context, barcode.text.to_string());
+                    }
+                    _ => {}
+                }
+            }
+            GraphicsCommand::Image(image) => {
+                if image.advances_xy {
+                    context.page_mode.x = 0;
+                }
+                self.draw_image(
+                    context,
+                    image.as_grayscale(),
+                    image.width as usize,
+                    image.height as usize,
+                );
+                if image.advances_xy {
+                    context.page_mode.x = 0;
+                    context.page_mode.y += image.height as usize;
+                    context.page_mode.y += context.line_height_pixels() as usize;
+                }
+            }
+            GraphicsCommand::Rectangle(_) => {}
+            GraphicsCommand::Line(_) => {}
+        }
+    }
+
     fn begin_render(&mut self, context: &mut Context);
     fn begin_page(&mut self, context: &mut Context);
+    fn page_area_changed(&mut self, context: &mut Context);
     fn page_direction_changed(&mut self, context: &mut Context);
     fn end_page(&mut self, context: &mut Context, print: bool);
     fn begin_graphics(&mut self, context: &mut Context);

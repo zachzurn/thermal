@@ -12,7 +12,7 @@ impl CommandHandler for Handler {
                 0 => PrintDirection::Left2Right,
                 48 => PrintDirection::Left2Right,
 
-                1 => PrintDirection::Left2Right,
+                1 => PrintDirection::Bottom2Top,
                 49 => PrintDirection::Bottom2Top,
 
                 2 => PrintDirection::Right2Left,
@@ -37,7 +37,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Page Mode Print Direction",
         vec![ESC, 'T' as u8],
-        CommandType::Context,
+        CommandType::ContextControl,
         DataType::Single,
         Box::new(Handler {}),
     )

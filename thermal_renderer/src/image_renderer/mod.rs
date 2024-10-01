@@ -62,15 +62,37 @@ impl CommandRenderer for ImageRenderer {
     }
 
     fn begin_page(&mut self, context: &mut Context) {
-        println!("Begin render page w{} h{}",context.page_mode.w, context.page_mode.h);
         self.page_image.set_width(context.page_mode.w);
         self.page_image.ensure_height(context.page_mode.h);
         self.maybe_render_text(context);
     }
 
+    fn page_area_changed(&mut self, context: &mut Context) {
+        let current_width = self.page_image.width;
+        let current_height = self.page_image.get_height();
+
+        let new_width = context.page_mode.w;
+        let new_height = context.page_mode.h;
+
+        //No need to make any adjustments for smaller page area
+        //For bigger area, we reset the image and put the old image in place
+        if current_width < new_width || current_height < new_height {
+            println!("!!!!Expanding page area");
+            let copy = self.page_image.copy();
+            self.page_image.set_width(new_width);
+            self.page_image.ensure_height(new_height);
+
+            if copy.0 != 0 && copy.1 != 0 {
+                self.page_image.put_pixels(0,0, copy.0, copy.1, copy.2, false, false);
+            }
+        } else {
+            println!("!!!!Changing page area, no image change")
+        }
+    }
+
     fn page_direction_changed(&mut self, context: &mut Context) {
         println!("Page Direction Changed to {:?}", context.page_mode.dir);
-        self.page_image.set_print_direction(context.page_mode.dir.clone());
+        self.page_image.set_print_direction(&context.page_mode.dir);
     }
 
     fn end_page(&mut self, context: &mut Context, print: bool) {

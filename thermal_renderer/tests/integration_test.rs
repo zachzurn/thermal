@@ -102,8 +102,8 @@ fn test_sample(name: &str, ext: &str) {
         std::fs::read(sample_file.to_str().unwrap()).unwrap()
     };
 
-    render_html(&bytes, rendered_file.to_str().unwrap().to_string());
     render_image(&bytes, rendered_file.to_str().unwrap().to_string());
+    render_html(&bytes, rendered_file.to_str().unwrap().to_string());
 }
 
 fn render_html(bytes: &Vec<u8>, out_path: String) {
