@@ -1,0 +1,1 @@
+None of the files in this directory are covered by this repositories license.

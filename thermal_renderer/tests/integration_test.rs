@@ -1,6 +1,7 @@
 use std::path::PathBuf;
 use thermal_parser::command::Command;
 use thermal_parser::context::Context;
+use thermal_parser::thermal_file::parse_str;
 use thermal_renderer::html_renderer::HtmlRenderer;
 use thermal_renderer::image_renderer::ImageRenderer;
 use thermal_renderer::renderer::CommandRenderer;
@@ -45,10 +46,41 @@ fn thick_barcode() {
     it_renders("thick_barcode.bin");
 }
 
+#[test]
+fn corrupt_start_of_binary() {
+    it_renders("corrupt_start_of_binary.bin");
+}
+
+#[test]
+fn receipt_with_barcode() {
+    it_renders("receipt_with_barcode.thermal");
+}
+
+#[test]
+fn bad_image() {
+    it_renders("bad_image.thermal");
+}
+
+#[test]
+fn print_graphics() {
+    it_renders("print_graphics.thermal");
+}
+
+#[test]
+fn issuing_receipts() {
+    it_renders("issuing_receipts.thermal");
+}
+
+#[test]
+fn code_pages() {
+    it_renders("code_pages.thermal")
+}
+
 fn it_renders(filename: &str) {
     it_renders_image(filename);
     it_renders_html(filename);
 }
+
 fn it_renders_html(filename: &str) {
     let out = format!(
         "{}/{}/{}/{}",
@@ -57,7 +89,14 @@ fn it_renders_html(filename: &str) {
         "out",
         filename
     );
-    let bytes = std::fs::read(get_test_bin(filename)).unwrap();
+
+    let bytes = if filename.ends_with(".thermal") {
+        let text = std::fs::read_to_string(get_test_bin(filename)).unwrap();
+        parse_str(&text)
+    } else {
+        std::fs::read(get_test_bin(filename)).unwrap()
+    };
+
     let mut html_renderer = HtmlRenderer::new(out);
 
     let mut context = Context::new();
@@ -78,7 +117,14 @@ fn it_renders_image(filename: &str) {
         "out",
         filename
     );
-    let bytes = std::fs::read(get_test_bin(filename)).unwrap();
+
+    let bytes = if filename.ends_with(".thermal") {
+        let text = std::fs::read_to_string(get_test_bin(filename)).unwrap();
+        parse_str(&text)
+    } else {
+        std::fs::read(get_test_bin(filename)).unwrap()
+    };
+
     let mut image_renderer = ImageRenderer::new(out);
 
     let mut context = Context::new();

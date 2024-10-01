@@ -54,6 +54,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "dyn_buf"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "74c57ab96715773d9cb9789b38eb7cbf04b3c6f5624a9d98f51761603376767c"
+
+[[package]]
 name = "fdeflate"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -90,6 +96,22 @@ checksum = "43a3c133739dddd0d2990f9a4bdf8eb4b21ef50e4851ca85ab661199821d510e"
 dependencies = [
  "ahash",
 ]
+
+[[package]]
+name = "iconv"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "07e6a7db0df823ef299ef75b6951975c7a1f9019910b3665614bac4161bab1a9"
+dependencies = [
+ "dyn_buf",
+ "libc",
+]
+
+[[package]]
+name = "libc"
+version = "0.2.159"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "561d97a539a36e26a9a5fad1ea11a3039a67714694aaa379433e580854bc3dc5"
 
 [[package]]
 name = "miniz_oxide"
@@ -183,6 +205,7 @@ name = "thermal_parser"
 version = "0.0.1"
 dependencies = [
  "barcoders",
+ "iconv",
  "qr_code",
 ]
 

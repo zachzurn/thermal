@@ -1,0 +1,200 @@
+'// ============================================================================
+'// Issuing receipts
+'// ============================================================================
+
+'// Initialize printer
+    ESC "@"
+
+'// --- Print stamp --->>>
+'// Set line spacing: For the TM-T20, 1.13 mm (18/406 inches)
+    ESC "3" 18
+'// Set unidirectional print mode: Cancel unidirectional print mode (Unnecessary
+'// in the TM-T20, so it is comment out)
+'//   For models equipped with the ESC U command, implementation is recommended.
+'//   Designate unidirectional printing with the ESC U command to get a print
+'//   result with equal upper and lower parts for the stamp frame symbol
+'//    ESC "U" 1
+'// Select justification: Centering
+    ESC "a" 1
+
+'// Select character size: (horizontal (times 2) x vertical (times 2))
+    GS "!" 0x11
+'// Print stamp data and line feed: quadruple-size character section, 1st line
+    0xC9 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xBB LF
+'// Print stamp data and line feed: quadruple-size character section, 2nd line
+    0xBA 0x20 0x20 0x20 0x45 0x50 0x53 0x4F 0x4E 0x20 0x20 0x20 0xBA LF
+'// Print stamp data and line feed: quadruple-size character section, 3rd line
+'//   Left frame and empty space data
+    0xBA 0x20 0x20 0x20
+'//   Select character size: Normal size
+    GS "!" 0x00
+'//   Character string data in the frame
+    "Thank you "
+'//   Select character size: horizontal (times 2) x vertical (times 1)
+    GS "!" 0x11
+'//   Empty space and right frame data, and print and line feed
+    0x20 0x20 0x20 0xBA LF
+'// Print stamp data and line feed: quadruple-size character section, 4th line
+    0xC8 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xBC LF
+
+'// Initializing line spacing
+    ESC "2"
+'// Set unidirectional print mode: Cancel unidirectional print mode
+'// (Unnecessary in the TM-T20, so it is comment out)
+'//    ESC "U" 0
+'// Select character size: Normal size
+    GS "!" 0x00
+'// --- Print stamp ---<<<
+
+
+'// --- Print the date and time --->>>
+'// Print and feed paper: In case TM-T20, feeding amount = 0.250 mm (4/406 inches)
+    ESC "J" 4
+    "NOVEMBER 1, 2012  10:30"
+'// Print and feed n lines: Feed the paper three lines
+    ESC "d" 3
+'// --- Print the date and time ---<<<
+
+
+'// --- Print details A --->>>
+'// Select justification: Left justification
+    ESC "a" 0
+'// Details text data and print and line feed
+    "TM-Uxxx                            6.75" LF
+    "TM-Hxxx                            6.00" LF
+    "PS-xxx                             1.70" LF LF
+'// --- Print details A ---<<<
+
+
+'// --- Print details B --->>>
+'// Set unidirectional print mode: Set unidirectional print mode
+'// (Unnecessary in the TM-T20, so it is comment out)
+'//   For models equipped with the ESC U command, implementation is recommended.
+'//   Designate unidirectional printing with the ESC U command to get a print
+'//   result with equal upper and lower parts for double-height characters
+'//    ESC "U" 1
+'// Select character size: horizontal (times 1) x vertical (times 2)
+    GS "!" 0x01
+'// Details text data and print and line feed
+    "TOTAL                             14.45" LF
+'// Set unidirectional print mode: Cancel unidirectional print mode
+'// (Unnecessary in the TM-T20, so it is comment out)
+'//    ESC "U" 0
+'// Select character size: Normal size
+    GS "!" 0x00
+'// Details characters data and print and line feed
+    "---------------------------------------" LF
+    "PAID                              50.00" LF
+    "CHANGE                            35.55" LF
+'// --- Print details B ---<<<
+
+
+'// --- Issue receipt --->>>
+'// Operating the drawer
+'// Generate pulse: Drawer kick-out connector pin 2, 2 x 2 ms on, 20 x 2 ms off
+    ESC "p" 0 2 20
+
+'// Select cut mode and cut paper: [Function B] Feed paper to (cutting position
+'// + 0 mm) and executes a partial cut (one point left uncut).
+    GS "V" 66 0
+'// --- Issue receipt ---<<<
+'// ============================================================================
+'// Issuing receipts
+'// ============================================================================
+
+'// Initialize printer
+    ESC "@"
+
+'// --- Print stamp --->>>
+'// Set line spacing: For the TM-T20, 1.13 mm (18/406 inches)
+    ESC "3" 18
+'// Set unidirectional print mode: Cancel unidirectional print mode (Unnecessary
+'// in the TM-T20, so it is comment out)
+'//   For models equipped with the ESC U command, implementation is recommended.
+'//   Designate unidirectional printing with the ESC U command to get a print
+'//   result with equal upper and lower parts for the stamp frame symbol
+'//    ESC "U" 1
+'// Select justification: Centering
+    ESC "a" 1
+
+'// Select character size: (horizontal (times 2) x vertical (times 2))
+    GS "!" 0x11
+'// Print stamp data and line feed: quadruple-size character section, 1st line
+    0xC9 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xBB LF
+'// Print stamp data and line feed: quadruple-size character section, 2nd line
+    0xBA 0x20 0x20 0x20 0x45 0x50 0x53 0x4F 0x4E 0x20 0x20 0x20 0xBA LF
+'// Print stamp data and line feed: quadruple-size character section, 3rd line
+'//   Left frame and empty space data
+    0xBA 0x20 0x20 0x20
+'//   Select character size: Normal size
+    GS "!" 0x00
+'//   Character string data in the frame
+    "Thank you "
+'//   Select character size: horizontal (times 2) x vertical (times 1)
+    GS "!" 0x11
+'//   Empty space and right frame data, and print and line feed
+    0x20 0x20 0x20 0xBA LF
+'// Print stamp data and line feed: quadruple-size character section, 4th line
+    0xC8 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xCD 0xBC LF
+
+'// Initializing line spacing
+    ESC "2"
+'// Set unidirectional print mode: Cancel unidirectional print mode
+'// (Unnecessary in the TM-T20, so it is comment out)
+'//    ESC "U" 0
+'// Select character size: Normal size
+    GS "!" 0x00
+'// --- Print stamp ---<<<
+
+
+'// --- Print the date and time --->>>
+'// Print and feed paper: In case TM-T20, feeding amount = 0.250 mm (4/406 inches)
+    ESC "J" 4
+    "NOVEMBER 1, 2012  10:30"
+'// Print and feed n lines: Feed the paper three lines
+    ESC "d" 3
+'// --- Print the date and time ---<<<
+
+
+'// --- Print details A --->>>
+'// Select justification: Left justification
+    ESC "a" 0
+'// Details text data and print and line feed
+    "TM-Uxxx                            6.75" LF
+    "TM-Hxxx                            6.00" LF
+    "PS-xxx                             1.70" LF LF
+'// --- Print details A ---<<<
+
+
+'// --- Print details B --->>>
+'// Set unidirectional print mode: Set unidirectional print mode
+'// (Unnecessary in the TM-T20, so it is comment out)
+'//   For models equipped with the ESC U command, implementation is recommended.
+'//   Designate unidirectional printing with the ESC U command to get a print
+'//   result with equal upper and lower parts for double-height characters
+'//    ESC "U" 1
+'// Select character size: horizontal (times 1) x vertical (times 2)
+    GS "!" 0x01
+'// Details text data and print and line feed
+    "TOTAL                             14.45" LF
+'// Set unidirectional print mode: Cancel unidirectional print mode
+'// (Unnecessary in the TM-T20, so it is comment out)
+'//    ESC "U" 0
+'// Select character size: Normal size
+    GS "!" 0x00
+'// Details characters data and print and line feed
+    "---------------------------------------" LF
+    "PAID                              50.00" LF
+    "CHANGE                            35.55" LF
+'// --- Print details B ---<<<
+
+
+'// --- Issue receipt --->>>
+'// Operating the drawer
+'// Generate pulse: Drawer kick-out connector pin 2, 2 x 2 ms on, 20 x 2 ms off
+    ESC "p" 0 2 20
+
+'// Select cut mode and cut paper: [Function B] Feed paper to (cutting position
+'// + 0 mm) and executes a partial cut (one point left uncut).
+    GS "V" 66 0
+'// --- Issue receipt ---<<<

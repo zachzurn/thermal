@@ -8,3 +8,4 @@ pub static GS: u8 = 0x1D;
 pub static FS: u8 = 0x1C;
 pub static DLE: u8 = 0x10;
 pub static CAN: u8 = 0x18;
+pub static US: u8 = 0x1F;

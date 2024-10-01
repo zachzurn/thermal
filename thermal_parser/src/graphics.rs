@@ -158,6 +158,7 @@ impl Image {
         let x2 = *data.get(5).unwrap();
         let y1 = *data.get(6).unwrap();
         let y2 = *data.get(7).unwrap();
+        let _c = *data.get(8).unwrap();
         let width = x1 as u32 + x2 as u32 * 256;
         let height = y1 as u32 + y2 as u32 * 256;
 
@@ -172,7 +173,7 @@ impl Image {
 
         let stretch = (1, 1);
 
-        let pixels = data[8..].to_vec();
+        let pixels = data[9..].to_vec();
 
         Some((
             ImageRef { kc1, kc2, storage },
