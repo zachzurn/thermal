@@ -62,13 +62,15 @@ impl CommandRenderer for ImageRenderer {
     }
 
     fn begin_page(&mut self, context: &mut Context) {
+        println!("Begin render page w{} h{}",context.page_mode.w, context.page_mode.h);
         self.page_image.set_width(context.page_mode.w);
         self.page_image.ensure_height(context.page_mode.h);
         self.maybe_render_text(context);
     }
 
     fn page_direction_changed(&mut self, context: &mut Context) {
-        //Rotate the thermal image appropriately
+        println!("Page Direction Changed to {:?}", context.page_mode.dir);
+        self.page_image.set_print_direction(context.page_mode.dir.clone());
     }
 
     fn end_page(&mut self, context: &mut Context, print: bool) {
