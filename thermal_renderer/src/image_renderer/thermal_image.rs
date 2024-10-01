@@ -13,7 +13,7 @@ use fontdue::Font;
 use png::BitDepth;
 use textwrap::WordSeparator;
 
-use thermal_parser::context::{Context, TextJustify, TextStrikethrough, TextUnderline};
+use thermal_parser::context::{Context, PrintDirection, TextJustify, TextStrikethrough, TextUnderline};
 
 const THRESHOLD: u8 = 120;
 const SCALE_THRESHOLD: u8 = 140;
@@ -102,6 +102,7 @@ pub struct TextLayout {
 /// to accommodate sets of pixels being pushed at arbitrary x and y values
 pub struct ThermalImage {
     bytes: Vec<u8>,
+    print_direction: PrintDirection,
     pub width: usize,
     pub font: Rc<FontFamily>,
 }
@@ -112,7 +113,19 @@ impl ThermalImage {
             bytes: Vec::<u8>::new(),
             font,
             width,
+            print_direction: PrintDirection::Left2Right
         }
+    }
+
+    //Print direction is a weird one that we emulate
+    // by rotating the image
+    pub fn set_print_direction(&mut self, direction: PrintDirection) {
+        let current_rotation = match self.print_direction {
+            PrintDirection::Left2Right => 0,
+            PrintDirection::Bottom2Top => 0,
+            PrintDirection::Right2Left => 0,
+            PrintDirection::Top2Bottom => 0
+        };
     }
 
     //Setting the width clears any bytes
@@ -529,8 +542,7 @@ impl ThermalImage {
         self.width = new_width;
     }
 
-    // consume the pixels
-    pub fn consume(&mut self) -> (usize, usize, Vec<u8>) {
+    pub fn copy(&mut self) -> (usize, usize, Vec<u8>) {
         let pixels = take(&mut self.bytes);
         let w = self.width;
         let h = pixels.len() / self.width;

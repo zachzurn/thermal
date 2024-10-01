@@ -159,6 +159,9 @@ pub trait CommandRenderer {
                         self.end_page(context, *print);
                         context.page_mode.enabled = false
                     }
+                    DeviceCommand::ChangePageModeDirection => {
+                        self.page_direction_changed(context);
+                    }
                     _ => {}
                 }
             }
@@ -167,6 +170,7 @@ pub trait CommandRenderer {
 
     fn begin_render(&mut self, context: &mut Context);
     fn begin_page(&mut self, context: &mut Context);
+    fn page_direction_changed(&mut self, context: &mut Context);
     fn end_page(&mut self, context: &mut Context, print: bool);
     fn begin_graphics(&mut self, context: &mut Context);
     fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize);

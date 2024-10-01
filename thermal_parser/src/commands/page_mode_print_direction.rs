@@ -25,9 +25,11 @@ impl CommandHandler for Handler {
             };
 
             context.page_mode.dir = direction;
-
-            println!("PAGE MODE DIRECTION {:?}", context.page_mode.dir);
         }
+    }
+
+    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
+        Some(vec![DeviceCommand::ChangePageModeDirection])
     }
 }
 

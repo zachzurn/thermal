@@ -58,9 +58,9 @@ impl CommandRenderer for HtmlRenderer {
         self.start_container(context);
     }
 
-    fn begin_page(&mut self, _context: &mut Context) {}
+    fn begin_page(&mut self, _context: &mut Context) { //Page Mode is not currently supported }
 
-    fn end_page(&mut self, _context: &mut Context, _print: bool) {}
+    fn end_page(&mut self, _context: &mut Context, _print: bool) { //Page Mode is not currently supported }
 
     fn begin_graphics(&mut self, context: &mut Context) {
         self.end_container();

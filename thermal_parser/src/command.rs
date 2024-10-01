@@ -15,6 +15,7 @@ pub enum DeviceCommand {
     EndPrint,
     BeginPageMode,
     EndPageMode(bool),
+    ChangePageModeDirection,
     Transmit(Vec<u8>),
     MoveX(u16),
 }
@@ -33,6 +34,7 @@ impl DeviceCommand {
             Self::BeginPrint => "Begin Print".to_string(),
             Self::BeginPageMode => "Begin Page Mode".to_string(),
             Self::EndPageMode(b) => format!("End Page Mode, Print buffer? {}", b),
+            Self::ChangePageModeDirection => "Change Page Mode Direction".to_string(),
             Self::Transmit(_b) => "Transmit Data Back".to_string(),
             Self::MoveX(_n) => "Move Horizontally".to_string(),
         }

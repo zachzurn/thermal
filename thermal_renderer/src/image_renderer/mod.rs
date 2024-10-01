@@ -58,16 +58,23 @@ impl CommandRenderer for ImageRenderer {
     fn begin_render(&mut self, context: &mut Context) {
         self.image
             .set_width(context.available_width_pixels() as usize);
+        self.page_image.set_width(0);
     }
 
     fn begin_page(&mut self, context: &mut Context) {
+        self.page_image.set_width(context.page_mode.w);
+        self.page_image.ensure_height(context.page_mode.h);
         self.maybe_render_text(context);
+    }
+
+    fn page_direction_changed(&mut self, context: &mut Context) {
+        //Rotate the thermal image appropriately
     }
 
     fn end_page(&mut self, context: &mut Context, print: bool) {
         self.maybe_render_text(context);
         if print {
-            let (w, h, pixels) = self.page_image.consume();
+            let (w, h, pixels) = self.page_image.copy();
             self.image.put_pixels(
                 context.graphics.x,
                 context.graphics.y,
@@ -77,8 +84,6 @@ impl CommandRenderer for ImageRenderer {
                 false,
                 false,
             );
-        } else {
-            self.image.empty();
         }
     }
 
@@ -99,18 +104,31 @@ impl CommandRenderer for ImageRenderer {
 
     fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize) {
         self.maybe_render_text(context);
-        self.image.put_pixels(
-            context.graphics.x,
-            context.graphics.y,
-            width,
-            height,
-            bytes,
-            false,
-            true,
-        );
-        if context.text.upside_down {
-            self.image
-                .flip_pixels(context.graphics.x, context.graphics.y, width, height)
+
+        if context.page_mode.enabled {
+            self.page_image.put_pixels(
+                context.page_mode.x,
+                context.page_mode.y,
+                width,
+                height,
+                bytes,
+                false,
+                true,
+            );
+        } else {
+            self.image.put_pixels(
+                context.graphics.x,
+                context.graphics.y,
+                width,
+                height,
+                bytes,
+                false,
+                true,
+            );
+            if context.text.upside_down {
+                self.image
+                    .flip_pixels(context.graphics.x, context.graphics.y, width, height)
+            }
         }
     }
 
@@ -172,15 +190,26 @@ impl ImageRenderer {
         format!("{}.png", self.out_path.to_string())
     }
     pub fn maybe_render_text(&mut self, context: &mut Context) {
-        // TODO add in a directional property to draw_text and provide it during page mode and use left2right during standard
         if let Some(layout) = &mut self.text_layout {
-            let (_, y) = self.image.draw_text(
-                context.graphics.x as usize,
-                context.graphics.y as usize,
-                self.image.width,
-                layout,
-            );
-            context.graphics.y = y;
+
+            if context.page_mode.enabled {
+                let (_, y) = self.page_image.draw_text(
+                    context.page_mode.x as usize,
+                    context.page_mode.y as usize,
+                    self.page_image.width,
+                    layout,
+                );
+                context.page_mode.y = y;
+            } else {
+                let (_, y) = self.image.draw_text(
+                    context.graphics.x as usize,
+                    context.graphics.y as usize,
+                    self.image.width,
+                    layout,
+                );
+                context.graphics.y = y;
+            }
+
             self.text_layout = None;
         }
     }
