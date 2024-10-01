@@ -17,9 +17,9 @@ pub trait CommandRenderer {
 
                 if let Some(gfx) = maybe_gfx {
                     if context.page_mode.enabled {
-                        self.handle_graphics(&gfx, context);
-                    } else {
                         self.handle_page_mode_graphics(&gfx, context);
+                    } else {
+                        self.handle_graphics(&gfx, context);
                     }
                 }
             }

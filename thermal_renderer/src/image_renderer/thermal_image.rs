@@ -617,10 +617,20 @@ impl ThermalImage {
     }
 
     pub fn copy(&mut self) -> (usize, usize, Vec<u8>) {
+        let current_rot = self.print_direction.clone();
+        let new_rot = PrintDirection::Left2Right;
+        
+        //Set to normal print direction
+        self.set_print_direction(&new_rot);
+        
         if self.width == 0 { return (0, 0, vec![]); }
-        let pixels = take(&mut self.bytes);
+        let pixels = self.bytes.clone();
         let w = self.width;
         let h = pixels.len() / self.width;
+
+        //Set back to previous print direction
+        self.set_print_direction(&current_rot);
+
         (w, h, pixels)
     }
 

@@ -77,7 +77,6 @@ impl CommandRenderer for ImageRenderer {
         //No need to make any adjustments for smaller page area
         //For bigger area, we reset the image and put the old image in place
         if current_width < new_width || current_height < new_height {
-            println!("!!!!Expanding page area");
             let copy = self.page_image.copy();
             self.page_image.set_width(new_width);
             self.page_image.ensure_height(new_height);
@@ -85,13 +84,10 @@ impl CommandRenderer for ImageRenderer {
             if copy.0 != 0 && copy.1 != 0 {
                 self.page_image.put_pixels(0,0, copy.0, copy.1, copy.2, false, false);
             }
-        } else {
-            println!("!!!!Changing page area, no image change")
         }
     }
 
     fn page_direction_changed(&mut self, context: &mut Context) {
-        println!("Page Direction Changed to {:?}", context.page_mode.dir);
         self.page_image.set_print_direction(&context.page_mode.dir);
     }
 
@@ -99,6 +95,7 @@ impl CommandRenderer for ImageRenderer {
         self.maybe_render_text(context);
         if print {
             let (w, h, pixels) = self.page_image.copy();
+            
             self.image.put_pixels(
                 context.graphics.x,
                 context.graphics.y,
@@ -108,6 +105,8 @@ impl CommandRenderer for ImageRenderer {
                 false,
                 false,
             );
+            
+            context.graphics.y += h;
         }
     }
 
@@ -130,15 +129,20 @@ impl CommandRenderer for ImageRenderer {
         self.maybe_render_text(context);
 
         if context.page_mode.enabled {
-            self.page_image.put_pixels(
-                context.page_mode.x,
-                context.page_mode.y,
-                width,
-                height,
-                bytes,
-                false,
-                true,
-            );
+            
+            if context.page_mode.x + width > context.page_mode.w || context.page_mode.y + width > context.page_mode.h {
+                println!("Exceeding page area")
+            } else {
+                self.page_image.put_pixels(
+                    context.page_mode.x,
+                    context.page_mode.y,
+                    width,
+                    height,
+                    bytes,
+                    false,
+                    true,
+                );   
+            }
         } else {
             self.image.put_pixels(
                 context.graphics.x,
