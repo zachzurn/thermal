@@ -29,7 +29,7 @@ impl CommandHandler for Handler {
             height: self.height,
             pixel_type: PixelType::MonochromeByte,
             stretch: self.stretch,
-            advances_xy: false,
+            advances_xy: true,
         }))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {

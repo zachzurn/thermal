@@ -36,9 +36,13 @@ impl CommandHandler for Handler {
             };
 
             context.page_mode.dir = direction;
-
-            println!("PAGE MODE DIRECTION {:?}", context.page_mode.dir);
+            context.page_mode.x = 0;
+            context.page_mode.y = 0;
         }
+    }
+
+    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
+        Some(vec![DeviceCommand::ChangePageModeDirection])
     }
 }
 
@@ -46,7 +50,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Page Mode Print Direction",
         vec![ESC, 'T' as u8],
-        CommandType::Context,
+        CommandType::ContextControl,
         DataType::Single,
         Box::new(Handler {}),
     )

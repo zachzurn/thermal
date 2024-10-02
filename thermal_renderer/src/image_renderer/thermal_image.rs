@@ -13,7 +13,9 @@ use fontdue::Font;
 use png::BitDepth;
 use textwrap::WordSeparator;
 
-use thermal_parser::context::{Context, TextJustify, TextStrikethrough, TextUnderline};
+use thermal_parser::context::{
+    Context, PrintDirection, TextJustify, TextStrikethrough, TextUnderline,
+};
 
 const THRESHOLD: u8 = 120;
 const SCALE_THRESHOLD: u8 = 140;
@@ -102,6 +104,7 @@ pub struct TextLayout {
 /// to accommodate sets of pixels being pushed at arbitrary x and y values
 pub struct ThermalImage {
     bytes: Vec<u8>,
+    print_direction: PrintDirection,
     pub width: usize,
     pub font: Rc<FontFamily>,
 }
@@ -112,7 +115,85 @@ impl ThermalImage {
             bytes: Vec::<u8>::new(),
             font,
             width,
+            print_direction: PrintDirection::TopLeft2Right,
         }
+    }
+
+    //Print direction is a weird one that we emulate
+    // by rotating the image and rendering as normal
+    pub fn set_print_direction(&mut self, direction: &PrintDirection) {
+        //Values are 0 to 3 which represent 90 degree rotations
+        let current = Self::get_rotation(&self.print_direction);
+        let new = Self::get_rotation(direction);
+
+        //0 to 3 to rotate
+        let rot = (4 - current + new) % 4;
+
+        println!("rotation {:?}", rot);
+
+        //Rotate pixels
+        match rot {
+            1 => self.rotate_90(),
+            2 => self.rotate_180(),
+            3 => self.rotate_270(),
+            _ => {}
+        }
+    }
+
+    fn get_rotation(direction: &PrintDirection) -> i32 {
+        match direction {
+            PrintDirection::TopRight2Bottom => 3,
+            PrintDirection::BottomRight2Left => 2,
+            PrintDirection::BottomLeft2Top => 1,
+            PrintDirection::TopLeft2Right => 0,
+        }
+    }
+
+    fn rotate_90(&mut self) {
+        println!("Rotating 90");
+        let w = self.width;
+        let h = self.bytes.len() / w;
+        let mut rotated_image = vec![0; w * h];
+
+        for y in 0..h {
+            for x in 0..w {
+                rotated_image[x * h + (h - 1 - y)] = self.bytes[y * w + x];
+            }
+        }
+
+        self.bytes = rotated_image;
+        self.width = h;
+    }
+
+    fn rotate_180(&mut self) {
+        println!("Rotating 180");
+        let w = self.width;
+        let h = self.bytes.len() / w;
+        let mut rotated_image = vec![0; w * h];
+
+        for y in 0..h {
+            for x in 0..w {
+                rotated_image[(h - 1 - y) * w + (w - 1 - x)] = self.bytes[y * w + x];
+            }
+        }
+
+        self.bytes = rotated_image;
+    }
+
+    fn rotate_270(&mut self) {
+        println!("Rotating 270");
+        let w = self.width;
+        let h = self.bytes.len() / w;
+        let mut rotated_image = vec![0; w * h];
+
+        for y in 0..h {
+            for x in 0..w {
+                rotated_image[(w - 1 - x) * h + y] = self.bytes[y * w + x];
+            }
+        }
+
+        self.bytes = rotated_image;
+        self.width = h;
     }
 
     //Setting the width clears any bytes
@@ -481,6 +562,14 @@ impl ThermalImage {
         true
     }
 
+    pub fn get_height(&self) -> usize {
+        if self.width == 0 {
+            0
+        } else {
+            self.bytes.len() / self.width
+        }
+    }
+
     pub fn ensure_height(&mut self, height: usize) {
         let len = self.width * height;
         let cur_len = self.bytes.len();
@@ -529,12 +618,23 @@ impl ThermalImage {
         self.width = new_width;
     }
 
-    // consume the pixels
-    pub fn consume(&mut self) -> (usize, usize, Vec<u8>) {
-        let pixels = take(&mut self.bytes);
+    pub fn copy(&mut self) -> (usize, usize, Vec<u8>) {
+        let current_rot = self.print_direction.clone();
+        let new_rot = PrintDirection::TopLeft2Right;
+
+        //Set to normal print direction
+        self.set_print_direction(&new_rot);
+
+        if self.width == 0 {
+            return (0, 0, vec![]);
+        }
+        let pixels = self.bytes.clone();
         let w = self.width;
         let h = pixels.len() / self.width;
-        self.width = 0;
+
+        //Set back to previous print direction
+        self.set_print_direction(&current_rot);
+
         (w, h, pixels)
     }
 

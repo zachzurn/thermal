@@ -30,12 +30,11 @@ impl CommandHandler for Handler {
             context.page_mode.y = vertical_logical_origin as usize;
             context.page_mode.w = print_area_width as usize;
             context.page_mode.h = print_area_height as usize;
-
-            println!(
-                "PAGE AREA SET x{} y{} w{} h{}",
-                context.page_mode.x, context.page_mode.y, context.page_mode.w, context.page_mode.h
-            );
         }
+    }
+
+    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
+        Some(vec![DeviceCommand::ChangePageArea])
     }
 }
 
@@ -43,7 +42,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Print Area",
         vec![ESC, 'W' as u8],
-        CommandType::Context,
+        CommandType::ContextControl,
         DataType::Octet,
         Box::new(Handler {}),
     )

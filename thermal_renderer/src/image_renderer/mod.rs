@@ -58,16 +58,44 @@ impl CommandRenderer for ImageRenderer {
     fn begin_render(&mut self, context: &mut Context) {
         self.image
             .set_width(context.available_width_pixels() as usize);
+        self.page_image.set_width(0);
     }
 
     fn begin_page(&mut self, context: &mut Context) {
+        self.page_image.set_width(context.page_mode.w);
+        self.page_image.ensure_height(context.page_mode.h);
         self.maybe_render_text(context);
+    }
+
+    fn page_area_changed(&mut self, context: &mut Context) {
+        let current_width = self.page_image.width;
+        let current_height = self.page_image.get_height();
+
+        let new_width = context.page_mode.w;
+        let new_height = context.page_mode.h;
+
+        //No need to make any adjustments for smaller page area
+        //For bigger area, we reset the image and put the old image in place
+        if current_width < new_width || current_height < new_height {
+            let copy = self.page_image.copy();
+            self.page_image.set_width(new_width);
+            self.page_image.ensure_height(new_height);
+
+            if copy.0 != 0 && copy.1 != 0 {
+                self.page_image.put_pixels(0,0, copy.0, copy.1, copy.2, false, false);
+            }
+        }
+    }
+
+    fn page_direction_changed(&mut self, context: &mut Context) {
+        self.page_image.set_print_direction(&context.page_mode.dir);
     }
 
     fn end_page(&mut self, context: &mut Context, print: bool) {
         self.maybe_render_text(context);
         if print {
-            let (w, h, pixels) = self.page_image.consume();
+            let (w, h, pixels) = self.page_image.copy();
+            
             self.image.put_pixels(
                 context.graphics.x,
                 context.graphics.y,
@@ -77,8 +105,8 @@ impl CommandRenderer for ImageRenderer {
                 false,
                 false,
             );
-        } else {
-            self.image.empty();
+            
+            context.graphics.y += h;
         }
     }
 
@@ -99,18 +127,36 @@ impl CommandRenderer for ImageRenderer {
 
     fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize) {
         self.maybe_render_text(context);
-        self.image.put_pixels(
-            context.graphics.x,
-            context.graphics.y,
-            width,
-            height,
-            bytes,
-            false,
-            true,
-        );
-        if context.text.upside_down {
-            self.image
-                .flip_pixels(context.graphics.x, context.graphics.y, width, height)
+
+        if context.page_mode.enabled {
+            
+            if context.page_mode.x + width > context.page_mode.w || context.page_mode.y + width > context.page_mode.h {
+                println!("Exceeding page area")
+            } else {
+                self.page_image.put_pixels(
+                    context.page_mode.x,
+                    context.page_mode.y,
+                    width,
+                    height,
+                    bytes,
+                    false,
+                    true,
+                );   
+            }
+        } else {
+            self.image.put_pixels(
+                context.graphics.x,
+                context.graphics.y,
+                width,
+                height,
+                bytes,
+                false,
+                true,
+            );
+            if context.text.upside_down {
+                self.image
+                    .flip_pixels(context.graphics.x, context.graphics.y, width, height)
+            }
         }
     }
 
@@ -172,15 +218,26 @@ impl ImageRenderer {
         format!("{}.png", self.out_path.to_string())
     }
     pub fn maybe_render_text(&mut self, context: &mut Context) {
-        // TODO add in a directional property to draw_text and provide it during page mode and use left2right during standard
         if let Some(layout) = &mut self.text_layout {
-            let (_, y) = self.image.draw_text(
-                context.graphics.x as usize,
-                context.graphics.y as usize,
-                self.image.width,
-                layout,
-            );
-            context.graphics.y = y;
+
+            if context.page_mode.enabled {
+                let (_, y) = self.page_image.draw_text(
+                    context.page_mode.x as usize,
+                    context.page_mode.y as usize,
+                    self.page_image.width,
+                    layout,
+                );
+                context.page_mode.y = y;
+            } else {
+                let (_, y) = self.image.draw_text(
+                    context.graphics.x as usize,
+                    context.graphics.y as usize,
+                    self.image.width,
+                    layout,
+                );
+                context.graphics.y = y;
+            }
+
             self.text_layout = None;
         }
     }
