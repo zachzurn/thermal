@@ -260,7 +260,7 @@ impl Context {
                 y: 0,
                 w: 0,
                 h: 0,
-                dir: PrintDirection::Left2Right,
+                dir: PrintDirection::TopLeft2Right,
             },
         }
     }

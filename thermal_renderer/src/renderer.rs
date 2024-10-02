@@ -63,7 +63,6 @@ pub trait CommandRenderer {
                             context.page_mode.y += advance;
                         } else {
                             context.graphics.y += advance;
-
                         }
                     }
                     DeviceCommand::Feed(num) => {
@@ -82,9 +81,12 @@ pub trait CommandRenderer {
                         context.page_mode.enabled = true;
                         self.begin_page(context);
                     }
-                    DeviceCommand::EndPageMode(print) => {
-                        self.end_page(context, *print);
+                    DeviceCommand::EndPageMode => {
+                        self.end_page(context);
                         context.page_mode.enabled = false
+                    }
+                    DeviceCommand::PrintPageMode => {
+                        self.print_page(context);
                     }
                     DeviceCommand::ChangePageModeDirection => {
                         self.page_direction_changed(context);
@@ -99,14 +101,15 @@ pub trait CommandRenderer {
     }
 
     fn handle_graphics(&mut self, gfx: &GraphicsCommand, context: &mut Context) {
+        println!("Hsndliong non page mode graphics");
         match gfx {
             GraphicsCommand::Code2D(code_2d) => {
                 self.begin_graphics(context);
 
                 let mut i = 1;
-                let origin_x = context.graphics_x_offset(
-                    (code_2d.points.len() * code_2d.point_width as usize) as u32,
-                ) as usize;
+                let origin_x = context
+                    .graphics_x_offset((code_2d.points.len() * code_2d.point_width as usize) as u32)
+                    as usize;
 
                 for p in &code_2d.points {
                     if i != 1 && i % code_2d.width == 1 {
@@ -139,9 +142,9 @@ pub trait CommandRenderer {
 
                 self.begin_graphics(context);
 
-                context.graphics.x = context.graphics_x_offset(
-                    (barcode.points.len() * barcode.point_width as usize) as u32,
-                ) as usize;
+                context.graphics.x = context
+                    .graphics_x_offset((barcode.points.len() * barcode.point_width as usize) as u32)
+                    as usize;
 
                 for p in &barcode.points {
                     if *p > 0 {
@@ -169,8 +172,7 @@ pub trait CommandRenderer {
             }
             GraphicsCommand::Image(image) => {
                 if image.advances_xy {
-                    context.graphics.x =
-                        context.graphics_x_offset(image.width) as usize;
+                    context.graphics.x = context.graphics_x_offset(image.width) as usize;
                 }
                 self.draw_image(
                     context,
@@ -189,7 +191,7 @@ pub trait CommandRenderer {
         }
     }
 
-    fn handle_page_mode_graphics(&mut self, gfx: &GraphicsCommand, context: &mut Context){
+    fn handle_page_mode_graphics(&mut self, gfx: &GraphicsCommand, context: &mut Context) {
         match gfx {
             GraphicsCommand::Code2D(code_2d) => {
                 self.begin_graphics(context);
@@ -228,9 +230,9 @@ pub trait CommandRenderer {
 
                 self.begin_graphics(context);
 
-                context.graphics.x = context.graphics_x_offset(
-                    (barcode.points.len() * barcode.point_width as usize) as u32,
-                ) as usize;
+                context.graphics.x = context
+                    .graphics_x_offset((barcode.points.len() * barcode.point_width as usize) as u32)
+                    as usize;
 
                 for p in &barcode.points {
                     if *p > 0 {
@@ -270,6 +272,8 @@ pub trait CommandRenderer {
                     context.page_mode.x = 0;
                     context.page_mode.y += image.height as usize;
                     context.page_mode.y += context.line_height_pixels() as usize;
+                } else {
+                    context.page_mode.x += image.width as usize;
                 }
             }
             GraphicsCommand::Rectangle(_) => {}
@@ -281,7 +285,8 @@ pub trait CommandRenderer {
     fn begin_page(&mut self, context: &mut Context);
     fn page_area_changed(&mut self, context: &mut Context);
     fn page_direction_changed(&mut self, context: &mut Context);
-    fn end_page(&mut self, context: &mut Context, print: bool);
+    fn end_page(&mut self, context: &mut Context);
+    fn print_page(&mut self, context: &mut Context);
     fn begin_graphics(&mut self, context: &mut Context);
     fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize);
     fn end_graphics(&mut self, context: &mut Context);

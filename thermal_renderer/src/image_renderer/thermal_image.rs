@@ -129,8 +129,6 @@ impl ThermalImage {
         //0 to 3 to rotate
         let rot = (4 - current + new) % 4;
 
-        println!("rotation {:?}", rot);
-
         //Rotate pixels
         match rot {
             1 => self.rotate_90(),
@@ -138,6 +136,8 @@ impl ThermalImage {
             3 => self.rotate_270(),
             _ => {}
         }
+
+        println!("POST ROTATE w{} h{}", self.width, self.get_height());
     }
 
     fn get_rotation(direction: &PrintDirection) -> i32 {
@@ -514,10 +514,13 @@ impl ThermalImage {
         invert: bool,
         multiply: bool,
     ) -> bool {
+        println!("Put pixels {} {} {} {}", x, y, width, height);
+
         let mut cur_x = x;
         let mut cur_y = y;
 
         if x + width > self.width {
+            println!("Image too wide");
             return false;
         };
 
@@ -619,18 +622,25 @@ impl ThermalImage {
     }
 
     pub fn copy(&mut self) -> (usize, usize, Vec<u8>) {
+        println!("COPY");
+
         let current_rot = self.print_direction.clone();
         let new_rot = PrintDirection::TopLeft2Right;
 
-        //Set to normal print direction
-        self.set_print_direction(&new_rot);
-
         if self.width == 0 {
+            println!("COPY EMPTY");
             return (0, 0, vec![]);
         }
+
+        //Set to standard print direction
+        self.set_print_direction(&new_rot);
+
+        println!("DRAWING BORDER w{} h{}", self.width, self.get_height());
+        //self.draw_border(0x00);
+
         let pixels = self.bytes.clone();
         let w = self.width;
-        let h = pixels.len() / self.width;
+        let h = self.get_height();
 
         //Set back to previous print direction
         self.set_print_direction(&current_rot);
@@ -641,6 +651,27 @@ impl ThermalImage {
     // empty the pixels
     pub fn empty(&mut self) {
         self.bytes.clear()
+    }
+
+    fn draw_border(&mut self, border_value: u8) {
+        let w = self.width;
+        let h = self.bytes.len() / w;
+
+        // Top border
+        for x in 0..w {
+            self.bytes[x] = border_value;
+        }
+
+        // Bottom border
+        for x in 0..w {
+            self.bytes[(h - 1) * w + x] = border_value;
+        }
+
+        // Left and right borders
+        for y in 0..h {
+            self.bytes[y * w] = border_value; // Left border
+            self.bytes[y * w + (w - 1)] = border_value; // Right border
+        }
     }
 
     pub fn save_png(&self, filepath: String) {

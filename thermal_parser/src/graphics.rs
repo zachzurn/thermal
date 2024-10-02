@@ -119,8 +119,8 @@ impl Image {
         let x2 = *data.get(5).unwrap();
         let y1 = *data.get(6).unwrap();
         let y2 = *data.get(7).unwrap();
-        let width = x1 as u32 + x2 as u32 * 256;
-        let height = y1 as u32 + y2 as u32 * 256;
+        let mut width = x1 as u32 + x2 as u32 * 256;
+        let mut height = y1 as u32 + y2 as u32 * 256;
 
         let pixel_type = match a {
             48 => PixelType::Monochrome(c),
@@ -130,7 +130,17 @@ impl Image {
 
         let stretch = (bx, by);
 
-        let pixels = data[8..].to_vec();
+        let pixels = if bx > 1 || by > 1 {
+            let (w, h, px) =
+                scale_pixels(&data[8..], width as usize, height as usize, bx > 1, by > 1);
+            width = w;
+            height = h;
+            px
+        } else {
+            data[8..].to_vec()
+        };
+
+        println!("SCALE x{} y{}", bx, by);
 
         Some(Image {
             pixels,
@@ -201,8 +211,8 @@ impl Image {
         let x2 = *data.get(5).unwrap();
         let y1 = *data.get(6).unwrap();
         let y2 = *data.get(7).unwrap();
-        let width = x1 as u32 + x2 as u32 * 256;
-        let height = y1 as u32 + y2 as u32 * 256;
+        let mut width = x1 as u32 + x2 as u32 * 256;
+        let mut height = y1 as u32 + y2 as u32 * 256;
 
         let pixel_type = match a {
             48 => PixelType::Monochrome(c),
@@ -212,7 +222,15 @@ impl Image {
 
         let stretch = (bx, by);
 
-        let pixels = data[8..].to_vec();
+        let pixels = if bx > 1 || by > 1 {
+            let (w, h, px) =
+                scale_pixels(&data[8..], width as usize, height as usize, bx > 1, by > 1);
+            width = w;
+            height = h;
+            px
+        } else {
+            data[8..].to_vec()
+        };
 
         Some(Image {
             pixels,
@@ -279,7 +297,12 @@ impl Image {
 /// on the bits. If you are reading this and can
 /// contribute a function for doing this, we will
 /// pull it into the repo.
-pub fn column_to_raster(pixels: &[u8], final_width: usize, final_height: usize) -> Vec<u8> {
+pub fn column_to_raster(
+    pixels: &[u8],
+    stretch: (u8, u8),
+    final_width: usize,
+    final_height: usize,
+) -> (u32, u32, Vec<u8>) {
     let width = final_height;
     let mut bytes = Vec::<u8>::new();
 
@@ -310,7 +333,19 @@ pub fn column_to_raster(pixels: &[u8], final_width: usize, final_height: usize) 
     }
 
     let rot = rotate_90_clockwise(bytes, final_height, final_width);
-    flip_right_to_left(rot, final_width, final_height)
+    let flip = flip_right_to_left(rot, final_width, final_height);
+
+    if stretch.0 > 1 || stretch.1 > 1 {
+        scale_pixels(
+            &flip,
+            final_width,
+            final_height,
+            stretch.0 > 0,
+            stretch.1 > 0,
+        )
+    } else {
+        (final_width as u32, final_height as u32, flip)
+    }
 }
 
 fn rotate_90_clockwise(data: Vec<u8>, width: usize, height: usize) -> Vec<u8> {
@@ -342,6 +377,60 @@ fn flip_right_to_left(data: Vec<u8>, width: usize, height: usize) -> Vec<u8> {
     }
 
     result
+}
+
+pub fn scale_pixels(
+    bytes: &[u8],
+    original_width: usize,
+    original_height: usize,
+    scale_x: bool,
+    scale_y: bool,
+) -> (u32, u32, Vec<u8>) {
+    // Determine new width and height
+    let new_width = if scale_x {
+        original_width + 1
+    } else {
+        original_width
+    };
+    let new_height = if scale_y {
+        original_height + 1
+    } else {
+        original_height
+    };
+
+    let mut scaled_image = vec![0; new_width * new_height];
+
+    for y in 0..original_height {
+        for x in 0..original_width {
+            let pixel_value = bytes[y * original_width + x];
+            let new_x = if scale_x && x == original_width - 1 {
+                x + 1
+            } else {
+                x
+            };
+            let new_y = if scale_y && y == original_height - 1 {
+                y + 1
+            } else {
+                y
+            };
+
+            // Set the original pixel
+            scaled_image[new_y * new_width + new_x] = pixel_value;
+
+            // Duplicate horizontally if scalex and at the last column
+            if scale_x && x == original_width - 1 {
+                scaled_image[y * new_width + (new_x + 1)] = pixel_value;
+            }
+
+            // Duplicate vertically if scaley and at the last row
+            if scale_y && y == original_height - 1 {
+                scaled_image[(new_y + 1) * new_width + new_x] = pixel_value;
+            }
+        }
+    }
+
+    // Update the image data and dimensions
+    (new_width as u32, new_height as u32, scaled_image)
 }
 
 //Images that were added to storage can be

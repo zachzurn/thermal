@@ -58,8 +58,8 @@ impl CommandRenderer for HtmlRenderer {
         self.start_container(context);
     }
 
-    fn begin_page(&mut self, _context: &mut Context) { 
-        //Page Mode is not currently supported 
+    fn begin_page(&mut self, _context: &mut Context) {
+        //Page Mode is not currently supported
     }
 
     fn page_area_changed(&mut self, context: &mut Context) {
@@ -69,9 +69,13 @@ impl CommandRenderer for HtmlRenderer {
     fn page_direction_changed(&mut self, context: &mut Context) {
         //Page Mode is not currently supported
     }
-    
-    fn end_page(&mut self, _context: &mut Context, _print: bool) { 
-        //Page Mode is not currently supported 
+
+    fn end_page(&mut self, _context: &mut Context) {
+        //Page Mode is not currently supported
+    }
+
+    fn print_page(&mut self, _context: &mut Context) {
+        //Page Mode is not currently supported
     }
 
     fn begin_graphics(&mut self, context: &mut Context) {

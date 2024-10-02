@@ -13,23 +13,30 @@ struct Handler {
 
 impl CommandHandler for Handler {
     fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
-        let bytes: Vec<u8> = if self.col_encoded {
+        let (w, h, bytes) = if self.col_encoded {
             graphics::column_to_raster(
                 &command.data.clone(),
+                self.stretch,
                 self.width as usize,
                 self.height as usize,
             )
         } else {
-            command.data.clone()
+            graphics::scale_pixels(
+                &command.data,
+                self.width as usize,
+                self.height as usize,
+                self.stretch.0 > 1,
+                self.stretch.1 > 1,
+            )
         };
 
         Some(GraphicsCommand::Image(Image {
             pixels: bytes,
-            width: self.width,
-            height: self.height,
+            width: w,
+            height: h,
             pixel_type: PixelType::MonochromeByte,
             stretch: self.stretch,
-            advances_xy: true,
+            advances_xy: false,
         }))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {

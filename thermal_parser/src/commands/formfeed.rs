@@ -1,4 +1,4 @@
-use crate::command::DeviceCommand::{EndPageMode, EndPrint};
+use crate::command::DeviceCommand::{EndPageMode, EndPrint, PrintPageMode};
 use crate::{command::*, constants::*, context::*};
 
 #[derive(Clone)]
@@ -12,7 +12,7 @@ impl CommandHandler for Handler {
         context: &Context,
     ) -> Option<Vec<DeviceCommand>> {
         if context.page_mode.enabled {
-            return Some(vec![EndPageMode(true)]);
+            return Some(vec![EndPageMode, PrintPageMode]);
         }
         Some(vec![EndPrint])
     }
