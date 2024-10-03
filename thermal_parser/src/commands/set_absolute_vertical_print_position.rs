@@ -25,17 +25,12 @@ impl CommandHandler for Handler {
             let pos = (nl as u16 + nh as u16 * 256) as usize;
 
             match context.page_mode.dir {
-                PrintDirection::TopLeft2Right => {
+                PrintDirection::TopLeft2Right | PrintDirection::BottomRight2Left => {
+                    println!("Setting Page Mode y{} to {} pmh{}",pos, usize::min(pos, context.page_mode.h),context.page_mode.h);
                     context.page_mode.y = usize::min(pos, context.page_mode.h)
                 }
-                PrintDirection::BottomRight2Left => {
-                    context.page_mode.y = usize::min(pos, context.page_mode.h)
-                }
-
-                PrintDirection::TopRight2Bottom => {
-                    context.page_mode.x = usize::min(pos, context.page_mode.w)
-                }
-                PrintDirection::BottomLeft2Top => {
+                PrintDirection::TopRight2Bottom | PrintDirection::BottomLeft2Top => {
+                    println!("Setting Page Mode x{} to {} pmw{}", pos, usize::min(pos, context.page_mode.w),context.page_mode.w);
                     context.page_mode.x = usize::min(pos, context.page_mode.w)
                 }
             }

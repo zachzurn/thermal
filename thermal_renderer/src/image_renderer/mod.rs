@@ -92,6 +92,8 @@ impl CommandRenderer for ImageRenderer {
         //For bigger area, we reset the image and put the old image in place
         if current_width < new_width || current_height < new_height || current_empty {
             let copy = self.page_image.copy();
+            context.page_mode.w = new_width;
+            context.page_mode.h = new_height;
             self.page_image.set_width(new_width);
             self.page_image.ensure_height(new_height);
             self.page_image
