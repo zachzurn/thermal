@@ -387,13 +387,11 @@ pub fn scale_pixels(
     scale_y: bool,
 ) -> (u32, u32, Vec<u8>) {
     let new_width = if scale_x {
-        println!("SCALING BYTES W");
         original_width * 2
     } else {
         original_width
     };
     let new_height = if scale_y {
-        println!("SCALING BYTES H");
         original_height * 2
     } else {
         original_height

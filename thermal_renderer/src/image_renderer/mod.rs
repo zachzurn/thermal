@@ -96,12 +96,6 @@ impl CommandRenderer for ImageRenderer {
             self.page_image.ensure_height(new_height);
             self.page_image
                 .put_pixels(0, 0, copy.0, copy.1, copy.2, false, false);
-
-            println!(
-                "Resize larger w{} h{}",
-                self.page_image.width,
-                self.page_image.get_height()
-            );
         }
     }
 
