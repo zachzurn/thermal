@@ -101,7 +101,6 @@ pub trait CommandRenderer {
     }
 
     fn handle_graphics(&mut self, gfx: &GraphicsCommand, context: &mut Context) {
-        println!("Hsndliong non page mode graphics");
         match gfx {
             GraphicsCommand::Code2D(code_2d) => {
                 self.begin_graphics(context);
@@ -197,7 +196,7 @@ pub trait CommandRenderer {
                 self.begin_graphics(context);
 
                 let mut i = 1;
-                let origin_x = context.page_mode.x;
+                let origin_x = context.page_mode.logical_x;
 
                 for p in &code_2d.points {
                     if i != 1 && i % code_2d.width == 1 {
@@ -242,12 +241,12 @@ pub trait CommandRenderer {
                             barcode.point_height as usize,
                         )
                     }
-                    context.graphics.x += barcode.point_width as usize;
+                    context.page_mode.x += barcode.point_width as usize;
                 }
 
-                context.graphics.x = 0;
-                context.graphics.y += barcode.point_height as usize;
-                context.graphics.y += context.line_height_pixels() as usize;
+                context.page_mode.x = 0;
+                context.page_mode.y += barcode.point_height as usize;
+                context.page_mode.y += context.line_height_pixels() as usize;
 
                 self.end_graphics(context);
 
@@ -260,7 +259,7 @@ pub trait CommandRenderer {
             }
             GraphicsCommand::Image(image) => {
                 if image.advances_xy {
-                    context.page_mode.x = 0;
+                    context.page_mode.x = context.page_mode.logical_x;
                 }
                 self.draw_image(
                     context,
@@ -269,7 +268,7 @@ pub trait CommandRenderer {
                     image.height as usize,
                 );
                 if image.advances_xy {
-                    context.page_mode.x = 0;
+                    context.page_mode.x = context.page_mode.logical_x;
                     context.page_mode.y += image.height as usize;
                     context.page_mode.y += context.line_height_pixels() as usize;
                 } else {
@@ -282,16 +281,19 @@ pub trait CommandRenderer {
     }
 
     fn begin_render(&mut self, context: &mut Context);
+    
     fn begin_page(&mut self, context: &mut Context);
     fn page_area_changed(&mut self, context: &mut Context);
     fn page_direction_changed(&mut self, context: &mut Context);
     fn end_page(&mut self, context: &mut Context);
     fn print_page(&mut self, context: &mut Context);
+    
     fn begin_graphics(&mut self, context: &mut Context);
     fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize);
     fn end_graphics(&mut self, context: &mut Context);
     fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize);
     fn draw_text(&mut self, context: &mut Context, text: String);
     fn draw_device_command(&mut self, context: &mut Context, command: &DeviceCommand);
+    
     fn end_render(&mut self, context: &mut Context);
 }

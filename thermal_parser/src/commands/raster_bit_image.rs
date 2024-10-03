@@ -1,9 +1,6 @@
 use crate::{command::*, constants::*, context::*, graphics::*};
 
 #[derive(Clone)]
-enum ImageScaling {}
-
-#[derive(Clone)]
 struct Handler {
     width: u32,
     height: u32,

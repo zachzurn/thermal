@@ -79,10 +79,6 @@ pub struct Command {
     pub handler: Box<dyn CommandHandler>,
 }
 
-#[derive(Clone)]
-struct EmptyHandler;
-impl CommandHandler for EmptyHandler {}
-
 impl Command {
     pub fn new(
         name_str: &str,

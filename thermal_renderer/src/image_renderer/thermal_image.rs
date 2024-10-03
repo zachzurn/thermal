@@ -4,7 +4,6 @@ extern crate textwrap;
 
 use std::fs::File;
 use std::io::BufWriter;
-use std::mem::take;
 use std::path::Path;
 use std::rc::Rc;
 
@@ -134,13 +133,6 @@ impl ThermalImage {
         //From 0(0) to 1(90) : should be 1 (90)
         let rot = (new as i8 - current as i8).rem_euclid(4) as u8;
 
-        println!(
-            "ROT VAL FROM {} to {} = {:?} {:?}",
-            current, new, rot, direction
-        );
-
-        println!("POST ROTATE w{} h{}", self.width, self.get_height());
-
         //Rotate pixels
         match rot {
             1 => self.rotate_90(),
@@ -162,7 +154,6 @@ impl ThermalImage {
     }
 
     fn rotate_90(&mut self) {
-        println!("Rotating 90");
         let w = self.width;
         let h = self.bytes.len() / w;
         let mut rotated_image = vec![0; w * h];
@@ -178,7 +169,6 @@ impl ThermalImage {
     }
 
     fn rotate_180(&mut self) {
-        println!("Rotating 180");
         let w = self.width;
         let h = self.bytes.len() / w;
         let mut rotated_image = vec![0; w * h];
@@ -193,7 +183,6 @@ impl ThermalImage {
     }
 
     fn rotate_270(&mut self) {
-        println!("Rotating 270");
         let w = self.width;
         let h = self.bytes.len() / w;
         let mut rotated_image = vec![0; w * h];
@@ -326,10 +315,6 @@ impl ThermalImage {
 
             //Prevent issues with line widths that are way too long
             if precalculated_width > width {
-                println!(
-                    "Precalc width too wide {} is less than {}",
-                    width, precalculated_width
-                );
                 precalculated_width = width;
             }
 
@@ -542,6 +527,7 @@ impl ThermalImage {
 
         //Completely out of bounds, unrenderable
         if exceeds_w || (exceeds_h && !self.auto_grow) {
+            println!("Exceeds ew{} eh{} w{} h{}",exceeds_w,exceeds_h,self.width,self.get_height());
             return false;
         }
 
@@ -556,17 +542,6 @@ impl ThermalImage {
             } else {
                 self.get_height() - y
             };
-
-            println!(
-                "Needs crop {} {} w{} h{} auto_grow {} x{} w{}",
-                needs_crop_w,
-                needs_crop_h,
-                self.width,
-                self.get_height(),
-                self.auto_grow,
-                x,
-                width
-            );
 
             Self::crop_pixels(
                 &pixels,
@@ -714,7 +689,7 @@ impl ThermalImage {
 
         //Set to standard print direction
         self.set_print_direction(&new_rot);
-
+        
         let pixels = self.bytes.clone();
         let w = self.width;
         let h = self.get_height();

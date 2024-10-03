@@ -62,11 +62,11 @@ impl CommandRenderer for HtmlRenderer {
         //Page Mode is not currently supported
     }
 
-    fn page_area_changed(&mut self, context: &mut Context) {
+    fn page_area_changed(&mut self, _context: &mut Context) {
         //Page Mode is not currently supported
     }
 
-    fn page_direction_changed(&mut self, context: &mut Context) {
+    fn page_direction_changed(&mut self, _context: &mut Context) {
         //Page Mode is not currently supported
     }
 

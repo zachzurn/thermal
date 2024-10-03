@@ -47,6 +47,8 @@ impl CommandHandler for Handler {
             context.page_mode.logical_y = vertical_logical_origin as usize;
             context.page_mode.logical_w = print_area_width as usize;
             context.page_mode.logical_h = print_area_height as usize;
+            context.page_mode.x = context.page_mode.logical_x;
+            context.page_mode.y = context.page_mode.logical_y;
         }
     }
 

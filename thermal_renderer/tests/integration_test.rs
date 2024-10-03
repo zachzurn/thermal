@@ -1,4 +1,3 @@
-use std::fs;
 use std::path::PathBuf;
 use thermal_parser::command::Command;
 use thermal_parser::context::Context;

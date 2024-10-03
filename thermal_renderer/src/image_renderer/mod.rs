@@ -88,8 +88,6 @@ impl CommandRenderer for ImageRenderer {
             _ => {}
         }
 
-        println!("PAGE AREA EXPANDED TO w{} h{}", new_width, new_height);
-
         //No need to make any adjustments for smaller page area
         //For bigger area, we reset the image and put the old image in place
         if current_width < new_width || current_height < new_height || current_empty {
@@ -111,17 +109,12 @@ impl CommandRenderer for ImageRenderer {
         self.page_image.set_print_direction(&context.page_mode.dir);
     }
 
-    fn end_page(&mut self, context: &mut Context) {}
+    fn end_page(&mut self, _context: &mut Context) {}
 
     fn print_page(&mut self, context: &mut Context) {
         self.maybe_render_text(context);
 
         let (w, h, pixels) = self.page_image.copy();
-
-        println!(
-            "COPY PAGE TO MAIN x{} y{} w{} h{}",
-            context.graphics.x, context.graphics.y, w, h
-        );
 
         self.image.put_pixels(
             context.graphics.x,
@@ -186,7 +179,11 @@ impl CommandRenderer for ImageRenderer {
         //Here we are avoiding using text layout for single newlines
         //by advancing the newline manually when the text layout is empty
         if self.text_layout.is_none() && text.eq("\n") {
-            context.graphics.y += context.text.line_spacing as usize;
+            if context.page_mode.enabled {
+                context.page_mode.y += context.text.line_spacing as usize;
+            } else {
+                context.graphics.y += context.text.line_spacing as usize;
+            }
             return;
         }
 
