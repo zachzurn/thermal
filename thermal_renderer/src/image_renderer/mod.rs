@@ -1,8 +1,9 @@
 use crate::image_renderer::thermal_image::{FontFamily, TextLayout, TextSpan, ThermalImage};
 use crate::renderer::CommandRenderer;
+use std::mem;
 use std::rc::Rc;
 use thermal_parser::command::DeviceCommand;
-use thermal_parser::context::Context;
+use thermal_parser::context::{Context, PrintDirection};
 
 pub mod thermal_image;
 
@@ -59,6 +60,10 @@ impl CommandRenderer for ImageRenderer {
         self.image
             .set_width(context.available_width_pixels() as usize);
         self.page_image.set_width(0);
+        //Page images should not auto grow in either direction
+        //Normally only the width is locked down, but for page mode
+        //We want to lock down the height as well
+        self.page_image.auto_grow = false;
     }
 
     fn begin_page(&mut self, context: &mut Context) {
@@ -72,10 +77,18 @@ impl CommandRenderer for ImageRenderer {
         let current_height = self.page_image.get_height();
         let current_empty = current_width == 0 || current_height == 0;
 
-        let new_width = context.page_mode.w;
-        let new_height = context.page_mode.h;
+        let mut new_width = context.page_mode.logical_w;
+        let mut new_height = context.page_mode.logical_h;
 
-        println!("PAGE AREA CHANGED TO w{} h{}", new_width, new_height);
+        //Rotated directions need swapped dimensions
+        match context.page_mode.dir {
+            PrintDirection::TopRight2Bottom | PrintDirection::BottomLeft2Top => {
+                mem::swap(&mut new_width, &mut new_height);
+            }
+            _ => {}
+        }
+
+        println!("PAGE AREA EXPANDED TO w{} h{}", new_width, new_height);
 
         //No need to make any adjustments for smaller page area
         //For bigger area, we reset the image and put the old image in place
@@ -143,21 +156,15 @@ impl CommandRenderer for ImageRenderer {
         self.maybe_render_text(context);
 
         if context.page_mode.enabled {
-            if context.page_mode.x + width > self.page_image.width
-                || context.page_mode.y + height > self.page_image.get_height()
-            {
-                println!("Exceeding page area")
-            } else {
-                self.page_image.put_pixels(
-                    context.page_mode.x,
-                    context.page_mode.y,
-                    width,
-                    height,
-                    bytes,
-                    false,
-                    true,
-                );
-            }
+            self.page_image.put_pixels(
+                context.page_mode.x,
+                context.page_mode.y,
+                width,
+                height,
+                bytes,
+                false,
+                true,
+            );
         } else {
             self.image.put_pixels(
                 context.graphics.x,
@@ -235,15 +242,13 @@ impl ImageRenderer {
     pub fn maybe_render_text(&mut self, context: &mut Context) {
         if let Some(layout) = &mut self.text_layout {
             if context.page_mode.enabled {
-                println!("Add text");
-                //TODO fix this
-                // let (_, y) = self.page_image.draw_text(
-                //     context.page_mode.x as usize,
-                //     context.page_mode.y as usize,
-                //     self.page_image.width,
-                //     layout,
-                // );
-                //context.page_mode.y = y;
+                let (_, y) = self.page_image.draw_text(
+                    context.page_mode.x as usize,
+                    context.page_mode.y as usize,
+                    self.page_image.width,
+                    layout,
+                );
+                context.page_mode.y = y;
             } else {
                 let (_, y) = self.image.draw_text(
                     context.graphics.x as usize,

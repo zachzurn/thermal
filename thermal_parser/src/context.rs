@@ -167,18 +167,22 @@ pub enum PrintDirection {
 pub struct PageModeContext {
     //Is page mode enabled
     pub enabled: bool,
-    //Starting offset from graphics x
-    pub offset_x: usize,
-    //Starting offset from graphics y
-    pub offset_y: usize,
-    //Page mode current x, starts at 0
+
+    //Logical values can change whenever
+    //the page area is changed via command
+    pub logical_x: usize,
+    pub logical_y: usize,
+    pub logical_w: usize,
+    pub logical_h: usize,
+
+    //The actual page mode buffer size
+    //When logical values are changed,
+    // this may modify the buffer dimensions
     pub x: usize,
-    //Page mode current y, starts at 0
     pub y: usize,
-    //Page mode width
     pub w: usize,
-    //Page mode height
     pub h: usize,
+
     //Page mode print direction
     pub dir: PrintDirection,
 }
@@ -254,8 +258,10 @@ impl Context {
             },
             page_mode: PageModeContext {
                 enabled: false,
-                offset_x: 0,
-                offset_y: 0,
+                logical_x: 0,
+                logical_y: 0,
+                logical_w: 0,
+                logical_h: 0,
                 x: 0,
                 y: 0,
                 w: 0,

@@ -340,8 +340,8 @@ pub fn column_to_raster(
             &flip,
             final_width,
             final_height,
-            stretch.0 > 0,
-            stretch.1 > 0,
+            stretch.0 > 1,
+            stretch.1 > 1,
         )
     } else {
         (final_width as u32, final_height as u32, flip)
@@ -386,51 +386,41 @@ pub fn scale_pixels(
     scale_x: bool,
     scale_y: bool,
 ) -> (u32, u32, Vec<u8>) {
-    // Determine new width and height
     let new_width = if scale_x {
-        original_width + 1
+        original_width * 2
     } else {
         original_width
     };
     let new_height = if scale_y {
-        original_height + 1
+        original_height * 2
     } else {
         original_height
     };
 
-    let mut scaled_image = vec![0; new_width * new_height];
+    let mut scaled_bytes = Vec::with_capacity(new_width * new_height);
 
     for y in 0..original_height {
-        for x in 0..original_width {
-            let pixel_value = bytes[y * original_width + x];
-            let new_x = if scale_x && x == original_width - 1 {
-                x + 1
+        let row_start = y * original_width;
+        let row_end = row_start + original_width;
+        let row = &bytes[row_start..row_end];
+        let mut scaled_row = Vec::with_capacity(new_width);
+
+        for &pixel in row {
+            if scale_x {
+                scaled_row.push(pixel);
+                scaled_row.push(pixel);
             } else {
-                x
-            };
-            let new_y = if scale_y && y == original_height - 1 {
-                y + 1
-            } else {
-                y
-            };
-
-            // Set the original pixel
-            scaled_image[new_y * new_width + new_x] = pixel_value;
-
-            // Duplicate horizontally if scalex and at the last column
-            if scale_x && x == original_width - 1 {
-                scaled_image[y * new_width + (new_x + 1)] = pixel_value;
+                scaled_row.push(pixel);
             }
+        }
 
-            // Duplicate vertically if scaley and at the last row
-            if scale_y && y == original_height - 1 {
-                scaled_image[(new_y + 1) * new_width + new_x] = pixel_value;
-            }
+        scaled_bytes.extend_from_slice(&scaled_row);
+        if scale_y {
+            scaled_bytes.extend_from_slice(&scaled_row);
         }
     }
 
-    // Update the image data and dimensions
-    (new_width as u32, new_height as u32, scaled_image)
+    (new_width as u32, new_height as u32, scaled_bytes)
 }
 
 //Images that were added to storage can be

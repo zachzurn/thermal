@@ -76,8 +76,9 @@ impl CommandHandler for Handler {
             self.capacity = (self.width * self.height) / 8;
         }
 
-        if m == 1 || m == 33 {
-            //Not currently sure what the purpose of this is
+        //Image is single density, which oddly enough needs to
+        //have its pixels stretched by 2 on the w and h
+        if m == 0 || m == 32 {
             self.stretch = (2, 2);
         }
 

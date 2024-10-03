@@ -107,6 +107,7 @@ pub struct ThermalImage {
     print_direction: PrintDirection,
     pub width: usize,
     pub font: Rc<FontFamily>,
+    pub auto_grow: bool,
 }
 
 impl ThermalImage {
@@ -116,6 +117,7 @@ impl ThermalImage {
             font,
             width,
             print_direction: PrintDirection::TopLeft2Right,
+            auto_grow: true,
         }
     }
 
@@ -126,8 +128,18 @@ impl ThermalImage {
         let current = Self::get_rotation(&self.print_direction);
         let new = Self::get_rotation(direction);
 
-        //0 to 3 to rotate
-        let rot = (4 - current + new) % 4;
+        //From 1(90) to 2(180) : should be 1 (90)
+        //From 0(0) to 2(180) : should be 2 (180)
+        //From 2(180) to 0(0) : should be 2 (180)
+        //From 0(0) to 1(90) : should be 1 (90)
+        let rot = (new as i8 - current as i8).rem_euclid(4) as u8;
+
+        println!(
+            "ROT VAL FROM {} to {} = {:?} {:?}",
+            current, new, rot, direction
+        );
+
+        println!("POST ROTATE w{} h{}", self.width, self.get_height());
 
         //Rotate pixels
         match rot {
@@ -137,7 +149,7 @@ impl ThermalImage {
             _ => {}
         }
 
-        println!("POST ROTATE w{} h{}", self.width, self.get_height());
+        self.print_direction = direction.clone();
     }
 
     fn get_rotation(direction: &PrintDirection) -> i32 {
@@ -504,6 +516,13 @@ impl ThermalImage {
         self.put_pixels(x, y, width, height, sub_image, false, false);
     }
 
+    /// Add pixels to the current canvas.
+    /// Images that are too wide are always cropped.
+    /// Images that are too tall auto grow the canvas
+    /// unless auto_grow is set to false.
+    /// invert will reverse black and white pixels.
+    /// multiply will ensure that a white pixel does
+    /// not overwrite a black existing pixel.
     pub fn put_pixels(
         &mut self,
         x: usize,
@@ -514,24 +533,57 @@ impl ThermalImage {
         invert: bool,
         multiply: bool,
     ) -> bool {
-        println!("Put pixels {} {} {} {}", x, y, width, height);
-
         let mut cur_x = x;
         let mut cur_y = y;
 
-        if x + width > self.width {
-            println!("Image too wide");
+        //Out of bounds
+        let exceeds_w = x >= self.width;
+        let exceeds_h = y >= self.get_height();
+
+        //Completely out of bounds, unrenderable
+        if exceeds_w || (exceeds_h && !self.auto_grow) {
             return false;
+        }
+
+        //Width can never grow, height can grow is auto_grow = true
+        let needs_crop_w = x + width > self.width;
+        let needs_crop_h = !self.auto_grow && (y + width > self.get_height());
+
+        let (final_width, final_height, final_pixels) = if needs_crop_w || needs_crop_h {
+            let max_width = self.width - x;
+            let max_height = if self.get_height() <= y {
+                0
+            } else {
+                self.get_height() - y
+            };
+
+            println!(
+                "Needs crop {} {} w{} h{} auto_grow {} x{} w{}",
+                needs_crop_w,
+                needs_crop_h,
+                self.width,
+                self.get_height(),
+                self.auto_grow,
+                x,
+                width
+            );
+
+            Self::crop_pixels(
+                &pixels,
+                width,
+                height,
+                max_width,
+                max_height,
+                !self.auto_grow,
+            )
+        } else {
+            (width, height, pixels)
         };
 
-        if pixels.len() < width * height {
-            return false;
-        };
-
-        self.ensure_height(y + height);
+        self.ensure_height(y + final_height);
 
         if multiply {
-            for pixel in pixels {
+            for pixel in final_pixels {
                 let idx = cur_y * self.width + cur_x;
 
                 //ensure black or white only
@@ -542,7 +594,7 @@ impl ThermalImage {
                 } else {
                     u8::min(pixel, self.bytes[idx])
                 };
-                if cur_x == x + width - 1 {
+                if cur_x == x + final_width - 1 {
                     cur_x = x;
                     cur_y += 1;
                 } else {
@@ -550,10 +602,10 @@ impl ThermalImage {
                 }
             }
         } else {
-            for pixel in pixels {
+            for pixel in final_pixels {
                 let idx = cur_y * self.width + cur_x;
                 self.bytes[idx] = if invert { 255 - pixel } else { pixel };
-                if cur_x == x + width - 1 {
+                if cur_x == x + final_width - 1 {
                     cur_x = x;
                     cur_y += 1;
                 } else {
@@ -563,6 +615,37 @@ impl ThermalImage {
         }
 
         true
+    }
+
+    pub fn crop_pixels(
+        pixels: &Vec<u8>,
+        width: usize,
+        height: usize,
+        max_width: usize,
+        max_height: usize,
+        crop_height: bool,
+    ) -> (usize, usize, Vec<u8>) {
+        let new_width = if width > max_width { max_width } else { width };
+        let new_height = if crop_height {
+            if height > max_height {
+                max_height
+            } else {
+                height
+            }
+        } else {
+            height
+        };
+
+        let mut cropped_pixels = Vec::with_capacity(new_width * new_height);
+
+        for y in 0..new_height {
+            let row_start = y * width;
+            let row = &pixels[row_start..row_start + new_width];
+            cropped_pixels.extend_from_slice(row);
+        }
+
+        // Return the new dimensions and the cropped pixels
+        (new_width, new_height, cropped_pixels)
     }
 
     pub fn get_height(&self) -> usize {
@@ -622,21 +705,15 @@ impl ThermalImage {
     }
 
     pub fn copy(&mut self) -> (usize, usize, Vec<u8>) {
-        println!("COPY");
-
         let current_rot = self.print_direction.clone();
         let new_rot = PrintDirection::TopLeft2Right;
 
         if self.width == 0 {
-            println!("COPY EMPTY");
             return (0, 0, vec![]);
         }
 
         //Set to standard print direction
         self.set_print_direction(&new_rot);
-
-        println!("DRAWING BORDER w{} h{}", self.width, self.get_height());
-        //self.draw_border(0x00);
 
         let pixels = self.bytes.clone();
         let w = self.width;
