@@ -1,15 +1,56 @@
 //!
 //! This command sets the print direction for Page Mode.
 //!
+//! When this command is parsed, then any page area
+//! will be applied. It should be sent after setting
+//! page area @see: page_mode_print_area.rs
+//!
 //! Page Mode can be set to 1 of 4 print directions.
 //!
 //! * Top Left to right
-//! * Bottom Left to top
-//! * Top Right to Bottom
-//! * Bottom Right to Left
+//! Renders from top left of the page
+//! to the right (standard direction)
 //!
+//!   x →
+//! y ----------
+//! ↓ | →      |
+//!   |        |
+//!   |        |
+//!   ----------
+//!  
+//!
+//! * Bottom Left to top
+//! Renders from bottom left of page to the top
+//!
+//!   ----------
+//!   |        |
+//!   |        |
+//! ↑ | ↑      |
+//! x ----------
+//!   y →
+//!
+//! * Top Right to Bottom
+//! Renders from top right to bottom
+//!
+//!        ← y
+//! ---------- x
+//! |      ↓ | ↓
+//! |        |
+//! |        |
+//! ----------
+//!
+//! * Bottom Right to Left
+//! Renders from bottom left of page to the top
+//!         
+//! ----------
+//! |        |
+//! |        |
+//! |      ← | ↑
+//! ---------- y
+//!        ← x
 
 use crate::{command::*, constants::*, context::*};
+use std::mem;
 
 #[derive(Clone)]
 struct Handler;
@@ -35,9 +76,11 @@ impl CommandHandler for Handler {
                 _ => PrintDirection::TopLeft2Right,
             };
 
-            context.page_mode.dir = direction;
-            context.page_mode.x = context.page_mode.logical_x;
-            context.page_mode.y = context.page_mode.logical_y;
+            mem::swap(
+                &mut context.page_mode.direction,
+                &mut context.page_mode.previous_direction,
+            );
+            context.page_mode.direction = direction;
         }
     }
 

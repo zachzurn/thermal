@@ -1,19 +1,36 @@
 //! Page Mode Area
 //!
-//! This command sets or grows the logical page mode area which is a virtual area on top of the render area.
+//! This command sets or grows the logical page mode area which
+//! is a virtual area where graphics and text can be rendered to.
+//!
+//! Page mode has a logical area (Renderable space) and a
+//! page area (The combined area) after numerous areas have been set.
+//!
+//! Page area is as wide and tall as the widest/tallest areas that were set
+//! during a page mode session. Width and height of the page area grows
+//! to accommodate areas as they are set. This includes x and y dimensions.
 //!
 //! To illustrate how this works.
 //!
 //! Render area starts at 0 width 0 height when page mode is first set
 //!
-//! Area is set to x = 0, y = 0, w = 200, y = 200
-//! Render area becomes 200 x 200
+//! Area is set to x = 5, y = 0, w = 200, y = 200
+//! Page size becomes 205 x 200
 //!
-//! Area is set to x = 30, y = 40, w = 300, y = 100
-//! Render area becomes 300 x 200
+//! Area is set to x = 30, y = 40, w = 300, h = 100
+//! Page size stays 300 x 200
+//!
+//! Area is set to x = 300, y = 0, w = 300, h = 100
+//! Page size becomes 600 x 200
 //!
 //! x and y is the starting x and y when graphics
-//! commands are rendered to the render area
+//! commands are rendered to the render area.
+//!
+//! x and y have different cardinal directions based on
+//! the print direction that is set.
+//!
+//! Dimension that go beyond the physical print area
+//! (max receipt width) will be clipped to the max receipt width.
 //!
 use crate::{command::*, constants::*, context::*};
 
@@ -43,12 +60,15 @@ impl CommandHandler for Handler {
             let print_area_height =
                 (u16::from(dy_l) + u16::from(dy_h) * 256) * context.graphics.v_motion_unit as u16;
 
-            context.page_mode.logical_x = horizontal_logical_origin as usize;
-            context.page_mode.logical_y = vertical_logical_origin as usize;
-            context.page_mode.logical_w = print_area_width as usize;
-            context.page_mode.logical_h = print_area_height as usize;
-            context.page_mode.x = context.page_mode.logical_x;
-            context.page_mode.y = context.page_mode.logical_y;
+            //Only logical elements should be set here.
+            // All other area fields in the page_mode struct
+            // are reserved For the rendering context
+            context.page_mode.logical_area = PageArea {
+                x: horizontal_logical_origin as usize,
+                y: vertical_logical_origin as usize,
+                w: print_area_width as usize,
+                h: print_area_height as usize,
+            }
         }
     }
 

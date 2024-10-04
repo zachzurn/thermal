@@ -1,6 +1,7 @@
 use crate::decoder::{get_codepage, Codepage};
 use crate::graphics;
 use std::collections::HashMap;
+use std::mem;
 
 use crate::graphics::{Image, ImageRef};
 
@@ -164,27 +165,169 @@ pub enum PrintDirection {
 }
 
 #[derive(Clone)]
-pub struct PageModeContext {
-    //Is page mode enabled
-    pub enabled: bool,
-
-    //Logical values can change whenever
-    //the page area is changed via command
-    pub logical_x: usize,
-    pub logical_y: usize,
-    pub logical_w: usize,
-    pub logical_h: usize,
-
-    //The actual page mode buffer size
-    //When logical values are changed,
-    // this may modify the buffer dimensions
+pub struct PageArea {
     pub x: usize,
     pub y: usize,
     pub w: usize,
     pub h: usize,
+}
+
+#[derive(Clone)]
+pub struct PageModeContext {
+    //Is page mode enabled
+    pub enabled: bool,
+
+    //Raw renderable area
+    pub logical_area: PageArea,
+
+    //Actual graphics context renderable area
+    //Generally a translated version of the logical
+    //area
+    pub render_area: PageArea,
+
+    //Total page area, can grow when render area
+    //is changed
+    pub page_area: PageArea,
 
     //Page mode print direction
-    pub dir: PrintDirection,
+    pub direction: PrintDirection,
+    pub previous_direction: PrintDirection,
+}
+
+pub enum Rotation {
+    R0,
+    R90,
+    R180,
+    R270,
+}
+
+impl PageModeContext {
+    pub fn apply_logical_area(&mut self) -> (Rotation, usize, usize) {
+        let rotation =
+            self.calculate_directional_rotation(&self.previous_direction, &self.direction);
+
+        //Swap page area w and h
+        let previously_swapped = PageModeContext::should_dimension_swap(&self.previous_direction);
+        let should_swap = PageModeContext::should_dimension_swap(&self.direction);
+
+        //Swap page dimension
+        if !previously_swapped && should_swap || !should_swap && previously_swapped {
+            mem::swap(&mut self.page_area.w, &mut self.page_area.h);
+        }
+
+        //Translate logical area to render area
+        match self.direction {
+            PrintDirection::TopLeft2Right => self.translate_top_left_to_right(),
+            PrintDirection::BottomRight2Left => self.translate_bottom_right_to_left(),
+            PrintDirection::TopRight2Bottom => self.translate_top_right_to_bottom(),
+            PrintDirection::BottomLeft2Top => self.translate_bottom_left_to_top(),
+        };
+
+        //Set base values for x and y, render area will use these when resetting to y=0
+        self.page_area.x = self.render_area.x;
+        self.page_area.y = self.render_area.y;
+
+        let render_max_width = self.render_area.x + self.render_area.w;
+        let render_max_height = self.render_area.y + self.render_area.h;
+
+        self.page_area.w = render_max_width.max(self.page_area.w);
+        self.page_area.h = render_max_height.max(self.page_area.h);
+
+        (rotation, self.page_area.w, self.page_area.h)
+    }
+
+    fn should_dimension_swap(direction: &PrintDirection) -> bool {
+        match direction {
+            PrintDirection::TopLeft2Right | PrintDirection::BottomRight2Left => false,
+            _ => true,
+        }
+    }
+
+    fn translate_top_left_to_right(&mut self) {
+        let l = &self.logical_area;
+        let r = &mut self.render_area;
+
+        r.w = l.w;
+        r.h = l.h;
+        r.x = l.x;
+        r.y = l.y;
+    }
+
+    fn translate_bottom_right_to_left(&mut self) {
+        let l = &self.logical_area;
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+
+        r.w = l.w;
+        r.h = l.h;
+        r.y = l.y;
+        r.x = p.w - (l.x + l.w);
+    }
+
+    fn translate_top_right_to_bottom(&mut self) {
+        let l = &self.logical_area;
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+
+        r.w = l.h;
+        r.h = l.w;
+        r.x = p.w - (l.y + l.h);
+        r.y = p.h - (l.x + l.w);
+    }
+
+    fn translate_bottom_left_to_top(&mut self) {
+        let l = &self.logical_area;
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+
+        r.w = l.h;
+        r.h = l.w;
+        r.x = p.w - (l.y + l.h);
+        r.y = l.x;
+
+        // println!(
+        //     "width{} minus lx{} + lw{} ({}) which is {}",
+        //     p.w,
+        //     l.y,
+        //     l.h,
+        //     l.y + l.h,
+        //     p.w - (l.y + l.h)
+        // );
+        //
+        // println!("Y should be {}", l.x);
+    }
+
+    pub fn calculate_directional_rotation(
+        &self,
+        from: &PrintDirection,
+        to: &PrintDirection,
+    ) -> Rotation {
+        let previous = match from {
+            PrintDirection::TopRight2Bottom => 3,
+            PrintDirection::BottomRight2Left => 2,
+            PrintDirection::BottomLeft2Top => 1,
+            PrintDirection::TopLeft2Right => 0,
+        };
+
+        let current = match to {
+            PrintDirection::TopRight2Bottom => 3,
+            PrintDirection::BottomRight2Left => 2,
+            PrintDirection::BottomLeft2Top => 1,
+            PrintDirection::TopLeft2Right => 0,
+        };
+
+        let orientation_delta = (current as i8 - previous as i8).rem_euclid(4) as u8;
+
+        //Come up with the rotation change that will
+        //put page mode render area into the correct
+        //render orientation
+        match orientation_delta {
+            1 => Rotation::R90,
+            2 => Rotation::R180,
+            3 => Rotation::R270,
+            _ => Rotation::R0,
+        }
+    }
 }
 
 impl Context {
@@ -258,15 +401,26 @@ impl Context {
             },
             page_mode: PageModeContext {
                 enabled: false,
-                logical_x: 0,
-                logical_y: 0,
-                logical_w: 0,
-                logical_h: 0,
-                x: 0,
-                y: 0,
-                w: 0,
-                h: 0,
-                dir: PrintDirection::TopLeft2Right,
+                logical_area: PageArea {
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0,
+                },
+                render_area: PageArea {
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0,
+                },
+                page_area: PageArea {
+                    x: 0,
+                    y: 0,
+                    w: 0,
+                    h: 0,
+                },
+                direction: PrintDirection::TopLeft2Right,
+                previous_direction: PrintDirection::TopLeft2Right,
             },
         }
     }

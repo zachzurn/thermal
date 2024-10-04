@@ -3,7 +3,7 @@ use crate::renderer::CommandRenderer;
 use std::mem;
 use std::rc::Rc;
 use thermal_parser::command::DeviceCommand;
-use thermal_parser::context::{Context, PrintDirection};
+use thermal_parser::context::{Context, PrintDirection, Rotation};
 
 pub mod thermal_image;
 
@@ -67,42 +67,33 @@ impl CommandRenderer for ImageRenderer {
     }
 
     fn begin_page(&mut self, context: &mut Context) {
-        self.page_image.set_width(context.page_mode.w);
-        self.page_image.ensure_height(context.page_mode.h);
+        self.page_image.set_width(0);
+        //TODO make sure we don't print text to a page image that shouldn't be
         self.maybe_render_text(context);
     }
 
-    fn page_area_changed(&mut self, context: &mut Context) {
-        let current_width = self.page_image.width;
-        let current_height = self.page_image.get_height();
-        let current_empty = current_width == 0 || current_height == 0;
+    fn page_area_changed(
+        &mut self,
+        context: &mut Context,
+        rotation: Rotation,
+        width: usize,
+        height: usize,
+    ) {
+        let img = &mut self.page_image;
 
-        let mut new_width = context.page_mode.logical_w;
-        let mut new_height = context.page_mode.logical_h;
-
-        //Rotated directions need swapped dimensions
-        match context.page_mode.dir {
-            PrintDirection::TopRight2Bottom | PrintDirection::BottomLeft2Top => {
-                mem::swap(&mut new_width, &mut new_height);
-            }
+        match rotation {
+            Rotation::R90 => img.rotate_90(),
+            Rotation::R180 => img.rotate_180(),
+            Rotation::R270 => img.rotate_270(),
             _ => {}
         }
 
-        //No need to make any adjustments for smaller page area
-        //For bigger area, we reset the image and put the old image in place
-        if current_width < new_width || current_height < new_height || current_empty {
-            let copy = self.page_image.copy();
-            context.page_mode.w = new_width;
-            context.page_mode.h = new_height;
-            self.page_image.set_width(new_width);
-            self.page_image.ensure_height(new_height);
-            self.page_image
-                .put_pixels(0, 0, copy.0, copy.1, copy.2, false, false);
+        if width > self.page_image.width {
+            self.page_image.expand_to_width(width)
         }
-    }
-
-    fn page_direction_changed(&mut self, context: &mut Context) {
-        self.page_image.set_print_direction(&context.page_mode.dir);
+        if height > self.page_image.get_height() {
+            self.page_image.expand_to_height(height)
+        }
     }
 
     fn end_page(&mut self, _context: &mut Context) {}
@@ -110,7 +101,33 @@ impl CommandRenderer for ImageRenderer {
     fn print_page(&mut self, context: &mut Context) {
         self.maybe_render_text(context);
 
+        let rotation_to_standard = context.page_mode.calculate_directional_rotation(
+            &context.page_mode.direction,
+            &PrintDirection::TopLeft2Right,
+        );
+
+        //Rotate to standard direction
+        match rotation_to_standard {
+            Rotation::R90 => self.page_image.rotate_90(),
+            Rotation::R180 => self.page_image.rotate_180(),
+            Rotation::R270 => self.page_image.rotate_270(),
+            _ => {}
+        }
+
         let (w, h, pixels) = self.page_image.copy();
+
+        //Rotate back to how it was
+        let rotation_to_previous = context.page_mode.calculate_directional_rotation(
+            &PrintDirection::TopLeft2Right,
+            &context.page_mode.direction,
+        );
+
+        match rotation_to_previous {
+            Rotation::R90 => self.page_image.rotate_90(),
+            Rotation::R180 => self.page_image.rotate_180(),
+            Rotation::R270 => self.page_image.rotate_270(),
+            _ => {}
+        }
 
         self.image.put_pixels(
             context.graphics.x,
@@ -132,8 +149,12 @@ impl CommandRenderer for ImageRenderer {
 
     fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize) {
         if context.page_mode.enabled {
-            self.page_image
-                .draw_rect(context.page_mode.x, context.page_mode.y, w, h);
+            self.page_image.draw_rect(
+                context.page_mode.render_area.x,
+                context.page_mode.render_area.y,
+                w,
+                h,
+            );
         } else {
             self.image
                 .draw_rect(context.graphics.x, context.graphics.y, w, h);
@@ -146,8 +167,8 @@ impl CommandRenderer for ImageRenderer {
 
         if context.page_mode.enabled {
             self.page_image.put_pixels(
-                context.page_mode.x,
-                context.page_mode.y,
+                context.page_mode.render_area.x,
+                context.page_mode.render_area.y,
                 width,
                 height,
                 bytes,
@@ -176,7 +197,7 @@ impl CommandRenderer for ImageRenderer {
         //by advancing the newline manually when the text layout is empty
         if self.text_layout.is_none() && text.eq("\n") {
             if context.page_mode.enabled {
-                context.page_mode.y += context.text.line_spacing as usize;
+                context.page_mode.render_area.y += context.text.line_spacing as usize;
             } else {
                 context.graphics.y += context.text.line_spacing as usize;
             }
@@ -215,7 +236,7 @@ impl CommandRenderer for ImageRenderer {
         );
 
         //Feed to the y height to ensure we catch any cut advances
-        self.image.ensure_height(context.graphics.y);
+        self.image.expand_to_height(context.graphics.y);
 
         let out_path = self.unique_out_path();
 
@@ -228,20 +249,31 @@ impl CommandRenderer for ImageRenderer {
 }
 
 impl ImageRenderer {
+    fn page_size(current_dimension: usize, new_offset: usize, new_dimension: usize) -> usize {
+        if current_dimension == 0 {
+            new_dimension
+        } else if new_offset + new_dimension > current_dimension {
+            new_offset + new_dimension
+        } else {
+            current_dimension
+        }
+    }
+
     fn unique_out_path(&mut self) -> String {
         self.out_count = self.out_count.wrapping_add(1);
         format!("{}.png", self.out_path.to_string())
     }
+    //TODO maybe have the renderer take care of collecting text
     pub fn maybe_render_text(&mut self, context: &mut Context) {
         if let Some(layout) = &mut self.text_layout {
             if context.page_mode.enabled {
                 let (_, y) = self.page_image.draw_text(
-                    context.page_mode.x as usize,
-                    context.page_mode.y as usize,
-                    self.page_image.width,
+                    context.page_mode.render_area.x as usize,
+                    context.page_mode.render_area.y as usize,
+                    context.page_mode.render_area.w,
                     layout,
                 );
-                context.page_mode.y = y;
+                context.page_mode.render_area.y = y;
             } else {
                 let (_, y) = self.image.draw_text(
                     context.graphics.x as usize,

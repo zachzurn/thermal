@@ -4,7 +4,7 @@ use base64::Engine;
 use png::{ColorType, Encoder};
 use std::path::PathBuf;
 use thermal_parser::command::DeviceCommand;
-use thermal_parser::context::{Context, TextJustify, TextStrikethrough, TextUnderline};
+use thermal_parser::context::{Context, Rotation, TextJustify, TextStrikethrough, TextUnderline};
 
 static TEMPLATE: &str = include_str!("../../resources/templates/thermal.html");
 
@@ -62,11 +62,13 @@ impl CommandRenderer for HtmlRenderer {
         //Page Mode is not currently supported
     }
 
-    fn page_area_changed(&mut self, _context: &mut Context) {
-        //Page Mode is not currently supported
-    }
-
-    fn page_direction_changed(&mut self, _context: &mut Context) {
+    fn page_area_changed(
+        &mut self,
+        context: &mut Context,
+        rotation: Rotation,
+        width: usize,
+        height: usize,
+    ) {
         //Page Mode is not currently supported
     }
 

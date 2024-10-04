@@ -103,10 +103,10 @@ pub struct TextLayout {
 /// to accommodate sets of pixels being pushed at arbitrary x and y values
 pub struct ThermalImage {
     bytes: Vec<u8>,
-    print_direction: PrintDirection,
     pub width: usize,
     pub font: Rc<FontFamily>,
     pub auto_grow: bool,
+    pub allow_greyscale: bool,
 }
 
 impl ThermalImage {
@@ -115,45 +115,12 @@ impl ThermalImage {
             bytes: Vec::<u8>::new(),
             font,
             width,
-            print_direction: PrintDirection::TopLeft2Right,
+            allow_greyscale: true,
             auto_grow: true,
         }
     }
 
-    //Print direction is a weird one that we emulate
-    // by rotating the image and rendering as normal
-    pub fn set_print_direction(&mut self, direction: &PrintDirection) {
-        //Values are 0 to 3 which represent 90 degree rotations
-        let current = Self::get_rotation(&self.print_direction);
-        let new = Self::get_rotation(direction);
-
-        //From 1(90) to 2(180) : should be 1 (90)
-        //From 0(0) to 2(180) : should be 2 (180)
-        //From 2(180) to 0(0) : should be 2 (180)
-        //From 0(0) to 1(90) : should be 1 (90)
-        let rot = (new as i8 - current as i8).rem_euclid(4) as u8;
-
-        //Rotate pixels
-        match rot {
-            1 => self.rotate_90(),
-            2 => self.rotate_180(),
-            3 => self.rotate_270(),
-            _ => {}
-        }
-
-        self.print_direction = direction.clone();
-    }
-
-    fn get_rotation(direction: &PrintDirection) -> i32 {
-        match direction {
-            PrintDirection::TopRight2Bottom => 3,
-            PrintDirection::BottomRight2Left => 2,
-            PrintDirection::BottomLeft2Top => 1,
-            PrintDirection::TopLeft2Right => 0,
-        }
-    }
-
-    fn rotate_90(&mut self) {
+    pub fn rotate_90(&mut self) {
         let w = self.width;
         let h = self.bytes.len() / w;
         let mut rotated_image = vec![0; w * h];
@@ -168,7 +135,7 @@ impl ThermalImage {
         self.width = h;
     }
 
-    fn rotate_180(&mut self) {
+    pub fn rotate_180(&mut self) {
         let w = self.width;
         let h = self.bytes.len() / w;
         let mut rotated_image = vec![0; w * h];
@@ -182,7 +149,7 @@ impl ThermalImage {
         self.bytes = rotated_image;
     }
 
-    fn rotate_270(&mut self) {
+    pub fn rotate_270(&mut self) {
         let w = self.width;
         let h = self.bytes.len() / w;
         let mut rotated_image = vec![0; w * h];
@@ -465,7 +432,7 @@ impl ThermalImage {
         if x + width > self.width {
             return;
         };
-        self.ensure_height(y + height);
+        self.expand_to_height(y + height);
 
         let mut cur_y = y;
         let mut cur_x = x;
@@ -485,7 +452,7 @@ impl ThermalImage {
         if x + width > self.width {
             return;
         };
-        self.ensure_height(y + height);
+        self.expand_to_height(y + height);
 
         let mut sub_image = Vec::<u8>::with_capacity(width * height);
 
@@ -527,7 +494,13 @@ impl ThermalImage {
 
         //Completely out of bounds, unrenderable
         if exceeds_w || (exceeds_h && !self.auto_grow) {
-            println!("Exceeds ew{} eh{} w{} h{}",exceeds_w,exceeds_h,self.width,self.get_height());
+            println!(
+                "Exceeds ew{} eh{} w{} h{}",
+                exceeds_w,
+                exceeds_h,
+                self.width,
+                self.get_height()
+            );
             return false;
         }
 
@@ -555,14 +528,22 @@ impl ThermalImage {
             (width, height, pixels)
         };
 
-        self.ensure_height(y + final_height);
+        self.expand_to_height(y + final_height);
 
         if multiply {
             for pixel in final_pixels {
                 let idx = cur_y * self.width + cur_x;
 
                 //ensure black or white only
-                let pixel = if pixel < THRESHOLD { 0 } else { 255 };
+                let pixel = if !self.allow_greyscale {
+                    if pixel < THRESHOLD {
+                        0
+                    } else {
+                        255
+                    }
+                } else {
+                    pixel
+                };
 
                 self.bytes[idx] = if invert {
                     u8::min(255 - pixel, self.bytes[idx])
@@ -631,7 +612,7 @@ impl ThermalImage {
         }
     }
 
-    pub fn ensure_height(&mut self, height: usize) {
+    pub fn expand_to_height(&mut self, height: usize) {
         let len = self.width * height;
         let cur_len = self.bytes.len();
         if cur_len >= len {
@@ -653,7 +634,7 @@ impl ThermalImage {
         if new_width < old_width {
             return;
         };
-        let height = self.bytes.len() / self.width;
+        let height = self.get_height();
         let left = ((new_width - old_width) as f32 / 2.0).floor() as usize;
         let right = new_width - (left + old_width);
 
@@ -680,23 +661,9 @@ impl ThermalImage {
     }
 
     pub fn copy(&mut self) -> (usize, usize, Vec<u8>) {
-        let current_rot = self.print_direction.clone();
-        let new_rot = PrintDirection::TopLeft2Right;
-
-        if self.width == 0 {
-            return (0, 0, vec![]);
-        }
-
-        //Set to standard print direction
-        self.set_print_direction(&new_rot);
-        
         let pixels = self.bytes.clone();
         let w = self.width;
         let h = self.get_height();
-
-        //Set back to previous print direction
-        self.set_print_direction(&current_rot);
-
         (w, h, pixels)
     }
 
@@ -705,24 +672,36 @@ impl ThermalImage {
         self.bytes.clear()
     }
 
-    fn draw_border(&mut self, border_value: u8) {
+    pub fn draw_border(
+        &mut self,
+        x: usize,
+        y: usize,
+        width: usize,
+        height: usize,
+        border_value: u8,
+    ) {
         let w = self.width;
         let h = self.bytes.len() / w;
 
+        // Ensure that the given rectangle is within bounds
+        if x + width > w || y + height > h {
+            return; // The specified rectangle is out of bounds, do nothing
+        }
+
         // Top border
-        for x in 0..w {
-            self.bytes[x] = border_value;
+        for i in 0..width {
+            self.bytes[y * w + (x + i)] = border_value;
         }
 
         // Bottom border
-        for x in 0..w {
-            self.bytes[(h - 1) * w + x] = border_value;
+        for i in 0..width {
+            self.bytes[(y + height - 1) * w + (x + i)] = border_value;
         }
 
         // Left and right borders
-        for y in 0..h {
-            self.bytes[y * w] = border_value; // Left border
-            self.bytes[y * w + (w - 1)] = border_value; // Right border
+        for j in 0..height {
+            self.bytes[(y + j) * w + x] = border_value; // Left border
+            self.bytes[(y + j) * w + (x + width - 1)] = border_value; // Right border
         }
     }
 

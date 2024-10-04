@@ -1,5 +1,5 @@
 use thermal_parser::command::{Command, CommandType, DeviceCommand};
-use thermal_parser::context::{Context, HumanReadableInterface};
+use thermal_parser::context::{Context, HumanReadableInterface, Rotation};
 use thermal_parser::graphics::GraphicsCommand;
 
 pub trait CommandRenderer {
@@ -60,7 +60,7 @@ pub trait CommandRenderer {
                         let advance = context.line_height_pixels() as usize * *num_lines as usize;
 
                         if context.page_mode.enabled {
-                            context.page_mode.y += advance;
+                            context.page_mode.render_area.y += advance;
                         } else {
                             context.graphics.y += advance;
                         }
@@ -69,7 +69,7 @@ pub trait CommandRenderer {
                         let advance = context.motion_unit_y_pixels() as usize * *num as usize;
 
                         if context.page_mode.enabled {
-                            context.page_mode.y += advance;
+                            context.page_mode.render_area.y += advance;
                         } else {
                             context.graphics.y += advance;
                         }
@@ -89,10 +89,8 @@ pub trait CommandRenderer {
                         self.print_page(context);
                     }
                     DeviceCommand::ChangePageModeDirection => {
-                        self.page_direction_changed(context);
-                    }
-                    DeviceCommand::ChangePageArea => {
-                        self.page_area_changed(context);
+                        let (rotation, width, height) = context.page_mode.apply_logical_area();
+                        self.page_area_changed(context, rotation, width, height);
                     }
                     _ => {}
                 }
@@ -196,12 +194,12 @@ pub trait CommandRenderer {
                 self.begin_graphics(context);
 
                 let mut i = 1;
-                let origin_x = context.page_mode.logical_x;
+                let origin_x = context.page_mode.page_area.x;
 
                 for p in &code_2d.points {
                     if i != 1 && i % code_2d.width == 1 {
-                        context.page_mode.x = origin_x;
-                        context.page_mode.y += code_2d.point_height as usize;
+                        context.page_mode.render_area.x = origin_x;
+                        context.page_mode.render_area.y += code_2d.point_height as usize;
                     }
 
                     if *p > 0 {
@@ -211,11 +209,11 @@ pub trait CommandRenderer {
                             code_2d.point_height as usize,
                         )
                     }
-                    context.page_mode.x += code_2d.point_width as usize;
+                    context.page_mode.render_area.x += code_2d.point_width as usize;
                     i += 1;
                 }
 
-                context.page_mode.x = 0;
+                context.page_mode.render_area.x = 0;
 
                 self.end_graphics(context);
             }
@@ -241,12 +239,12 @@ pub trait CommandRenderer {
                             barcode.point_height as usize,
                         )
                     }
-                    context.page_mode.x += barcode.point_width as usize;
+                    context.page_mode.render_area.x += barcode.point_width as usize;
                 }
 
-                context.page_mode.x = 0;
-                context.page_mode.y += barcode.point_height as usize;
-                context.page_mode.y += context.line_height_pixels() as usize;
+                context.page_mode.render_area.x = 0;
+                context.page_mode.render_area.y += barcode.point_height as usize;
+                context.page_mode.render_area.y += context.line_height_pixels() as usize;
 
                 self.end_graphics(context);
 
@@ -259,7 +257,7 @@ pub trait CommandRenderer {
             }
             GraphicsCommand::Image(image) => {
                 if image.advances_xy {
-                    context.page_mode.x = context.page_mode.logical_x;
+                    context.page_mode.render_area.x = context.page_mode.page_area.x;
                 }
                 self.draw_image(
                     context,
@@ -268,11 +266,11 @@ pub trait CommandRenderer {
                     image.height as usize,
                 );
                 if image.advances_xy {
-                    context.page_mode.x = context.page_mode.logical_x;
-                    context.page_mode.y += image.height as usize;
-                    context.page_mode.y += context.line_height_pixels() as usize;
+                    context.page_mode.render_area.x = context.page_mode.page_area.x;
+                    context.page_mode.render_area.y += image.height as usize;
+                    context.page_mode.render_area.y += context.line_height_pixels() as usize;
                 } else {
-                    context.page_mode.x += image.width as usize;
+                    context.page_mode.render_area.x += image.width as usize;
                 }
             }
             GraphicsCommand::Rectangle(_) => {}
@@ -281,19 +279,24 @@ pub trait CommandRenderer {
     }
 
     fn begin_render(&mut self, context: &mut Context);
-    
+
     fn begin_page(&mut self, context: &mut Context);
-    fn page_area_changed(&mut self, context: &mut Context);
-    fn page_direction_changed(&mut self, context: &mut Context);
+    fn page_area_changed(
+        &mut self,
+        context: &mut Context,
+        rotation: Rotation,
+        width: usize,
+        height: usize,
+    );
     fn end_page(&mut self, context: &mut Context);
     fn print_page(&mut self, context: &mut Context);
-    
+
     fn begin_graphics(&mut self, context: &mut Context);
     fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize);
     fn end_graphics(&mut self, context: &mut Context);
     fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize);
     fn draw_text(&mut self, context: &mut Context, text: String);
     fn draw_device_command(&mut self, context: &mut Context, command: &DeviceCommand);
-    
+
     fn end_render(&mut self, context: &mut Context);
 }
