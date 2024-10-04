@@ -392,7 +392,7 @@ impl Context {
                 paper_width: 3.0,   //inches
                 margin_left: 0.1,   //inches
                 margin_right: 0.1,  //inches
-                dots_per_inch: 210, //pixels
+                dots_per_inch: 203, //pixels
                 v_motion_unit: 1,   //Pixels
                 h_motion_unit: 1,   //Pixels
                 graphics_count: 0,

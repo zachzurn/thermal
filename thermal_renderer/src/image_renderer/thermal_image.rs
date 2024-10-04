@@ -281,6 +281,7 @@ impl ThermalImage {
             }
 
             //Prevent issues with line widths that are way too long
+            //TODO write some tests for this
             if precalculated_width > width {
                 precalculated_width = width;
             }
@@ -292,9 +293,10 @@ impl ThermalImage {
             }
 
             for word in &line {
-                if word.0.stretch_height > 1.0 {
-                    line_height_mult = word.0.stretch_height as usize;
-                }
+                // seems like empty line heights should not scale with the stretch
+                // if word.0.stretch_height > 1.0 {
+                //     line_height_mult = word.0.stretch_height as usize;
+                // }
                 let (w, _) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
                 new_x += w;
             }
@@ -408,23 +410,31 @@ impl ThermalImage {
         let sw = width * stretch_width;
         let sh = height * stretch_height;
 
-        let mut scaled = Vec::with_capacity(sw * sh);
+        // Pre-allocate the correct size
+        let mut scaled = vec![0u8; sw * sh];
 
         for y in 0..height {
-            for _ in 0..stretch_height {
+            for dy in 0..stretch_height {
+                let scaled_y = y * stretch_height + dy;
+
                 for x in 0..width {
-                    for _ in 0..stretch_width {
+                    for dx in 0..stretch_width {
+                        let scaled_x = x * stretch_width + dx;
+
                         let pixel = if bitmap[width * y + x] < SCALE_THRESHOLD {
                             0
                         } else {
                             255
                         };
-                        scaled.push(pixel)
+
+                        scaled[scaled_y * sw + scaled_x] = pixel;
                     }
                 }
             }
         }
 
+        
+        
         scaled
     }
 
