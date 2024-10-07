@@ -63,11 +63,11 @@ impl CommandHandler for Handler {
             //Only logical elements should be set here.
             // All other area fields in the page_mode struct
             // are reserved For the rendering context
-            context.page_mode.logical_area = PageArea {
-                x: horizontal_logical_origin as usize,
-                y: vertical_logical_origin as usize,
-                w: print_area_width as usize,
-                h: print_area_height as usize,
+            context.page_mode.logical_area = RenderArea {
+                x: horizontal_logical_origin as u32,
+                y: vertical_logical_origin as u32,
+                w: print_area_width as u32,
+                h: print_area_height as u32,
             }
         }
     }

@@ -72,7 +72,7 @@ impl SubCommandHandler {
 
 //We are proxying all command handler commands to the subcommand with the exception of parse
 impl CommandHandler for SubCommandHandler {
-    fn get_text(&self, command: &Command, context: &Context) -> Option<String> {
+    fn get_text(&self, command: &Command, context: &Context) -> Option<TextSpan> {
         if let Some(subcommand) = &self.subcommand {
             return subcommand.handler.get_text(command, context);
         }

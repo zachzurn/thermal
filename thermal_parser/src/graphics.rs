@@ -1,4 +1,79 @@
-use crate::context::HumanReadableInterface;
+use crate::context::{
+    Context, Font, HumanReadableInterface, TextJustify, TextStrikethrough, TextUnderline,
+};
+use std::fmt::{Debug, Formatter};
+
+#[derive(Clone, Debug)]
+pub struct TextSpan {
+    pub font: Font,
+    pub size: u32,
+    pub text: String,
+    pub bold: bool,
+    pub italic: bool,
+    pub underline: u32,
+    pub strikethrough: u32,
+    pub stretch_width: f32,
+    pub stretch_height: f32,
+    pub inverted: bool,
+    pub upside_down: bool,
+    pub justify: TextJustify,
+}
+
+#[derive(Debug)]
+pub struct TextLayout {
+    pub spans: Vec<TextSpan>,
+    pub line_height: u32,
+    pub tab_len: u32,
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+}
+
+impl TextLayout {
+    pub fn new(context: &Context) -> Self {
+        Self {
+            spans: vec![],
+            line_height: context.line_height_pixels(),
+            tab_len: context.text.tab_len as u32,
+            x: context.get_x(),
+            y: context.get_y(),
+            w: context.get_width(),
+        }
+    }
+}
+
+impl TextSpan {
+    pub fn new(text: String, context: &Context) -> Self {
+        let style = &context.text;
+
+        let underline = match style.underline {
+            TextUnderline::On => context.points_to_pixels(1.0) as u32,
+            TextUnderline::Double => context.points_to_pixels(2.0) as u32,
+            _ => 0,
+        };
+
+        let strikethrough = match style.strikethrough {
+            TextStrikethrough::On => context.points_to_pixels(1.0) as u32,
+            TextStrikethrough::Double => context.points_to_pixels(2.0) as u32,
+            _ => 0,
+        };
+
+        Self {
+            font: context.text.font.clone(),
+            size: context.font_size_pixels(),
+            text,
+            bold: style.bold,
+            italic: style.italic,
+            underline,
+            strikethrough,
+            stretch_width: style.width_mult as f32,
+            stretch_height: style.height_mult as f32,
+            inverted: style.invert,
+            upside_down: style.upside_down,
+            justify: context.text.justify.clone(),
+        }
+    }
+}
 
 #[derive(Clone)]
 pub struct Barcode {
@@ -6,15 +81,19 @@ pub struct Barcode {
     pub point_width: u8,
     pub point_height: u8,
     pub hri: HumanReadableInterface,
-    pub text: String,
+    pub text: TextSpan,
+}
+
+pub enum VectorGraphic {
+    Rectangle(Rectangle),
 }
 
 #[derive(Clone)]
 pub struct Rectangle {
-    _x: u32,
-    _y: u32,
-    _width: u32,
-    _height: u32,
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
 }
 
 #[derive(Clone)]
@@ -47,17 +126,20 @@ pub enum PixelType {
 #[derive(Clone)]
 pub struct Image {
     pub pixels: Vec<u8>,
-    pub width: u32,
-    pub height: u32,
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
     pub pixel_type: PixelType,
     pub stretch: (u8, u8),
-    pub advances_xy: bool,
+    pub advances_y: bool,
+    pub upside_down: bool,
 }
 
 impl Image {
     /// Used for debugging only
     pub fn as_pbm(&self) -> Vec<u8> {
-        let dim = format!("{} {}", self.width, self.height);
+        let dim = format!("{} {}", self.w, self.h);
         let dimbytes = dim.as_bytes();
 
         let mut data: Vec<u8> = vec![0x50, 0x34, 0x0A];
@@ -78,7 +160,7 @@ impl Image {
         let mut bytes = Vec::<u8>::new();
 
         //number of bytes we need to use for the last column of each row of data
-        let mut padding = self.width % 8;
+        let mut padding = self.w % 8;
         if padding == 0 {
             padding = 8;
         }
@@ -86,7 +168,7 @@ impl Image {
 
         for byte in &self.pixels {
             col += 8;
-            if col >= self.width {
+            if col >= self.w {
                 for n in 0..padding {
                     bytes.push(if *byte & 1 << (7 - n) != 0 { 0 } else { 255 });
                 }
@@ -131,8 +213,7 @@ impl Image {
         let stretch = (bx, by);
 
         let pixels = if bx > 1 || by > 1 {
-            let (w, h, px) =
-                scale_pixels(&data[8..], width as usize, height as usize, bx > 1, by > 1);
+            let (w, h, px) = scale_pixels(&data[8..], width as u32, height as u32, bx > 1, by > 1);
             width = w;
             height = h;
             px
@@ -140,15 +221,16 @@ impl Image {
             data[8..].to_vec()
         };
 
-        println!("SCALE x{} y{}", bx, by);
-
         Some(Image {
             pixels,
-            width,
-            height,
+            x: 0,
+            y: 0,
+            w: width as u32,
+            h: height as u32,
             pixel_type,
             stretch,
-            advances_xy: true,
+            advances_y: true,
+            upside_down: false,
         })
     }
 
@@ -189,11 +271,14 @@ impl Image {
             ImageRef { kc1, kc2, storage },
             Image {
                 pixels,
-                width,
-                height,
+                x: 0,
+                y: 0,
+                w: width,
+                h: height,
                 pixel_type,
                 stretch,
-                advances_xy: true,
+                advances_y: true,
+                upside_down: false,
             },
         ))
     }
@@ -223,8 +308,7 @@ impl Image {
         let stretch = (bx, by);
 
         let pixels = if bx > 1 || by > 1 {
-            let (w, h, px) =
-                scale_pixels(&data[8..], width as usize, height as usize, bx > 1, by > 1);
+            let (w, h, px) = scale_pixels(&data[8..], width as u32, height as u32, bx > 1, by > 1);
             width = w;
             height = h;
             px
@@ -234,11 +318,14 @@ impl Image {
 
         Some(Image {
             pixels,
-            width,
-            height,
+            x: 0,
+            y: 0,
+            w: width,
+            h: height,
             pixel_type,
             stretch,
-            advances_xy: false,
+            advances_y: false,
+            upside_down: false,
         })
     }
 
@@ -278,11 +365,14 @@ impl Image {
             ImageRef { kc1, kc2, storage },
             Image {
                 pixels,
-                width,
-                height,
+                x: 0,
+                y: 0,
+                w: width,
+                h: height,
                 pixel_type,
                 stretch,
-                advances_xy: false,
+                advances_y: false,
+                upside_down: false,
             },
         ))
     }
@@ -300,8 +390,8 @@ impl Image {
 pub fn column_to_raster(
     pixels: &[u8],
     stretch: (u8, u8),
-    final_width: usize,
-    final_height: usize,
+    final_width: u32,
+    final_height: u32,
 ) -> (u32, u32, Vec<u8>) {
     let width = final_height;
     let mut bytes = Vec::<u8>::new();
@@ -344,19 +434,19 @@ pub fn column_to_raster(
             stretch.1 > 1,
         )
     } else {
-        (final_width as u32, final_height as u32, flip)
+        (final_width, final_height, flip)
     }
 }
 
-fn rotate_90_clockwise(data: Vec<u8>, width: usize, height: usize) -> Vec<u8> {
+fn rotate_90_clockwise(data: Vec<u8>, width: u32, height: u32) -> Vec<u8> {
     let mut result = vec![0; data.len()];
 
     for y in 0..height {
         for x in 0..width {
-            let src_index = y * width + x;
+            let src_index = y as usize * width as usize + x as usize;
             let dest_x = height - 1 - y;
             let dest_y = x;
-            let dest_index = dest_y * height + dest_x; // Note: height is used for new row length
+            let dest_index = dest_y as usize * height as usize + dest_x as usize; // Note: height is used for new row length
             result[dest_index] = data[src_index];
         }
     }
@@ -364,14 +454,14 @@ fn rotate_90_clockwise(data: Vec<u8>, width: usize, height: usize) -> Vec<u8> {
     result
 }
 
-fn flip_right_to_left(data: Vec<u8>, width: usize, height: usize) -> Vec<u8> {
+fn flip_right_to_left(data: Vec<u8>, width: u32, height: u32) -> Vec<u8> {
     let mut result = vec![0; data.len()];
 
     for y in 0..height {
         for x in 0..width {
-            let src_index = y * width + x;
+            let src_index = y as usize * width as usize + x as usize;
             let dest_x = width - 1 - x; // Flip the x-coordinate
-            let dest_index = y * width + dest_x; // Calculate the destination index
+            let dest_index = y as usize * width as usize + dest_x as usize; // Calculate the destination index
             result[dest_index] = data[src_index];
         }
     }
@@ -381,8 +471,8 @@ fn flip_right_to_left(data: Vec<u8>, width: usize, height: usize) -> Vec<u8> {
 
 pub fn scale_pixels(
     bytes: &[u8],
-    original_width: usize,
-    original_height: usize,
+    original_width: u32,
+    original_height: u32,
     scale_x: bool,
     scale_y: bool,
 ) -> (u32, u32, Vec<u8>) {
@@ -397,13 +487,13 @@ pub fn scale_pixels(
         original_height
     };
 
-    let mut scaled_bytes = Vec::with_capacity(new_width * new_height);
+    let mut scaled_bytes = Vec::with_capacity(new_width as usize * new_height as usize);
 
     for y in 0..original_height {
-        let row_start = y * original_width;
-        let row_end = row_start + original_width;
+        let row_start = y as usize * original_width as usize;
+        let row_end = row_start + original_width as usize;
         let row = &bytes[row_start..row_end];
-        let mut scaled_row = Vec::with_capacity(new_width);
+        let mut scaled_row = Vec::with_capacity(new_width as usize);
 
         for &pixel in row {
             if scale_x {
@@ -420,7 +510,7 @@ pub fn scale_pixels(
         }
     }
 
-    (new_width as u32, new_height as u32, scaled_bytes)
+    (new_width, new_height, scaled_bytes)
 }
 
 //Images that were added to storage can be
@@ -452,6 +542,7 @@ pub enum ImageRefStorage {
 }
 
 pub enum GraphicsCommand {
+    Error(String),
     Code2D(Code2D),
     Barcode(Barcode),
     Image(Image),

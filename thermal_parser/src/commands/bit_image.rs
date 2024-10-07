@@ -17,14 +17,14 @@ impl CommandHandler for Handler {
             graphics::column_to_raster(
                 &command.data.clone(),
                 self.stretch,
-                self.width as usize,
-                self.height as usize,
+                self.width as u32,
+                self.height as u32,
             )
         } else {
             graphics::scale_pixels(
                 &command.data,
-                self.width as usize,
-                self.height as usize,
+                self.width as u32,
+                self.height as u32,
                 self.stretch.0 > 1,
                 self.stretch.1 > 1,
             )
@@ -32,11 +32,14 @@ impl CommandHandler for Handler {
 
         Some(GraphicsCommand::Image(Image {
             pixels: bytes,
-            width: w,
-            height: h,
+            x: 0,
+            y: 0,
+            w,
+            h,
             pixel_type: PixelType::MonochromeByte,
             stretch: self.stretch,
-            advances_xy: false,
+            advances_y: false,
+            upside_down: false,
         }))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {

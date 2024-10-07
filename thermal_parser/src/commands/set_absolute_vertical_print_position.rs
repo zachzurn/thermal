@@ -11,7 +11,7 @@
 //!
 use crate::command::{Command, CommandHandler, CommandType, DataType};
 use crate::constants::GS;
-use crate::context::{Context};
+use crate::context::Context;
 
 #[derive(Clone)]
 struct Handler;
@@ -22,7 +22,7 @@ impl CommandHandler for Handler {
             let nl = *command.data.get(0).unwrap_or(&0u8);
             let nh = *command.data.get(1).unwrap_or(&0u8);
 
-            let pos = (nl as u16 + nh as u16 * 256) as usize;
+            let pos = (nl as u16 + nh as u16 * 256) as u32;
 
             context.page_mode.render_area.y = pos;
         }

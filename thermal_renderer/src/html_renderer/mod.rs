@@ -1,10 +1,14 @@
-use crate::renderer::CommandRenderer;
+use std::path::PathBuf;
+
 use base64::engine::general_purpose;
 use base64::Engine;
 use png::{ColorType, Encoder};
-use std::path::PathBuf;
+
 use thermal_parser::command::DeviceCommand;
-use thermal_parser::context::{Context, Rotation, TextJustify, TextStrikethrough, TextUnderline};
+use thermal_parser::context::{Context, TextJustify};
+use thermal_parser::graphics::{Image, TextLayout, TextSpan, VectorGraphic};
+
+use crate::renderer::CommandRenderer;
 
 static TEMPLATE: &str = include_str!("../../resources/templates/thermal.html");
 
@@ -12,16 +16,16 @@ pub struct HtmlRenderer {
     pub out_path: String,
     pub content: Vec<String>,
     pub template: String,
-    pub font_size_pixels: usize,
-    pub receipt_width_pixels: usize,
-    pub receipt_margin_left_pixels: usize,
-    pub receipt_margin_right_pixels: usize,
+    pub font_size_pixels: u32,
+    pub receipt_width_pixels: u32,
+    pub receipt_margin_left_pixels: u32,
+    pub receipt_margin_right_pixels: u32,
     pub pixel_scale_ratio: f32,
     pub current_justify: TextJustify,
-    pub gfx_x: usize,
-    pub gfx_y: usize,
-    pub gfx_w: usize,
-    pub gfx_h: usize,
+    pub gfx_x: u32,
+    pub gfx_y: u32,
+    pub gfx_w: u32,
+    pub gfx_h: u32,
     pub gfx_svg: Vec<String>,
 }
 
@@ -47,62 +51,43 @@ impl HtmlRenderer {
 }
 
 impl CommandRenderer for HtmlRenderer {
+    fn page_mode_supported() -> bool {
+        false
+    }
+
     fn begin_render(&mut self, context: &mut Context) {
         self.content.clear();
         let dpi = 152.0;
         self.pixel_scale_ratio = dpi / context.graphics.dots_per_inch as f32;
-        self.font_size_pixels = (context.text.font_size as f32 * 1.63) as usize;
-        self.receipt_width_pixels = (context.graphics.paper_width * dpi) as usize;
-        self.receipt_margin_left_pixels = (context.graphics.margin_left * dpi) as usize;
-        self.receipt_margin_right_pixels = (context.graphics.margin_left * dpi) as usize;
+        self.font_size_pixels = (context.text.font_size as f32 * 1.63) as u32;
+        self.receipt_width_pixels = context.graphics.paper_area.w;
+        self.receipt_margin_left_pixels = context.graphics.paper_area.x;
+        self.receipt_margin_right_pixels = context.graphics.paper_area.y;
         self.start_container(context);
     }
 
-    fn begin_page(&mut self, _context: &mut Context) {
-        //Page Mode is not currently supported
-    }
-
-    fn page_area_changed(
-        &mut self,
-        context: &mut Context,
-        rotation: Rotation,
-        width: usize,
-        height: usize,
-    ) {
-        //Page Mode is not currently supported
-    }
-
-    fn end_page(&mut self, _context: &mut Context) {
-        //Page Mode is not currently supported
-    }
-
-    fn print_page(&mut self, _context: &mut Context) {
-        //Page Mode is not currently supported
-    }
-
-    fn begin_graphics(&mut self, context: &mut Context) {
+    fn graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>) {
         self.end_container();
         self.start_container(context);
-        self.gfx_x = context.graphics.x;
-        self.gfx_y = context.graphics.y;
-        self.gfx_w = 0;
-        self.gfx_h = 0;
-        self.gfx_svg = vec![];
-    }
+        let mut gfx_w = 0;
+        let mut gfx_h = 0;
+        let mut gfx_svg: Vec<String> = vec![];
 
-    fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize) {
-        let x = context.graphics.x - self.gfx_x;
-        let y = context.graphics.y - self.gfx_y;
+        //draw graphics
+        for graphic in graphics {
+            match graphic {
+                VectorGraphic::Rectangle(rectangle) => {
+                    gfx_w = gfx_w.max(rectangle.x + rectangle.w);
+                    gfx_h = gfx_h.max(rectangle.y + rectangle.h);
 
-        self.gfx_w = self.gfx_w.max(x + w);
-        self.gfx_h = self.gfx_h.max(y + h);
+                    gfx_svg.push(format!(
+                        "<rect width='{}' height='{}' x='{}' y='{}' fill='black' />",
+                        rectangle.w, rectangle.h, rectangle.x, rectangle.y
+                    ));
+                }
+            }
+        }
 
-        self.gfx_svg.push(format!(
-            "<rect width='{}' height='{}' x='{}' y='{}' fill='black' />",
-            w, h, x, y
-        ));
-    }
-    fn end_graphics(&mut self, context: &mut Context) {
         self.maybe_start_container(context);
 
         self.content.push(format!(
@@ -116,69 +101,72 @@ impl CommandRenderer for HtmlRenderer {
         self.start_container(context);
     }
 
-    fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize) {
+    fn image(&mut self, context: &mut Context, image: &Image) {
         self.end_container();
         self.start_container(context);
 
-        self.content
-            .push(self.encode_html_image(bytes, width as u32, height as u32));
+        self.content.push(self.encode_html_image(image));
 
         self.end_container();
         self.start_container(context);
     }
 
-    fn draw_text(&mut self, context: &mut Context, text: String) {
+    fn text_span(&mut self, context: &mut Context, text: TextSpan) {
         self.maybe_start_container(context);
         let mut class_list = vec![];
 
-        if context.text.bold {
+        if text.bold {
             class_list.push("b");
         }
 
-        if context.text.italic {
+        if text.italic {
             class_list.push("i");
         }
 
-        if context.text.strikethrough == TextStrikethrough::On {
+        if text.strikethrough == 1 {
             class_list.push("s");
         }
 
-        if context.text.strikethrough == TextStrikethrough::Double {
+        if text.strikethrough == 2 {
             class_list.push("sd");
         }
 
-        if context.text.width_mult == 2 {
+        if text.stretch_width > 1f32 {
             class_list.push("dw");
         }
 
-        if context.text.height_mult == 2 {
+        if text.stretch_height > 1f32 {
             class_list.push("dh");
         }
 
-        if context.text.invert == true {
+        if text.inverted {
             class_list.push("in");
         }
 
-        if context.text.underline == TextUnderline::On {
+        if text.underline > 0 {
             class_list.push("u");
         }
 
-        if context.text.underline == TextUnderline::Double {
+        if text.underline > 1 {
             class_list.push("ud");
         }
 
-        if context.text.upside_down == true {
+        if text.upside_down == true {
             class_list.push("upd");
         }
 
         let css_class = class_list.join(" ");
-        let br_text = text.replace("\n", &*format!("</span><br/><span class='{}'>", css_class));
+        let br_text = text
+            .text
+            .replace("\n", &*format!("</span><br/><span class='{}'>", css_class));
 
         self.content
             .push(format!("<span class='{}'>{}</span>", css_class, br_text))
     }
 
-    fn draw_device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
+    fn text_span_collect(&mut self, _context: &mut Context, _layout: TextLayout) {}
+
+    fn device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
 
     fn end_render(&mut self, _context: &mut Context) {
         //Close the last container
@@ -230,19 +218,19 @@ impl HtmlRenderer {
         self.content.push(String::from("</div>"));
     }
 
-    fn encode_html_image(&self, bytes: Vec<u8>, width: u32, height: u32) -> String {
+    fn encode_html_image(&self, image: &Image) -> String {
         // Create a buffer to hold the PNG image data
         let mut png_data: Vec<u8> = Vec::new();
 
         // Create a PNG encoder with the specified width, height, and color type
-        let mut encoder = Encoder::new(&mut png_data, width, height);
+        let mut encoder = Encoder::new(&mut png_data, image.w, image.h);
         encoder.set_color(ColorType::Grayscale);
         encoder.set_depth(png::BitDepth::Eight);
 
         // Write the PNG header and the image data
         let mut writer = encoder.write_header().expect("Failed to write PNG header");
         writer
-            .write_image_data(&bytes)
+            .write_image_data(&image.as_grayscale())
             .expect("Failed to write PNG image data");
 
         writer.finish().expect("Error encoding png");
@@ -253,7 +241,7 @@ impl HtmlRenderer {
         // Print or use the base64_encoded_image as needed
         format!(
             "<img width='{}' src='data:image/png;base64, {}' />",
-            (width as f32 * self.pixel_scale_ratio) as usize,
+            (image.w as f32 * self.pixel_scale_ratio) as u32,
             base64_encoded_image
         )
     }

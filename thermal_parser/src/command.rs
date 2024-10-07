@@ -1,5 +1,5 @@
 use crate::context::Context;
-use crate::graphics::GraphicsCommand;
+use crate::graphics::{GraphicsCommand, TextSpan};
 use std::rc::Rc;
 
 #[derive(Clone, PartialEq)]
@@ -157,7 +157,7 @@ impl Clone for Box<dyn CommandHandler> {
 
 pub trait CommandHandler: CloneCommandHandler {
     //Renders text
-    fn get_text(&self, _command: &Command, _context: &Context) -> Option<String> {
+    fn get_text(&self, _command: &Command, _context: &Context) -> Option<TextSpan> {
         None
     }
 

@@ -33,7 +33,7 @@ impl Codepage {
 
 pub fn get_codepage(codepage_index: u8, language_index: u8) -> Codepage {
     let mut codepage = [""; 256];
-    let mut index: usize = 0;
+    let mut index = 0;
     let (_base_name, base_table) = codepage_base::TABLE;
 
     //Apply the base codepage 0 - 128
@@ -52,8 +52,8 @@ pub fn get_codepage(codepage_index: u8, language_index: u8) -> Codepage {
 
     //Make language specific replacements
     let (language_name, language_replacements) = get_language_replacements(language_index);
-    for (index, str) in language_replacements {
-        codepage[*index as usize] = str
+    for (i, str) in language_replacements {
+        codepage[*i as usize] = str
     }
 
     Codepage {

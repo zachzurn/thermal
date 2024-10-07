@@ -101,6 +101,7 @@ fn test_sample(name: &str, ext: &str) {
         std::fs::read(sample_file.to_str().unwrap()).unwrap()
     };
 
+    println!("Render Test [{}]", name);
     render_image(&bytes, rendered_file.to_str().unwrap().to_string());
     render_html(&bytes, rendered_file.to_str().unwrap().to_string());
 }
@@ -109,8 +110,8 @@ fn render_html(bytes: &Vec<u8>, out_path: String) {
     let mut html_renderer = HtmlRenderer::new(out_path);
     let mut context = Context::new();
 
-    let on_new_command = move |cmd: Command| {
-        html_renderer.process_command(&mut context, &cmd);
+    let on_new_command = move |mut cmd: Command| {
+        html_renderer.process_command(&mut context, &mut cmd);
     };
 
     let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
@@ -122,8 +123,8 @@ fn render_image(bytes: &Vec<u8>, out_path: String) {
 
     let mut context = Context::new();
 
-    let on_new_command = move |cmd: Command| {
-        image_renderer.process_command(&mut context, &cmd);
+    let on_new_command = move |mut cmd: Command| {
+        image_renderer.process_command(&mut context, &mut cmd);
     };
 
     let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));

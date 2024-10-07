@@ -11,43 +11,49 @@
 //! Renders from top left of the page
 //! to the right (standard direction)
 //!
+//! ```text
 //!   x →
 //! y ----------
 //! ↓ | →      |
 //!   |        |
 //!   |        |
 //!   ----------
-//!  
+//!  ```
 //!
 //! * Bottom Left to top
 //! Renders from bottom left of page to the top
 //!
+//! ```text
 //!   ----------
 //!   |        |
 //!   |        |
 //! ↑ | ↑      |
 //! x ----------
 //!   y →
+//! ```
 //!
 //! * Top Right to Bottom
 //! Renders from top right to bottom
 //!
+//! ```text
 //!        ← y
 //! ---------- x
 //! |      ↓ | ↓
 //! |        |
 //! |        |
 //! ----------
-//!
+//! ```
 //! * Bottom Right to Left
 //! Renders from bottom left of page to the top
-//!         
+//!
+//! ```text
 //! ----------
 //! |        |
 //! |        |
 //! |      ← | ↑
 //! ---------- y
 //!        ← x
+//! ```
 
 use crate::{command::*, constants::*, context::*};
 use std::mem;

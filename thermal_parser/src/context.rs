@@ -5,7 +5,7 @@ use std::mem;
 
 use crate::graphics::{Image, ImageRef};
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum TextJustify {
     Left,
     Center,
@@ -26,7 +26,7 @@ pub enum TextUnderline {
     Double,
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Debug)]
 pub enum Font {
     A,
     B,
@@ -100,11 +100,13 @@ pub struct TextContext {
 
 #[derive(Clone)]
 pub struct GraphicsContext {
-    pub x: usize,
-    pub y: usize,
-    pub paper_width: f32,
-    pub margin_left: f32,
-    pub margin_right: f32,
+    //Main rendering area
+    pub render_area: RenderArea,
+
+    //Paper area (unprintable paper margins)
+    //x and y represent left and right margins
+    pub paper_area: RenderArea,
+
     pub dots_per_inch: u16,
     pub v_motion_unit: u8,
     pub h_motion_unit: u8,
@@ -165,11 +167,11 @@ pub enum PrintDirection {
 }
 
 #[derive(Clone)]
-pub struct PageArea {
-    pub x: usize,
-    pub y: usize,
-    pub w: usize,
-    pub h: usize,
+pub struct RenderArea {
+    pub x: u32,
+    pub y: u32,
+    pub w: u32,
+    pub h: u32,
 }
 
 #[derive(Clone)]
@@ -178,16 +180,16 @@ pub struct PageModeContext {
     pub enabled: bool,
 
     //Raw renderable area
-    pub logical_area: PageArea,
+    pub logical_area: RenderArea,
 
     //Actual graphics context renderable area
     //Generally a translated version of the logical
     //area
-    pub render_area: PageArea,
+    pub render_area: RenderArea,
 
     //Total page area, can grow when render area
     //is changed
-    pub page_area: PageArea,
+    pub page_area: RenderArea,
 
     //Page mode print direction
     pub direction: PrintDirection,
@@ -202,7 +204,7 @@ pub enum Rotation {
 }
 
 impl PageModeContext {
-    pub fn apply_logical_area(&mut self) -> (Rotation, usize, usize) {
+    pub fn apply_logical_area(&mut self) -> (Rotation, u32, u32) {
         let rotation =
             self.calculate_directional_rotation(&self.previous_direction, &self.direction);
 
@@ -332,6 +334,12 @@ impl PageModeContext {
 
 impl Context {
     fn default() -> Context {
+        let dots_per_inch = 203;
+        let paper_left_margin = (dots_per_inch as f32 * 0.1f32) as u32;
+        let paper_right_margin = (dots_per_inch as f32 * 0.1f32) as u32;
+        let paper_width = (dots_per_inch as f32 * 3.0f32) as u32;
+        let render_width = paper_width - (paper_left_margin + paper_right_margin);
+
         Context {
             default: None,
             text: TextContext {
@@ -387,33 +395,40 @@ impl Context {
                 datamatrix_width: 0,
             },
             graphics: GraphicsContext {
-                x: 0,
-                y: 0,
-                paper_width: 3.0,   //inches
-                margin_left: 0.1,   //inches
-                margin_right: 0.1,  //inches
-                dots_per_inch: 203, //pixels
-                v_motion_unit: 1,   //Pixels
-                h_motion_unit: 1,   //Pixels
+                render_area: RenderArea {
+                    x: 0,
+                    y: 0,
+                    w: render_width,
+                    h: 0,
+                },
+                paper_area: RenderArea {
+                    x: paper_left_margin,
+                    y: paper_right_margin,
+                    w: paper_width,
+                    h: 0,
+                },
+                dots_per_inch,
+                v_motion_unit: 1, //Pixels
+                h_motion_unit: 1, //Pixels
                 graphics_count: 0,
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
                 buffer_graphics: None,
             },
             page_mode: PageModeContext {
                 enabled: false,
-                logical_area: PageArea {
+                logical_area: RenderArea {
                     x: 0,
                     y: 0,
                     w: 0,
                     h: 0,
                 },
-                render_area: PageArea {
+                render_area: RenderArea {
                     x: 0,
                     y: 0,
                     w: 0,
                     h: 0,
                 },
-                page_area: PageArea {
+                page_area: RenderArea {
                     x: 0,
                     y: 0,
                     w: 0,
@@ -441,13 +456,6 @@ impl Context {
         }
     }
 
-    pub fn available_width_pixels(&self) -> u32 {
-        let print_area =
-            self.graphics.paper_width - (self.graphics.margin_left + self.graphics.margin_right);
-        let print_area_pixels = print_area * self.graphics.dots_per_inch as f32;
-        print_area_pixels.round() as u32
-    }
-
     pub fn font_size_pixels(&self) -> u32 {
         //1 point = 72 pixels
         let pixels_per_point = self.graphics.dots_per_inch as f32 / 96f32;
@@ -459,20 +467,117 @@ impl Context {
         (points * pixels_per_point) as u32
     }
 
-    pub fn graphics_x_offset(&self, width: u32) -> u32 {
-        if width > self.available_width_pixels() {
+    //Reset the x to the base value
+    //which is the furthest left
+    pub fn reset_x(&mut self) {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.x = self.get_base_x();
+        } else {
+            self.graphics.render_area.x = self.get_base_x();
+        }
+    }
+
+    //The base x value, which is the furthest left
+    //of the render area
+    pub fn get_base_x(&self) -> u32 {
+        if self.page_mode.enabled {
+            self.page_mode.page_area.x
+        } else {
+            0
+        }
+    }
+
+    pub fn get_x(&self) -> u32 {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.x
+        } else {
+            self.graphics.render_area.x
+        }
+    }
+
+    pub fn get_y(&self) -> u32 {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.y
+        } else {
+            self.graphics.render_area.y
+        }
+    }
+
+    pub fn offset_x(&mut self, x: u32) {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.x += x;
+        } else {
+            self.graphics.render_area.x += x;
+        }
+    }
+
+    pub fn offset_y(&mut self, y: u32) {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.y += y;
+        } else {
+            self.graphics.render_area.y += y;
+        }
+    }
+
+    pub fn newline(&mut self, count: u32) {
+        let line_height = self.text.line_spacing as u32 * self.graphics.v_motion_unit as u32;
+        self.reset_x();
+        self.offset_y(line_height * count);
+    }
+
+    pub fn set_x(&mut self, x: u32) {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.x = x;
+        } else {
+            self.graphics.render_area.x = x;
+        }
+    }
+
+    pub fn set_y(&mut self, y: u32) {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.y = y;
+        } else {
+            self.graphics.render_area.y = y;
+        }
+    }
+
+    pub fn get_width(&self) -> u32 {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.w
+        } else {
+            self.graphics.render_area.w
+        }
+    }
+
+    pub fn get_height(&mut self) -> u32 {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.h
+        } else {
+            self.graphics.render_area.h
+        }
+    }
+
+    pub fn calculate_justification(&self, width: u32) -> u32 {
+        let w = width;
+        let render_width = if self.page_mode.enabled {
+            self.page_mode.render_area.w
+        } else {
+            self.graphics.render_area.w
+        };
+
+        if w > render_width {
             return 0;
         }
         match self.text.justify {
             TextJustify::Center => {
-                let center_remaining = self.available_width_pixels() - width;
+                let center_remaining = render_width - w;
                 if center_remaining > 0 {
                     (center_remaining / 2) as u32
                 } else {
                     0
                 }
             }
-            TextJustify::Right => self.available_width_pixels() - width,
+            TextJustify::Right => render_width - w,
             _ => 0,
         }
     }
@@ -486,7 +591,7 @@ impl Context {
     }
 
     pub fn line_height_pixels(&self) -> u32 {
-        self.text.line_spacing as u32 * self.motion_unit_y_pixels() as u32
+        self.text.line_spacing as u32 * self.motion_unit_y_pixels()
     }
 
     pub fn update_decoder(&mut self) {

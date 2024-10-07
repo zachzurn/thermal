@@ -52,7 +52,8 @@ struct BarcodeHandler {
 
 impl CommandHandler for BarcodeHandler {
     fn get_graphics(&self, command: &Command, context: &Context) -> Option<GraphicsCommand> {
-        let data = from_utf8(&command.data as &[u8]).unwrap_or("");
+        let raw_data = &command.data.clone() as &[u8];
+        let data = from_utf8(raw_data).unwrap_or("");
         let point_width = context.barcode.width;
         let point_height = context.barcode.height;
         let hri = context.barcode.human_readable.clone();
@@ -64,96 +65,115 @@ impl CommandHandler for BarcodeHandler {
                     .replace("{A", "À")
                     .replace("{B", "Ɓ")
                     .replace("{C", "Ć");
-                if let Ok(barcode) = Code128::new(adjusted_data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode {
+
+                return match Code128::new(adjusted_data.to_string()) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: adjusted_data,
+                        text: TextSpan::new(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
-                    }));
-                }
+                    })),
+                    Err(error) => Some(GraphicsCommand::Error(error.to_string())),
+                };
             }
             BarcodeType::Nw7Codabar => {
-                if let Ok(barcode) = Codabar::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode {
+                return match Codabar::new(data.to_string()) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: data.to_string(),
+                        text: TextSpan::new(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
-                    }));
-                }
+                    })),
+                    Err(error) => Some(GraphicsCommand::Error(error.to_string())),
+                };
             }
             BarcodeType::Code39 => {
-                if let Ok(barcode) = Code39::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode {
+                //Data can be surrounded with * or not
+                //The data that was provided should be shown as
+                //it was provided.
+                //Code39 doesn't want asterisks in the data
+                let text = data.to_string();
+                let data = text.replace("*", "");
+
+                return match Code39::new(data) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: data.to_string(),
+                        text: TextSpan::new(text, context),
                         point_width,
                         point_height,
                         hri,
-                    }));
-                }
+                    })),
+                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                };
             }
             BarcodeType::Code93 => {
-                if let Ok(barcode) = Code93::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode {
+                return match Code93::new(data.to_string()) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: data.to_string(),
+                        text: TextSpan::new(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
-                    }));
-                }
+                    })),
+                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                };
             }
             BarcodeType::Ean13 => {
-                if let Ok(barcode) = EAN13::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode {
+                return match EAN13::new(data.to_string()) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: data.to_string(),
+                        text: TextSpan::new(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
-                    }));
-                }
+                    })),
+                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                };
             }
             BarcodeType::UpcA => {
-                if let Ok(barcode) = UPCA::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode {
+                return match UPCA::new(data.to_string()) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: data.to_string(),
+                        text: TextSpan::new(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
-                    }));
-                }
+                    })),
+                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                };
             }
             BarcodeType::Ean8 => {
-                if let Ok(barcode) = EAN8::new(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode {
+                return match EAN8::new(data.to_string()) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: data.to_string(),
+                        text: TextSpan::new(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
-                    }));
-                }
+                    })),
+                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                };
             }
             BarcodeType::Itf => {
-                if let Ok(barcode) = TF::interleaved(data.to_string()) {
-                    return Some(GraphicsCommand::Barcode(Barcode {
+                return match TF::interleaved(data.to_string()) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: data.to_string(),
+                        text: TextSpan::new(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
-                    }));
-                }
+                    })),
+                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                };
             }
-            _ => return None,
+            _ => {
+                return Some(GraphicsCommand::Error(
+                    "Unsupported Barcode Type".to_string(),
+                ))
+            }
         }
-        None
     }
 
     fn debug(&self, command: &Command, _context: &Context) -> String {
