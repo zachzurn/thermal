@@ -153,7 +153,7 @@ impl ThermalImage {
 
     pub fn draw_text(&mut self, mut layout: TextLayout) -> (u32, u32) {
         let mut temp_x = 0u32;
-        let width = layout.w;
+        let width = layout.max_w;
         let newline = Vec::<(&TextSpan, String, u32)>::new();
         let mut lines = vec![newline.clone()];
 
@@ -162,28 +162,6 @@ impl ThermalImage {
             let words = WordSeparator::UnicodeBreakProperties.find_words(span.text.as_str());
 
             for word in words {
-                if word.word.contains('\t') {
-                    let mut tab_len = layout.tab_len * self.char_width(span);
-                    while tab_len < temp_x {
-                        tab_len += tab_len;
-                    }
-                    if tab_len < layout.w {
-                        temp_x = tab_len
-                    }
-                    continue;
-                }
-
-                if word.word.contains('\r') {
-                    temp_x = 0;
-                    continue;
-                }
-
-                if word.word.contains('\n') {
-                    lines.push(newline.clone());
-                    temp_x = 0;
-                    continue;
-                }
-
                 let word_len: u32 = (word.word.len() + word.whitespace.len()) as u32;
                 if word_len * char_width <= width - temp_x {
                     //Word fits on current line
@@ -200,7 +178,7 @@ impl ThermalImage {
                     for broke in broken {
                         let broke_word_len =
                             broke.word.len() as f32 + broke.whitespace.len() as f32;
-                        if layout.w as f32 - (broke_word_len * char_width as f32)
+                        if layout.max_w as f32 - (broke_word_len * char_width as f32)
                             < char_width as f32
                         {
                             lines.push(newline.clone());
@@ -236,9 +214,6 @@ impl ThermalImage {
 
         let mut new_x = layout.x;
         let mut new_y = layout.y;
-        let mut line_no = 0;
-
-        print!("Line count {}", lines.len());
 
         for line in lines.into_iter() {
             let line_height_mult = 1u32;
@@ -267,21 +242,40 @@ impl ThermalImage {
             }
 
             for word in &line {
+                if word.1.contains('\t') {
+                    let mut tab_len = layout.tab_len * self.char_width(word.0);
+                    while tab_len < temp_x {
+                        tab_len += tab_len;
+                    }
+                    if tab_len < layout.max_w {
+                        new_x += tab_len;
+                    }
+                    continue;
+                }
+
+                if word.1.contains('\r') {
+                    new_x = 0;
+                    continue;
+                }
+
+                if word.1.eq("\n") {
+                    //TODO should be using an offset value
+                    
+                    new_y += layout.line_height;
+                    new_x = layout.base_x;
+                    continue;
+                }
+
+                println!("Render word '{}' at x{}y{}", word.1.as_str(), new_x, new_y);
                 let (w, _) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
                 new_x += w;
             }
-            new_x = layout.x;
-            if line_no > 0 {
-                new_y += layout.line_height * line_height_mult;
-            }
-            line_no += 1;
         }
 
         (new_x as u32, new_y as u32)
     }
 
     pub fn render_word(&mut self, x: u32, y: u32, text: &str, span: &TextSpan) -> (u32, u32) {
-        println!("Render word x{} y{} {}", x, y, text);
         let font = self.get_font(span);
         let font_size = span.size as f32;
         let font_metrics = font.horizontal_line_metrics(font_size).unwrap();
@@ -479,12 +473,14 @@ impl ThermalImage {
         invert: bool,
         multiply: bool,
     ) -> bool {
+        println!("Put pixels x{} y{}",x,y);
         let mut cur_x = x;
         let mut cur_y = y;
 
         //Out of bounds
         let exceeds_w = x >= self.width;
         let exceeds_h = y >= self.get_height();
+        
 
         //Completely out of bounds, unrenderable
         if exceeds_w || (exceeds_h && !self.auto_grow) {

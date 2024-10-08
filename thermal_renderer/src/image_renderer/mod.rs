@@ -145,8 +145,9 @@ impl CommandRenderer for ImageRenderer {
         if self.spans.is_empty() {
             return;
         }
-
+        
         mem::swap(&mut layout.spans, &mut self.spans);
+        println!("Push layout {:?}", layout);
         let line_height = layout.line_height;
         let layout_x = layout.x;
         let layout_y = layout.y;

@@ -7,25 +7,16 @@ use thermal_parser::graphics::{
 pub trait CommandRenderer {
     //default implementation
     fn process_command(&mut self, context: &mut Context, command: &Command) {
-        if command.kind != CommandType::Text {
-            //Before any non text command, we call this to notify
-            // a possible end of a continuous list of text spans
-            self.text_span_collect(context, TextLayout::new(context));
-        }
-
         match command.kind {
             CommandType::Text => {
                 let maybe_text = command.handler.get_text(command, context);
                 if let Some(text) = maybe_text {
-                    if text.text.eq("\n") {
-                        context.newline(1);
-                        self.text_newline(context);
-                    } else {
-                        self.text_span(context, text);
-                    }
+                    self.text_span(context, text);
                 }
             }
             CommandType::Graphics => {
+                self.text_span_collect(context, TextLayout::new(context));
+                
                 let maybe_gfx = command.handler.get_graphics(command, context);
 
                 if let Some(gfx) = maybe_gfx {
@@ -83,8 +74,12 @@ pub trait CommandRenderer {
 
                 match device_command {
                     DeviceCommand::BeginPrint => self.begin_render(context),
-                    DeviceCommand::EndPrint => self.end_render(context),
+                    DeviceCommand::EndPrint => {
+                        self.text_span_collect(context, TextLayout::new(context));
+                        self.end_render(context)
+                    },
                     DeviceCommand::FeedLine(num_lines) => {
+                        self.text_span_collect(context, TextLayout::new(context));
                         let advance = context.line_height_pixels() * *num_lines as u32;
 
                         if context.page_mode.enabled {
@@ -94,18 +89,15 @@ pub trait CommandRenderer {
                         }
                     }
                     DeviceCommand::Feed(num) => {
-                        let advance = context.motion_unit_y_pixels() * *num as u32;
-
-                        if context.page_mode.enabled {
-                            context.page_mode.render_area.y += advance;
-                        } else {
-                            context.graphics.render_area.y += advance;
-                        }
+                        self.text_span_collect(context, TextLayout::new(context));
+                        context.newline(*num as u32);
                     }
                     DeviceCommand::FullCut | DeviceCommand::PartialCut => {
+                        self.text_span_collect(context, TextLayout::new(context));
                         context.graphics.render_area.y += context.line_height_pixels() * 2;
                     }
                     DeviceCommand::BeginPageMode => {
+                        self.text_span_collect(context, TextLayout::new(context));
                         context.page_mode.enabled = true;
                         self.page_begin(context);
                     }
@@ -114,6 +106,7 @@ pub trait CommandRenderer {
                         context.page_mode.enabled = false
                     }
                     DeviceCommand::PrintPageMode => {
+                        self.text_span_collect(context, TextLayout::new(context));
                         self.page_print(context);
 
                         //Advance the y since a page is being rendered
@@ -121,6 +114,7 @@ pub trait CommandRenderer {
                         context.graphics.render_area.x = 0;
                     }
                     DeviceCommand::ChangePageModeDirection => {
+                        self.text_span_collect(context, TextLayout::new(context));
                         let (rotation, width, height) = context.page_mode.apply_logical_area();
                         self.page_area_changed(context, rotation, width, height);
                     }

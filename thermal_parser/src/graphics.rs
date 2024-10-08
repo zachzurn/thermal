@@ -1,9 +1,10 @@
+use std::fmt;
 use crate::context::{
     Context, Font, HumanReadableInterface, TextJustify, TextStrikethrough, TextUnderline,
 };
 use std::fmt::{Debug, Formatter};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct TextSpan {
     pub font: Font,
     pub size: u32,
@@ -19,14 +20,14 @@ pub struct TextSpan {
     pub justify: TextJustify,
 }
 
-#[derive(Debug)]
 pub struct TextLayout {
     pub spans: Vec<TextSpan>,
     pub line_height: u32,
     pub tab_len: u32,
     pub x: u32,
     pub y: u32,
-    pub w: u32,
+    pub max_w: u32,
+    pub base_x: u32
 }
 
 impl TextLayout {
@@ -37,8 +38,26 @@ impl TextLayout {
             tab_len: context.text.tab_len as u32,
             x: context.get_x(),
             y: context.get_y(),
-            w: context.get_width(),
+            max_w: context.get_width(),
+            base_x: context.get_base_x(),
         }
+    }
+}
+
+impl fmt::Debug for TextLayout {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut text: Vec<String> = vec![];
+
+        for span in &self.spans {
+            text.push(span.text.replace("\n", "{LF}"));
+        }
+
+        f.debug_struct("TextLayout")
+            .field("x", &self.x)
+            .field("y", &self.y)
+            .field("w", &self.max_w)
+            .field("spans", &text)
+            .finish()
     }
 }
 
@@ -72,6 +91,14 @@ impl TextSpan {
             upside_down: style.upside_down,
             justify: context.text.justify.clone(),
         }
+    }
+}
+
+impl fmt::Debug for TextSpan {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("Span")
+            .field("text", &self.text.replace("\n", "{LF}"))
+            .finish()
     }
 }
 
