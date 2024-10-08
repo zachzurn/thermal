@@ -11,12 +11,12 @@ pub trait CommandRenderer {
             CommandType::Text => {
                 let maybe_text = command.handler.get_text(command, context);
                 if let Some(text) = maybe_text {
-                    self.text_span(context, text);
+                    self.collect_text(context, text);
                 }
             }
             CommandType::Graphics => {
-                self.text_span_collect(context, TextLayout::new(context));
-                
+                self.render_text(context, TextLayout::new(context));
+
                 let maybe_gfx = command.handler.get_graphics(command, context);
 
                 if let Some(gfx) = maybe_gfx {
@@ -29,13 +29,13 @@ pub trait CommandRenderer {
                             );
                         }
                         GraphicsCommand::Code2D(code_2d) => {
-                            self.render_code_2d(context, &code_2d);
+                            self.process_code_2d(context, &code_2d);
                         }
                         GraphicsCommand::Barcode(barcode) => {
-                            self.render_barcode(context, &barcode);
+                            self.process_barcode(context, &barcode);
                         }
                         GraphicsCommand::Image(mut image) => {
-                            self.render_image(context, &mut image);
+                            self.process_image(context, &mut image);
                         }
                         GraphicsCommand::Rectangle(_) => {}
                         GraphicsCommand::Line(_) => {}
@@ -48,13 +48,13 @@ pub trait CommandRenderer {
             CommandType::ContextControl => {
                 command.handler.apply_context(command, context);
 
-                self.handle_device_commands(
+                self.process_device_commands(
                     &command.handler.get_device_command(command, context),
                     context,
                 );
             }
             CommandType::Control => {
-                self.handle_device_commands(
+                self.process_device_commands(
                     &command.handler.get_device_command(command, context),
                     context,
                 );
@@ -63,7 +63,7 @@ pub trait CommandRenderer {
         }
     }
 
-    fn handle_device_commands(
+    fn process_device_commands(
         &mut self,
         device_commands: &Option<Vec<DeviceCommand>>,
         context: &mut Context,
@@ -75,29 +75,23 @@ pub trait CommandRenderer {
                 match device_command {
                     DeviceCommand::BeginPrint => self.begin_render(context),
                     DeviceCommand::EndPrint => {
-                        self.text_span_collect(context, TextLayout::new(context));
+                        self.render_text(context, TextLayout::new(context));
                         self.end_render(context)
-                    },
+                    }
                     DeviceCommand::FeedLine(num_lines) => {
-                        self.text_span_collect(context, TextLayout::new(context));
-                        let advance = context.line_height_pixels() * *num_lines as u32;
-
-                        if context.page_mode.enabled {
-                            context.page_mode.render_area.y += advance;
-                        } else {
-                            context.graphics.render_area.y += advance;
-                        }
+                        self.render_text(context, TextLayout::new(context));
+                        context.newline(*num_lines as u32);
                     }
                     DeviceCommand::Feed(num) => {
-                        self.text_span_collect(context, TextLayout::new(context));
-                        context.newline(*num as u32);
+                        self.render_text(context, TextLayout::new(context));
+                        context.feed(*num as u32);
                     }
                     DeviceCommand::FullCut | DeviceCommand::PartialCut => {
-                        self.text_span_collect(context, TextLayout::new(context));
-                        context.graphics.render_area.y += context.line_height_pixels() * 2;
+                        self.render_text(context, TextLayout::new(context));
+                        context.newline(2);
                     }
                     DeviceCommand::BeginPageMode => {
-                        self.text_span_collect(context, TextLayout::new(context));
+                        self.render_text(context, TextLayout::new(context));
                         context.page_mode.enabled = true;
                         self.page_begin(context);
                     }
@@ -106,7 +100,7 @@ pub trait CommandRenderer {
                         context.page_mode.enabled = false
                     }
                     DeviceCommand::PrintPageMode => {
-                        self.text_span_collect(context, TextLayout::new(context));
+                        self.render_text(context, TextLayout::new(context));
                         self.page_print(context);
 
                         //Advance the y since a page is being rendered
@@ -114,7 +108,7 @@ pub trait CommandRenderer {
                         context.graphics.render_area.x = 0;
                     }
                     DeviceCommand::ChangePageModeDirection => {
-                        self.text_span_collect(context, TextLayout::new(context));
+                        self.render_text(context, TextLayout::new(context));
                         let (rotation, width, height) = context.page_mode.apply_logical_area();
                         self.page_area_changed(context, rotation, width, height);
                     }
@@ -124,7 +118,7 @@ pub trait CommandRenderer {
         }
     }
 
-    fn render_code_2d(&mut self, context: &mut Context, code_2d: &Code2D) {
+    fn process_code_2d(&mut self, context: &mut Context, code_2d: &Code2D) {
         let mut graphics = vec![];
 
         let mut i = 1;
@@ -151,15 +145,21 @@ pub trait CommandRenderer {
 
         context.reset_x();
 
-        self.graphics(context, &graphics);
+        self.render_graphics(context, &graphics);
     }
 
-    fn render_barcode(&mut self, context: &mut Context, barcode: &Barcode) {
+    fn process_barcode(&mut self, context: &mut Context, barcode: &Barcode) {
+        println!(
+            "Render barcode at X{} Y{}",
+            context.get_x(),
+            context.get_y()
+        );
+
         let mut graphics = vec![];
 
         match context.barcode.human_readable {
             HumanReadableInterface::Above | HumanReadableInterface::Both => {
-                self.text_span(context, barcode.text.clone());
+                self.collect_text(context, barcode.text.clone());
             }
             _ => {}
         }
@@ -181,19 +181,21 @@ pub trait CommandRenderer {
             context.offset_x(barcode.point_width as u32);
         }
 
+        self.render_graphics(context, &graphics);
+
         context.reset_x();
         context.offset_y(barcode.point_height as u32);
         context.offset_y(context.line_height_pixels() as u32);
 
         match context.barcode.human_readable {
             HumanReadableInterface::Below | HumanReadableInterface::Both => {
-                self.text_span(context, barcode.text.clone());
+                self.collect_text(context, barcode.text.clone());
             }
             _ => {}
         }
     }
 
-    fn render_image(&mut self, context: &mut Context, image: &mut Image) {
+    fn process_image(&mut self, context: &mut Context, image: &mut Image) {
         if image.advances_y && context.get_x() == 0 {
             context.set_x(context.calculate_justification(image.w));
         }
@@ -202,13 +204,12 @@ pub trait CommandRenderer {
         if !image.advances_y
             && image.w + context.get_x() > context.get_base_x() + context.get_width()
         {
-            context.reset_x();
-            context.offset_y(context.line_height_pixels());
+            context.newline(1);
         }
 
         image.x = context.get_x();
         image.y = context.get_y();
-        self.image(context, image);
+        self.render_image(context, image);
 
         //Start a new line after the image
         if image.advances_y {
@@ -238,11 +239,11 @@ pub trait CommandRenderer {
     fn page_end(&mut self, _context: &mut Context) {}
     fn page_print(&mut self, _context: &mut Context) {}
 
-    fn graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>);
-    fn image(&mut self, context: &mut Context, image: &Image);
+    fn render_graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>);
+    fn render_image(&mut self, context: &mut Context, image: &Image);
     fn text_newline(&mut self, _context: &mut Context) {}
-    fn text_span(&mut self, context: &mut Context, text: TextSpan);
-    fn text_span_collect(&mut self, context: &mut Context, layout: TextLayout);
+    fn collect_text(&mut self, context: &mut Context, text: TextSpan);
+    fn render_text(&mut self, context: &mut Context, layout: TextLayout);
 
     fn device_command(&mut self, context: &mut Context, command: &DeviceCommand);
 

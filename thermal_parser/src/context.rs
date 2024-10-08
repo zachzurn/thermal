@@ -287,16 +287,7 @@ impl PageModeContext {
         r.x = p.w - (l.y + l.h);
         r.y = l.x;
 
-        // println!(
-        //     "width{} minus lx{} + lw{} ({}) which is {}",
-        //     p.w,
-        //     l.y,
-        //     l.h,
-        //     l.y + l.h,
-        //     p.w - (l.y + l.h)
-        // );
-        //
-        // println!("Y should be {}", l.x);
+        println!("Page mode area set to X{} Y{} W{} H{}", r.x, r.y, r.w, r.h);
     }
 
     pub fn calculate_directional_rotation(
@@ -519,6 +510,11 @@ impl Context {
         }
     }
 
+    pub fn feed(&mut self, motion_units: u32) {
+        self.offset_y(motion_units);
+        self.reset_x();
+    }
+
     pub fn newline(&mut self, count: u32) {
         let line_height = self.text.line_spacing as u32 * self.graphics.v_motion_unit as u32;
         self.reset_x();
@@ -527,7 +523,7 @@ impl Context {
 
     pub fn set_x(&mut self, x: u32) {
         if self.page_mode.enabled {
-            self.page_mode.render_area.x = x;
+            self.page_mode.render_area.x = self.page_mode.page_area.x + x;
         } else {
             self.graphics.render_area.x = x;
         }

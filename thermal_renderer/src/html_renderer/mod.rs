@@ -66,7 +66,7 @@ impl CommandRenderer for HtmlRenderer {
         self.start_container(context);
     }
 
-    fn graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>) {
+    fn render_graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>) {
         self.end_container();
         self.start_container(context);
         let mut gfx_w = 0;
@@ -101,7 +101,7 @@ impl CommandRenderer for HtmlRenderer {
         self.start_container(context);
     }
 
-    fn image(&mut self, context: &mut Context, image: &Image) {
+    fn render_image(&mut self, context: &mut Context, image: &Image) {
         self.end_container();
         self.start_container(context);
 
@@ -111,7 +111,7 @@ impl CommandRenderer for HtmlRenderer {
         self.start_container(context);
     }
 
-    fn text_span(&mut self, context: &mut Context, text: TextSpan) {
+    fn collect_text(&mut self, context: &mut Context, text: TextSpan) {
         self.maybe_start_container(context);
         let mut class_list = vec![];
 
@@ -164,7 +164,7 @@ impl CommandRenderer for HtmlRenderer {
             .push(format!("<span class='{}'>{}</span>", css_class, br_text))
     }
 
-    fn text_span_collect(&mut self, _context: &mut Context, _layout: TextLayout) {}
+    fn render_text(&mut self, _context: &mut Context, _layout: TextLayout) {}
 
     fn device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
 

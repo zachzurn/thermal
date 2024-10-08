@@ -24,7 +24,7 @@ impl CommandHandler for Handler {
 
             let pos = (nl as u16 + nh as u16 * 256) as u32;
 
-            context.page_mode.render_area.y = pos;
+            context.set_x(pos);
         }
     }
 }

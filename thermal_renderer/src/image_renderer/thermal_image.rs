@@ -259,14 +259,11 @@ impl ThermalImage {
                 }
 
                 if word.1.eq("\n") {
-                    //TODO should be using an offset value
-                    
                     new_y += layout.line_height;
                     new_x = layout.base_x;
                     continue;
                 }
 
-                println!("Render word '{}' at x{}y{}", word.1.as_str(), new_x, new_y);
                 let (w, _) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
                 new_x += w;
             }
@@ -473,14 +470,12 @@ impl ThermalImage {
         invert: bool,
         multiply: bool,
     ) -> bool {
-        println!("Put pixels x{} y{}",x,y);
         let mut cur_x = x;
         let mut cur_y = y;
 
         //Out of bounds
         let exceeds_w = x >= self.width;
         let exceeds_h = y >= self.get_height();
-        
 
         //Completely out of bounds, unrenderable
         if exceeds_w || (exceeds_h && !self.auto_grow) {

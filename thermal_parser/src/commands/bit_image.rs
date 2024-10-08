@@ -25,8 +25,8 @@ impl CommandHandler for Handler {
                 &command.data,
                 self.width as u32,
                 self.height as u32,
-                self.stretch.0 > 1,
-                self.stretch.1 > 1,
+                self.stretch.0,
+                self.stretch.1,
             )
         };
 
@@ -80,9 +80,9 @@ impl CommandHandler for Handler {
         }
 
         //Image is single density, which oddly enough needs to
-        //have its pixels stretched by 2 on the w and h
+        //have its pixels stretched by 2 on the w and 3 on the h
         if m == 0 || m == 32 {
-            self.stretch = (2, 2);
+            self.stretch = (2, 3);
         }
 
         //After this, we accept data until the capacity is met

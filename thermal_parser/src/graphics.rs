@@ -1,8 +1,7 @@
-use std::fmt;
 use crate::context::{
     Context, Font, HumanReadableInterface, TextJustify, TextStrikethrough, TextUnderline,
 };
-use std::fmt::{Debug, Formatter};
+use std::fmt;
 
 #[derive(Clone)]
 pub struct TextSpan {
@@ -27,7 +26,7 @@ pub struct TextLayout {
     pub x: u32,
     pub y: u32,
     pub max_w: u32,
-    pub base_x: u32
+    pub base_x: u32,
 }
 
 impl TextLayout {
@@ -240,7 +239,7 @@ impl Image {
         let stretch = (bx, by);
 
         let pixels = if bx > 1 || by > 1 {
-            let (w, h, px) = scale_pixels(&data[8..], width as u32, height as u32, bx > 1, by > 1);
+            let (w, h, px) = scale_pixels(&data[8..], width as u32, height as u32, bx, by);
             width = w;
             height = h;
             px
@@ -335,7 +334,7 @@ impl Image {
         let stretch = (bx, by);
 
         let pixels = if bx > 1 || by > 1 {
-            let (w, h, px) = scale_pixels(&data[8..], width as u32, height as u32, bx > 1, by > 1);
+            let (w, h, px) = scale_pixels(&data[8..], width as u32, height as u32, bx, by);
             width = w;
             height = h;
             px
@@ -453,13 +452,7 @@ pub fn column_to_raster(
     let flip = flip_right_to_left(rot, final_width, final_height);
 
     if stretch.0 > 1 || stretch.1 > 1 {
-        scale_pixels(
-            &flip,
-            final_width,
-            final_height,
-            stretch.0 > 1,
-            stretch.1 > 1,
-        )
+        scale_pixels(&flip, final_width, final_height, stretch.0, stretch.1)
     } else {
         (final_width, final_height, flip)
     }
@@ -500,40 +493,28 @@ pub fn scale_pixels(
     bytes: &[u8],
     original_width: u32,
     original_height: u32,
-    scale_x: bool,
-    scale_y: bool,
+    scale_x: u8,
+    scale_y: u8,
 ) -> (u32, u32, Vec<u8>) {
-    let new_width = if scale_x {
-        original_width * 2
-    } else {
-        original_width
-    };
-    let new_height = if scale_y {
-        original_height * 2
-    } else {
-        original_height
-    };
+    let scale_x = scale_x.max(1);
+    let scale_y = scale_y.max(1);
 
-    let mut scaled_bytes = Vec::with_capacity(new_width as usize * new_height as usize);
+    let new_width = original_width * scale_x as u32;
+    let new_height = original_height * scale_y as u32;
+
+    let mut scaled_bytes = vec![0u8; (new_width * new_height) as usize];
 
     for y in 0..original_height {
-        let row_start = y as usize * original_width as usize;
-        let row_end = row_start + original_width as usize;
-        let row = &bytes[row_start..row_end];
-        let mut scaled_row = Vec::with_capacity(new_width as usize);
+        for x in 0..original_width {
+            let pixel = bytes[(y * original_width + x) as usize];
 
-        for &pixel in row {
-            if scale_x {
-                scaled_row.push(pixel);
-                scaled_row.push(pixel);
-            } else {
-                scaled_row.push(pixel);
+            for dy in 0..scale_y {
+                for dx in 0..scale_x {
+                    let new_x = x * scale_x as u32 + dx as u32;
+                    let new_y = y * scale_y as u32 + dy as u32;
+                    scaled_bytes[(new_y * new_width + new_x) as usize] = pixel;
+                }
             }
-        }
-
-        scaled_bytes.extend_from_slice(&scaled_row);
-        if scale_y {
-            scaled_bytes.extend_from_slice(&scaled_row);
         }
     }
 

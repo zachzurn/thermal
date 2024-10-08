@@ -113,7 +113,7 @@ impl CommandRenderer for ImageRenderer {
         );
     }
 
-    fn graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>) {
+    fn render_graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>) {
         let page = context.page_mode.enabled;
 
         for graphic in graphics {
@@ -129,7 +129,7 @@ impl CommandRenderer for ImageRenderer {
         }
     }
 
-    fn image(&mut self, context: &mut Context, image: &Image) {
+    fn render_image(&mut self, context: &mut Context, image: &Image) {
         if context.page_mode.enabled {
             self.page_image.put_render_img(image);
         } else {
@@ -137,17 +137,17 @@ impl CommandRenderer for ImageRenderer {
         }
     }
 
-    fn text_span(&mut self, _context: &mut Context, text: TextSpan) {
+    fn collect_text(&mut self, _context: &mut Context, text: TextSpan) {
         self.spans.push(text);
     }
 
-    fn text_span_collect(&mut self, context: &mut Context, mut layout: TextLayout) {
+    fn render_text(&mut self, context: &mut Context, mut layout: TextLayout) {
         if self.spans.is_empty() {
             return;
         }
-        
+
         mem::swap(&mut layout.spans, &mut self.spans);
-        println!("Push layout {:?}", layout);
+
         let line_height = layout.line_height;
         let layout_x = layout.x;
         let layout_y = layout.y;
@@ -158,10 +158,6 @@ impl CommandRenderer for ImageRenderer {
             self.image.draw_text(layout)
         };
 
-        println!(
-            "Rendered Text Layout x{} y{} new X{} new y{} lh{}",
-            layout_x, layout_y, offset.0, offset.1, line_height
-        );
         context.set_x(offset.0);
         context.set_y(offset.1);
     }
