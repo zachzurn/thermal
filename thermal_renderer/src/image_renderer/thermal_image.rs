@@ -216,7 +216,7 @@ impl ThermalImage {
         let mut new_y = layout.y;
 
         for line in lines.into_iter() {
-            let line_height_mult = 1u32;
+            let mut line_height_mult = 1u32;
             let mut precalculated_width = 0u32;
             let mut justify = TextJustify::Left;
             let mut iter = 0;
@@ -254,7 +254,7 @@ impl ThermalImage {
                 }
 
                 if word.1.contains('\r') {
-                    new_x = 0;
+                    new_x = layout.base_x;
                     continue;
                 }
 
