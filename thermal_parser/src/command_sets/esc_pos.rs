@@ -49,6 +49,7 @@ pub fn new() -> CommandSet {
         set_print_mode::new(),
         set_relative_vertical_print::new(),
         set_smoothing::new(),
+        set_tab_len::new(),
         set_underline::new(),
         set_upside_down::new(),
         transmit_printer_id::new(),

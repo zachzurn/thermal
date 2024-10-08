@@ -328,7 +328,7 @@ impl Context {
         let dots_per_inch = 203;
         let paper_left_margin = (dots_per_inch as f32 * 0.1f32) as u32;
         let paper_right_margin = (dots_per_inch as f32 * 0.1f32) as u32;
-        let paper_width = (dots_per_inch as f32 * 3.0f32) as u32;
+        let paper_width = (dots_per_inch as f32 * 3.2f32) as u32;
         let render_width = paper_width - (paper_left_margin + paper_right_margin);
 
         Context {
@@ -351,7 +351,7 @@ impl Context {
                 line_spacing: 30, //pixels
                 color: Color::Black,
                 smoothing: false,
-                tab_len: 10,
+                tab_len: 8, //Every 8 character widths is a tab stop
             },
             barcode: BarcodeContext {
                 human_readable: HumanReadableInterface::None,

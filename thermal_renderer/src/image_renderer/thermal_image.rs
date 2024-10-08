@@ -216,7 +216,7 @@ impl ThermalImage {
         let mut new_y = layout.y;
 
         for line in lines.into_iter() {
-            let mut line_height_mult = 1u32;
+            let mut line_height = layout.line_height;
             let mut precalculated_width = 0u32;
             let mut justify = TextJustify::Left;
             let mut iter = 0;
@@ -243,12 +243,13 @@ impl ThermalImage {
 
             for word in &line {
                 if word.1.contains('\t') {
+                    println!("TAB len{}",layout.tab_len);
                     let mut tab_len = layout.tab_len * self.char_width(word.0);
                     while tab_len < temp_x {
                         tab_len += tab_len;
                     }
                     if tab_len < layout.max_w {
-                        new_x += tab_len;
+                        new_x = tab_len;
                     }
                     continue;
                 }
@@ -264,7 +265,7 @@ impl ThermalImage {
                     continue;
                 }
 
-                let (w, _) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
+                let (w, h) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
                 new_x += w;
             }
         }
