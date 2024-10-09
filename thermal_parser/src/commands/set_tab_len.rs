@@ -4,7 +4,7 @@ use crate::{command::*, constants::*, context::*};
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn apply_context(&self, command: &Command, context: &mut Context) {
+    fn get_device_command(&self, command: &Command, context: &Context) -> Option<Vec<DeviceCommand>> {
         let n = *command
             .data
             .get(0)
@@ -15,11 +15,7 @@ impl CommandHandler for Handler {
             .get(1)
             .unwrap_or(&context.default.as_ref().unwrap().text.line_spacing);
 
-        context.set_tab_len(n,k);
-    }
-
-    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
-        Some(vec![DeviceCommand::ChangeTabs])
+        Some(vec![DeviceCommand::ChangeTabs(n,k)])
     }
 }
 
@@ -27,7 +23,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Tab Len",
         vec![ESC, 'D' as u8],
-        CommandType::ContextControl,
+        CommandType::Control,
         DataType::Double,
         Box::new(Handler {}),
     )

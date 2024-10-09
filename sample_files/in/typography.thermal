@@ -10,7 +10,7 @@
     GS "!" 0x01 "TABS" GS "!" 0x00 LF LF
 
 '// Set horizontal tab positions: 35th column
-    ESC "D" 35 0
+    ESC "D" 45 0
 
     "Price should be at the end" HT "$2.00" LF LF
 

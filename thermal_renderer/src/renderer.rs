@@ -163,8 +163,9 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.renderer
                             .page_area_changed(&mut self.context, rotation, width, height);
                     }
-                    DeviceCommand::ChangeTabs => {
+                    DeviceCommand::ChangeTabs(count,at) => {
                         self.process_text();
+                        self.context.set_tab_len(*count,*at);
                     }
                     _ => {}
                 }
