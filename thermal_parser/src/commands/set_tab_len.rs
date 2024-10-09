@@ -17,13 +17,17 @@ impl CommandHandler for Handler {
 
         context.set_tab_len(n,k);
     }
+
+    fn get_device_command(&self, _command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
+        Some(vec![DeviceCommand::ChangeTabs])
+    }
 }
 
 pub fn new() -> Command {
     Command::new(
         "Set Tab Len",
         vec![ESC, 'D' as u8],
-        CommandType::Context,
+        CommandType::ContextControl,
         DataType::Double,
         Box::new(Handler {}),
     )

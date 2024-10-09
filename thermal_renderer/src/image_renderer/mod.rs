@@ -1,7 +1,7 @@
 use crate::image_renderer::thermal_image::ThermalImage;
 use crate::renderer::{OutputRenderer, RenderOutput, Renderer};
 use thermal_parser::command::DeviceCommand;
-use thermal_parser::context::{Context, PrintDirection, Rotation};
+use thermal_parser::context::{Context, PrintDirection, Rotation, TextJustify};
 use thermal_parser::graphics::{Image, VectorGraphic};
 use thermal_parser::text::TextSpan;
 
@@ -134,12 +134,20 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         if context.page_mode.enabled {
             self.page_image.put_render_img(image);
         } else {
-            println!("Render image to main image {:?}", image);
             self.image.put_render_img(image);
         }
     }
 
-    fn render_text(&mut self, context: &mut Context, line: &Vec<TextSpan>) {}
+    fn render_text(&mut self, context: &mut Context, spans: &Vec<TextSpan>, x_offset: u32, _text_justify: TextJustify) {
+        let canvas = if context.page_mode.enabled { &mut self.page_image } else { &mut self.image };
+
+        for span in spans {
+            if let Some(_) = &span.dimensions {
+                canvas.render_span(x_offset, span);
+            }
+        }
+    }
+
 
     fn device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
 

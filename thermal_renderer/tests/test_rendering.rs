@@ -7,6 +7,11 @@ use thermal_parser::thermal_file::parse_str;
 use thermal_renderer::image_renderer::ImageRenderer;
 
 #[test]
+fn typography() {
+    test_sample("typography", "thermal")
+}
+
+#[test]
 fn bad_image() {
     test_sample("bad_image", "thermal")
 }

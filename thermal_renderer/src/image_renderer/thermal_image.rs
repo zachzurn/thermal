@@ -2,18 +2,14 @@ extern crate fontdue;
 extern crate png;
 extern crate textwrap;
 
-use std::fs::File;
-use std::io::BufWriter;
-use std::path::Path;
 use std::rc::Rc;
-
 use fontdue::layout::CharacterData;
-use png::BitDepth;
 use thermal_parser::graphics::{Image, Rectangle};
 use thermal_parser::text::TextSpan;
 
 const THRESHOLD: u8 = 120;
 const SCALE_THRESHOLD: u8 = 140;
+const BASE_FONT_SIZE: f32 = 20.0;
 
 pub struct FontFamily {
     pub regular: Rc<fontdue::Font>,
@@ -70,11 +66,6 @@ impl ThermalImage {
             allow_greyscale: true,
             auto_grow: true,
         }
-    }
-
-    pub fn char_width(&self, span: &TextSpan) -> u32 {
-        let metrics = self.font.regular.metrics(' ', span.size as f32);
-        metrics.advance_width.floor() as u32 * span.stretch_width as u32
     }
 
     pub fn get_font(&self, span: &TextSpan) -> Rc<fontdue::Font> {
@@ -149,146 +140,18 @@ impl ThermalImage {
         self.put_pixels(x, y, w, h, vec![0u8; (w * h) as usize], false, true);
     }
 
-    pub fn draw_text(&mut self, mut layout: TextLayout) -> (u32, u32) {
-        let mut temp_x = 0u32;
-        let width = layout.max_w;
-        let newline = Vec::<(&TextSpan, String, u32)>::new();
-        let mut lines = vec![newline.clone()];
-    
-        for span in &mut layout.spans {
-            let char_width = self.char_width(span);
-            let words = WordSeparator::UnicodeBreakProperties.find_words(span.text.as_str());
-    
-            for word in words {
-                let word_len: u32 = (word.word.len() + word.whitespace.len()) as u32;
-                if word_len * char_width <= width - temp_x {
-                    //Word fits on current line
-                    lines.last_mut().unwrap().push((
-                        span,
-                        format!("{}{}", word.word, word.whitespace),
-                        temp_x,
-                    ));
-                    temp_x += word_len * char_width;
-                } else if word_len * char_width > width {
-                    //Break the word into parts for super long words
-                    let broken = word.break_apart((width / char_width) as usize);
-    
-                    for broke in broken {
-                        let broke_word_len =
-                            broke.word.len() as f32 + broke.whitespace.len() as f32;
-                        if layout.max_w as f32 - (broke_word_len * char_width as f32)
-                            < char_width as f32
-                        {
-                            lines.push(newline.clone());
-                            temp_x = 0;
-                            lines.last_mut().unwrap().push((
-                                span,
-                                format!("{}{}", broke.word, broke.whitespace),
-                                temp_x,
-                            ));
-                            lines.push(newline.clone());
-                        } else {
-                            lines.last_mut().unwrap().push((
-                                span,
-                                format!("{}{}", broke.word, broke.whitespace),
-                                temp_x,
-                            ));
-                            temp_x += broke_word_len as u32 * char_width;
-                        }
-                    }
-                } else {
-                    //Put word on a newline
-                    lines.push(newline.clone());
-                    temp_x = 0;
-                    lines.last_mut().unwrap().push((
-                        span,
-                        format!("{}{}", word.word, word.whitespace),
-                        temp_x,
-                    ));
-                    temp_x += word_len * char_width;
-                }
-            }
-        }
-    
-        let mut new_x = layout.x;
-        let mut new_y = layout.y;
-    
-        for line in lines.into_iter() {
-            let mut line_height = layout.line_height;
-            let mut precalculated_width = 0u32;
-            let mut justify = TextJustify::Left;
-            let mut iter = 0;
-    
-            for word in &line {
-                if iter == 0 {
-                    justify = word.0.justify.clone();
-                }
-                precalculated_width += word.1.len() as u32 * self.char_width(word.0);
-                iter += 1;
-            }
-    
-            //Prevent issues with line widths that are way too long
-            //TODO write some tests for this
-            if precalculated_width > width {
-                precalculated_width = width;
-            }
-    
-            match justify {
-                TextJustify::Center => {
-                    new_x = (width - precalculated_width) / 2;
-                    println!("CENTER w{} x{} line w{}", width, new_x, precalculated_width);
-                },
-                TextJustify::Right => {
-                    println!("RIGHT");
-                    new_x = width - precalculated_width;
-                }
-                _ => {}
-            }
-    
-            for word in &line {
-                if word.1.contains('\t') {
-                    let mut tab_len = layout.tab_len * self.char_width(word.0);
-                    while tab_len < temp_x {
-                        tab_len += tab_len;
-                    }
-                    if tab_len < layout.max_w {
-                        new_x = tab_len;
-                    }
-                    continue;
-                }
-    
-                if word.1.contains('\r') {
-                    new_x = layout.base_x;
-                    continue;
-                }
-    
-                if word.1.eq("\n") {
-                    new_y += layout.line_height;
-                    new_x = layout.base_x;
-                    continue;
-                }
-    
-                let (w, h) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
-                new_x += w;
-            }
-        }
-    
-        (new_x as u32, new_y as u32)
-    }
-
-    pub fn render_word(&mut self, x: u32, y: u32, text: &str, span: &TextSpan) -> (u32, u32) {
+    pub fn render_span(&mut self, x_offset: u32, span: &TextSpan) {
+        if span.dimensions.is_none() { return; }
+        let dimensions = span.dimensions.as_ref().unwrap();
         let font = self.get_font(span);
-        let font_size = span.size as f32;
-        let font_metrics = font.horizontal_line_metrics(font_size).unwrap();
-        let mut w = 0;
-        let mut h = (font_metrics.ascent + font_metrics.descent.abs()).ceil() as u32;
-        let mut cur_x = x;
+        let font_metrics = font.horizontal_line_metrics(BASE_FONT_SIZE).unwrap();
+        let mut cur_x = dimensions.x + x_offset;
 
         let baseline = f32::ceil(font_metrics.ascent + font_metrics.descent);
 
         //Need a solution for graphemes maybe
-        for char in text.chars() {
-            let (metrics, bitmap) = font.rasterize(char, span.size as f32);
+        for char in span.text.chars() {
+            let (metrics, bitmap) = font.rasterize(char, BASE_FONT_SIZE as f32);
 
             let mut bitmap = bitmap;
             bitmap = self.scale_bitmap(
@@ -307,7 +170,7 @@ impl ThermalImage {
             }
 
             if char_data.is_missing() {
-                cur_x += self.char_width(span);
+                cur_x += span.character_width;
                 continue;
             }
 
@@ -317,47 +180,43 @@ impl ThermalImage {
 
             self.put_pixels(
                 x_offset,
-                y + y_offset * span.stretch_height as u32,
+                dimensions.y + y_offset * span.stretch_height as u32,
                 metrics.width as u32 * span.stretch_width as u32,
                 metrics.height as u32 * span.stretch_height as u32,
                 bitmap,
                 true,
                 true,
             );
-            cur_x += self.char_width(span);
-            w += self.char_width(span);
-            h = h.max(metrics.height as u32 * span.stretch_height as u32 + y_offset);
+            cur_x += span.character_width;
         }
 
         if span.underline > 0 {
             let under_y =
-                (y + (font_metrics.ascent * span.stretch_height) as u32 + span.underline) as u32;
-            let under_x = x;
+                (dimensions.y + (font_metrics.ascent * span.stretch_height) as u32 + span.underline) as u32;
+            let under_x = dimensions.x + x_offset;
 
-            self.draw_rect(under_x, under_y, w, span.underline);
+            self.draw_rect(under_x, under_y, dimensions.w, span.underline);
         }
 
         if span.strikethrough > 0 {
-            let strike_y = y + ((font_metrics.ascent * span.stretch_height) / 2.0) as u32;
-            let strike_x = x;
+            let strike_y = dimensions.y + ((font_metrics.ascent * span.stretch_height) / 2.0) as u32;
+            let strike_x = dimensions.x + x_offset;
 
             self.draw_rect(
                 strike_x,
                 strike_y - span.strikethrough,
-                w,
+                dimensions.w,
                 span.strikethrough,
             );
         }
 
         if span.inverted {
-            self.invert_pixels(x, y, w, h);
+            self.invert_pixels(dimensions.x + x_offset, dimensions.y, dimensions.w, dimensions.h);
         }
 
         if span.upside_down {
-            self.flip_pixels(x, y, w, h);
+            self.flip_pixels(dimensions.x + x_offset, dimensions.y, dimensions.w, dimensions.h);
         }
-
-        (w, h)
     }
 
     pub fn scale_bitmap(
@@ -660,25 +519,5 @@ impl ThermalImage {
     // empty the pixels
     pub fn empty(&mut self) {
         self.bytes.clear()
-    }
-
-    pub fn save_png(&self, filepath: String) {
-        if self.bytes.len() == 0 || self.width == 0 {
-            println!("Nothing to save!");
-            return;
-        }
-        let path = Path::new(&filepath);
-        let file = File::create(path).unwrap();
-        let ref mut w = BufWriter::new(file);
-        let mut encoder = png::Encoder::new(
-            w,
-            self.width as u32,
-            self.bytes.len() as u32 / self.width as u32,
-        );
-        encoder.set_color(png::ColorType::Grayscale);
-        encoder.set_depth(BitDepth::Eight);
-
-        let mut writer = encoder.write_header().unwrap();
-        writer.write_image_data(&self.bytes).unwrap(); // Save
     }
 }

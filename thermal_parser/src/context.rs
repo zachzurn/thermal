@@ -352,7 +352,7 @@ impl Context {
                 width_mult: 1,
                 height_mult: 1,
                 upside_down: false,
-                line_spacing: 30, //pixels
+                line_spacing: 24, //pixels
                 color: Color::Black,
                 smoothing: false,
                 tabs: vec![8; 32], //Every 8 character widths is a tab stop
@@ -392,7 +392,7 @@ impl Context {
             graphics: GraphicsContext {
                 render_area: RenderArea {
                     x: 0,
-                    y: 0,
+                    y: paper_left_margin * 3,
                     w: render_width,
                     h: 0,
                 },
@@ -507,8 +507,14 @@ impl Context {
     pub fn offset_x(&mut self, x: u32) {
         if self.page_mode.enabled {
             self.page_mode.render_area.x += x;
+            if self.page_mode.render_area.x > self.page_mode.render_area.w {
+                self.page_mode.render_area.x = self.page_mode.render_area.w;
+            }
         } else {
             self.graphics.render_area.x += x;
+            if self.graphics.render_area.x > self.graphics.render_area.w {
+                self.graphics.render_area.x = self.graphics.render_area.w;
+            }
         }
     }
 
@@ -540,6 +546,7 @@ impl Context {
     }
 
     pub fn set_y(&mut self, y: u32) {
+        println!("SET Y TO {}",y);
         if self.page_mode.enabled {
             self.page_mode.render_area.y = y;
         } else {
@@ -559,7 +566,11 @@ impl Context {
         if self.page_mode.enabled {
             self.page_mode.render_area.w - (self.page_mode.render_area.x - self.page_mode.page_area.x)
         } else {
-            self.graphics.render_area.w - self.graphics.render_area.x
+            if self.graphics.render_area.x <= self.graphics.render_area.w {
+                self.graphics.render_area.w - self.graphics.render_area.x   
+            } else {
+                0
+            }
         }
     }
 

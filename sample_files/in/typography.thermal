@@ -1,0 +1,73 @@
+'// ============================================================================
+'// Typography Test
+'// ============================================================================
+
+'// --- Initial setting --->>>
+'// Initialize printer
+    ESC "@"
+
+'// TAB TEST
+    GS "!" 0x01 "TABS" GS "!" 0x00 LF LF
+
+'// Set horizontal tab positions: 35th column
+    ESC "D" 35 0
+
+    "Price should be at the end" HT "$2.00" LF LF
+
+'// Set horizontal tab positions: 35th column
+    ESC "D" 8 0
+
+    "5 Columns:" LF
+    "COL 1" HT "COL 2" HT "COL 3" HT "COL 4" HT "COL 5" LF LF
+
+'// Set horizontal tab positions: 4 columns
+    ESC "D" 14 0 ESC "D" 14 1 ESC "D" 14 2 ESC "D" 14 3
+
+    "4 Columns:" LF
+    "COL 1" HT "COL 2" HT "COL 3" HT "COL 4" LF LF
+
+
+'// LONG LINES TEST
+LF LF GS "!" 0x01 "LONG LINES" GS "!" 0x00 LF LF
+
+"This text should break to the next line in chunks THISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINE" LF
+
+
+'// JUSTIFICATION
+LF LF GS "!" 0x01 "STYLE" GS "!" 0x00 LF LF
+
+"This should be -->" " inverted " "<--" LF LF
+
+"This should be -->" " underline " "<--" LF LF
+
+"This should be -->" " bold " "<--" LF LF
+
+"This should be -->" " italic " "<--" LF LF
+
+"This should be -->" " upside down " "<--" LF LF
+
+'// JUSTIFICATION
+LF LF GS "!" 0x01 "JUSTIFICATION" GS "!" 0x00 LF LF
+
+'// Center align
+ESC "a" 1
+
+"This text should be centered and should break onto the second line properly." LF LF
+
+"This" GS "!" 0x02 " text " GS "!" 0x00 "should be centered." LF LF
+
+'// Right align
+ESC "a" 2
+
+"This" GS "!" 0x02 " text " GS "!" 0x00 "should be aligned right." LF LF
+
+'// Left Align default
+ESC "a" 0
+
+
+
+
+'// Select cut mode and cut paper: [Function B] Feed paper to
+'// (cutting position + 4.23 mm (30/203 inches)) and executes a partial cut
+'// (one point left uncut).
+    GS "V" 66 30

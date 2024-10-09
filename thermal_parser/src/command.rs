@@ -19,6 +19,7 @@ pub enum DeviceCommand {
     PrintPageMode,
     ChangePageModeDirection,
     ChangePageArea,
+    ChangeTabs,
     Transmit(Vec<u8>),
     MoveX(u16),
 }
@@ -40,6 +41,7 @@ impl DeviceCommand {
             Self::PrintPageMode => "Print Page Mode".to_string(),
             Self::ChangePageModeDirection => "Change Page Mode Direction".to_string(),
             Self::ChangePageArea => "Change Page Area".to_string(),
+            Self::ChangeTabs => "Tabs Changed".to_string(),
             Self::Transmit(_b) => "Transmit Data Back".to_string(),
             Self::MoveX(_n) => "Move Horizontally".to_string(),
         }
