@@ -8,6 +8,7 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 barcoders = "2.0.0"
 qr_code = "2.0.0"
+textwrap = "0.16.1"
 
 [dev-dependencies]
 iconv = "0.1.1"

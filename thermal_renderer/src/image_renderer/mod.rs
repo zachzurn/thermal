@@ -139,9 +139,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         }
     }
 
-    fn render_text_line(&mut self, context: &mut Context, spans: &Vec<TextSpan>) {
-
-    }
+    fn render_text(&mut self, context: &mut Context, line: &Vec<TextSpan>) {}
 
     fn device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
 

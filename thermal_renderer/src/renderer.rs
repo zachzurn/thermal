@@ -1,9 +1,10 @@
+use std::collections::VecDeque;
 use std::mem;
 use textwrap::WordSeparator;
 use thermal_parser::command::{Command, CommandType, DeviceCommand};
 use thermal_parser::context::{Context, HumanReadableInterface, Rotation};
 use thermal_parser::graphics::{Barcode, Code2D, GraphicsCommand, Image, Rectangle, VectorGraphic};
-use thermal_parser::text::{PositionedTextSpan, TextLine, TextSpan};
+use thermal_parser::text::{Dimensions, PositionedTextSpan, TextSpan};
 
 pub struct RenderOutput<Output> {
     pub output: Vec<Output>,
@@ -20,7 +21,6 @@ pub struct Renderer<'a, Output> {
     context: Context,
 }
 
-//Implement RenderBase for the Renderer trait
 impl<'a, Output> Renderer<'a, Output> {
     pub fn new(renderer: &'a mut Box<(dyn OutputRenderer<Output> + 'static)>) -> Self {
         Renderer {
@@ -98,24 +98,26 @@ impl<'a, Output> Renderer<'a, Output> {
             CommandType::ContextControl => {
                 command.handler.apply_context(command, &mut self.context);
 
-                let device_commands = &command.handler.get_device_command(command, &mut self.context);
-                self.process_device_commands( device_commands );
+                let device_commands = &command
+                    .handler
+                    .get_device_command(command, &mut self.context);
+                self.process_device_commands(device_commands);
             }
             CommandType::Control => {
-                let device_commands = &command.handler.get_device_command(command, &mut self.context);
-                self.process_device_commands( device_commands );
+                let device_commands = &command
+                    .handler
+                    .get_device_command(command, &mut self.context);
+                self.process_device_commands(device_commands);
             }
             _ => {}
         }
     }
 
-    fn process_device_commands(
-        &mut self,
-        device_commands: &Option<Vec<DeviceCommand>>
-    ) {
+    fn process_device_commands(&mut self, device_commands: &Option<Vec<DeviceCommand>>) {
         if let Some(device_commands) = device_commands {
             for device_command in device_commands {
-                self.renderer.device_command(&mut self.context, device_command);
+                self.renderer
+                    .device_command(&mut self.context, device_command);
 
                 match device_command {
                     DeviceCommand::BeginPrint => self.renderer.begin_render(&mut self.context),
@@ -156,7 +158,8 @@ impl<'a, Output> Renderer<'a, Output> {
                     DeviceCommand::ChangePageModeDirection => {
                         self.process_text();
                         let (rotation, width, height) = self.context.page_mode.apply_logical_area();
-                        self.renderer.page_area_changed(&mut self.context, rotation, width, height);
+                        self.renderer
+                            .page_area_changed(&mut self.context, rotation, width, height);
                     }
                     _ => {}
                 }
@@ -227,7 +230,8 @@ impl<'a, Output> Renderer<'a, Output> {
 
         self.context.reset_x();
         self.context.offset_y(barcode.point_height as u32);
-        self.context.offset_y(self.context.line_height_pixels() as u32);
+        self.context
+            .offset_y(self.context.line_height_pixels() as u32);
 
         match self.context.barcode.human_readable {
             HumanReadableInterface::Below | HumanReadableInterface::Both => {
@@ -270,97 +274,105 @@ impl<'a, Output> Renderer<'a, Output> {
         self.span_buffer.push(text);
     }
 
-    fn process_span(&mut self, span: &TextSpan) -> Vec<Vec<PositionedTextSpan>>{
-        let words = WordSeparator::UnicodeBreakProperties.find_words(span.text.as_str());
-        let char_width = self.context.text.character_width as u32;
-        let char_height = self.context.text.character_height as u32;
-        let mut lines: Vec<Vec<PositionedTextSpan>> = vec![];
-        let mut current_line: Vec<PositionedTextSpan>  = vec![];
-        
+    //Returns the next line that can be created from the list of words.
+    //Also modifies the words vec to have leftover words
+    fn extract_line_from_words(&mut self, words: &mut VecDeque<TextSpan>) -> Option<Vec<TextSpan>> {
+        let mut line: Vec<TextSpan> = vec![];
 
-        for word in words {
+        while let Some(mut word) = words.pop_front() {
             //Calculate available width every loop
             let avail_width = self.context.get_available_width();
-            let word_width = (word.word.len() + word.whitespace.len()) as u32 * char_width;
-            
+            let word_width = word.text.len() as u32 * word.character_width;
+
             if word_width <= avail_width {
-                //Word fits on current line
-                let mut new_span = span.clone();
-                new_span.text = format!("{}{}", word.word, word.whitespace);
-                current_line.push(PositionedTextSpan{
-                    x: self.context.get_x(),
-                    y: self.context.get_y(),
-                    w: word_width,
-                    h: char_height,
-                    span: new_span
-                });
-                self.context.offset_x(char_height as u32);
+                //Word fits into the line
+                word.get_dimensions(&self.context);
+                self.context.offset_x(word.get_width());
+                line.push(word);
+                continue;
             } else if word_width > avail_width {
                 //Break the word into parts for super long words
-                let broken = word.break_apart((avail_width / char_width) as usize);
-
-                for broke in broken {
-                    let broke_word_len =
-                        broke.word.len() as f32 + broke.whitespace.len() as f32;
-                    if layout.max_w as f32 - (broke_word_len * char_width as f32)
-                        < char_width as f32
-                    {
-                        lines.push(newline.clone());
-                        temp_x = 0;
-                        lines.last_mut().unwrap().push((
-                            span,
-                            format!("{}{}", broke.word, broke.whitespace),
-                            temp_x,
-                        ));
-                        lines.push(newline.clone());
-                    } else {
-                        lines.last_mut().unwrap().push((
-                            span,
-                            format!("{}{}", broke.word, broke.whitespace),
-                            temp_x,
-                        ));
-                        temp_x += broke_word_len as u32 * char_width;
-                    }
-                }
+                let broken = word.break_apart((avail_width / word.character_width) as usize);
+                word.get_dimensions(&self.context);
+                self.context.offset_x(word.get_width());
+                line.push(word);
+                words.push_front(broken);
+                //Line is full
+                return Some(line);
             } else {
-                //Put word on a newline
-                lines.push(newline.clone());
-                temp_x = 0;
-                lines.last_mut().unwrap().push((
-                    span,
-                    format!("{}{}", word.word, word.whitespace),
-                    temp_x,
-                ));
-                temp_x += word_len * char_width;
+                //Add word to a newline
             }
         }
-    }
-    
-    fn process_text(&mut self){
-        if self.span_buffer.is_empty() { return; }
 
-        let lines = TextLine {
-            spans: vec![],
-        };
+        None
+    }
+
+    fn process_text(&mut self) {
+        if self.span_buffer.is_empty() {
+            return;
+        }
+
+        let mut words: Vec<TextSpan> = vec![];
 
         for span in &self.span_buffer {
-            //Advance lines
             if span.text.eq("\n") {
                 self.context.newline(1);
+                continue;
             }
-            
-            self.process_span(&span);
-        }
-        
-        println!("Process text {:?}",self.span_buffer);
-        //TODO emit lines to render at specific x and y
 
-        //self.renderer.render_text_line
+            words.append(&mut span.break_into_words().into());
+        }
 
         self.span_buffer.clear();
+
+        let mut lines: Vec<Vec<TextSpan>> = vec![];
+        let mut current_line: Vec<TextSpan> = vec![];
+        words.reverse();
+
+        while let Some(mut word) = words.pop() {
+            //Calculate available width every loop
+            let avail_width = self.context.get_available_width();
+            let word_width = word.text.len() as u32 * word.character_width;
+
+            if word_width <= avail_width {
+                //Word fits into the line, add it
+                word.get_dimensions(&self.context);
+                self.context.offset_x(word.get_width());
+                current_line.push(word);
+                continue;
+            } else if word_width > avail_width {
+                //Break the word into parts for super long words
+                let broken = word.break_apart(
+                    (avail_width / word.character_width) as usize,
+                    (self.context.get_width() / word.character_width) as usize,
+                );
+
+                //Add the part that fits into the line
+                word.get_dimensions(&self.context);
+                self.context.offset_x(word.get_width());
+                current_line.push(word);
+
+                //Line is full
+                let mut finished_line = vec![];
+                mem::swap(&mut current_line, &mut finished_line);
+                lines.push(finished_line);
+
+                //Fill new lines with words
+                for broke in broken {
+                    //TODO
+                }
+            } else {
+                //Add word to a newline
+                let mut finished_line = vec![];
+                mem::swap(&mut current_line, &mut finished_line);
+                lines.push(finished_line);
+                self.context.newline(1);
+                word.get_dimensions(&self.context);
+                current_line.push(word);
+            }
+        }
     }
 }
-
 
 pub trait OutputRenderer<Output> {
     fn begin_render(&mut self, context: &mut Context);
@@ -376,7 +388,7 @@ pub trait OutputRenderer<Output> {
     fn render_page(&mut self, _context: &mut Context);
     fn render_graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>);
     fn render_image(&mut self, context: &mut Context, image: &Image);
-    fn render_text_line(&mut self, context: &mut Context, spans: &Vec<TextSpan>);
+    fn render_text(&mut self, context: &mut Context, lines: &Vec<TextSpan>);
     fn device_command(&mut self, context: &mut Context, command: &DeviceCommand);
     fn end_render(&mut self, context: &mut Context) -> Output;
 }

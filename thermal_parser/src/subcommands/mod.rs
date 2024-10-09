@@ -1,12 +1,11 @@
 use std::mem;
 use std::rc::Rc;
 
-use crate::{command::*, context::*, graphics::*};
 use crate::text::TextSpan;
+use crate::{command::*, context::*, graphics::*};
 
 pub mod gs_code2d;
 pub mod gs_graphics;
-mod text;
 
 #[derive(Clone)]
 pub struct SubCommandHandler {
