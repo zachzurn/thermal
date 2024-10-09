@@ -6,9 +6,7 @@ use png::{ColorType, Encoder};
 
 use thermal_parser::command::DeviceCommand;
 use thermal_parser::context::{Context, TextJustify};
-use thermal_parser::graphics::{Image, TextLayout, TextSpan, VectorGraphic};
-
-use crate::renderer::CommandRenderer;
+use thermal_parser::graphics::{Image, TextSpan, VectorGraphic};
 
 static TEMPLATE: &str = include_str!("../../resources/templates/thermal.html");
 

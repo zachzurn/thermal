@@ -1,10 +1,10 @@
-use std::path::PathBuf;
-use thermal_parser::command::Command;
-use thermal_parser::context::Context;
+use std::fs::File;
+use std::io::BufWriter;
+use std::path::{Path, PathBuf};
+use png::BitDepth;
 use thermal_parser::thermal_file::parse_str;
-use thermal_renderer::html_renderer::HtmlRenderer;
+// use thermal_renderer::html_renderer::HtmlRenderer;
 use thermal_renderer::image_renderer::ImageRenderer;
-use thermal_renderer::renderer::CommandRenderer;
 
 #[test]
 fn bad_image() {
@@ -101,32 +101,50 @@ fn test_sample(name: &str, ext: &str) {
         std::fs::read(sample_file.to_str().unwrap()).unwrap()
     };
 
-    println!("Render Test [{}]", name);
-    render_image(&bytes, rendered_file.to_str().unwrap().to_string());
-    render_html(&bytes, rendered_file.to_str().unwrap().to_string());
+    render_image(&bytes, format!("{}.png",rendered_file.to_str().unwrap().to_string()));
+    //render_html(&bytes, rendered_file.to_str().unwrap().to_string());
 }
 
-fn render_html(bytes: &Vec<u8>, out_path: String) {
-    let mut html_renderer = HtmlRenderer::new(out_path);
-    let mut context = Context::new();
-
-    let on_new_command = move |mut cmd: Command| {
-        html_renderer.process_command(&mut context, &mut cmd);
-    };
-
-    let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
-    command_parser.parse_bytes(bytes);
-}
+// fn render_html(bytes: &Vec<u8>, out_path: String) {
+//     let mut html_renderer = HtmlRenderer::new(out_path);
+//     let mut context = Context::new();
+//
+//     let on_new_command = move |mut cmd: Command| {
+//         html_renderer.process_command(&mut context, &mut cmd);
+//     };
+//
+//     let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
+//     command_parser.parse_bytes(bytes);
+// }
 
 fn render_image(bytes: &Vec<u8>, out_path: String) {
-    let mut image_renderer = ImageRenderer::new(out_path);
+    let renders = ImageRenderer::render(bytes);
 
-    let mut context = Context::new();
+    if let Some(render) = renders.output.first() {
+        save_image(&render.bytes, render.width, render.height, out_path);
+    } else {
+        //should fail the test
+        assert!(false, "No image generated from renderer.");
+    }
+}
 
-    let on_new_command = move |mut cmd: Command| {
-        image_renderer.process_command(&mut context, &mut cmd);
-    };
+fn save_image(bytes: &Vec<u8>, width: u32, height: u32, out_path: String) {
+    if bytes.len() == 0 || width == 0 || height == 0 {
+        assert!(false, "No image generated from render.");
+        return;
+    }
 
-    let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
-    command_parser.parse_bytes(bytes);
+    let path = Path::new(&out_path);
+    let file = File::create(path).unwrap();
+    let ref mut writer = BufWriter::new(file);
+    let mut encoder = png::Encoder::new(
+        writer,
+        width,
+        height,
+    );
+    encoder.set_color(png::ColorType::Grayscale);
+    encoder.set_depth(BitDepth::Eight);
+
+    let mut writer = encoder.write_header().unwrap();
+    writer.write_image_data(bytes).unwrap(); // Save
 }

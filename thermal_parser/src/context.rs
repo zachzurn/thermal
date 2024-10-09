@@ -78,6 +78,8 @@ pub struct Context {
 
 #[derive(Clone)]
 pub struct TextContext {
+    pub character_width: u8,
+    pub character_height: u8,
     pub character_set: u8,
     pub code_table: u8,
     pub decoder: Codepage,
@@ -95,7 +97,7 @@ pub struct TextContext {
     pub line_spacing: u8,
     pub color: Color,
     pub smoothing: bool,
-    pub tab_len: u8, //character width for tabs
+    pub tabs: Vec<u8>,
 }
 
 #[derive(Clone)]
@@ -334,6 +336,8 @@ impl Context {
         Context {
             default: None,
             text: TextContext {
+                character_width: 12,
+                character_height: 24,
                 character_set: 0,
                 code_table: 0,
                 decoder: get_codepage(0, 0),
@@ -351,7 +355,7 @@ impl Context {
                 line_spacing: 30, //pixels
                 color: Color::Black,
                 smoothing: false,
-                tab_len: 8, //Every 8 character widths is a tab stop
+                tabs: vec![8; 32], //Every 8 character widths is a tab stop
             },
             barcode: BarcodeContext {
                 human_readable: HumanReadableInterface::None,
@@ -458,6 +462,12 @@ impl Context {
         (points * pixels_per_point) as u32
     }
 
+    pub fn set_tab_len(&mut self, tab_count: u8, at: u8) {
+        if at < self.text.tabs.len() as u8 {
+            self.text.tabs[at as usize] = tab_count;
+        }
+    }
+
     //Reset the x to the base value
     //which is the furthest left
     pub fn reset_x(&mut self) {
@@ -542,6 +552,14 @@ impl Context {
             self.page_mode.render_area.w
         } else {
             self.graphics.render_area.w
+        }
+    }
+    
+    pub fn get_available_width(&self) -> u32 {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.w - (self.page_mode.render_area.x - self.page_mode.page_area.x)
+        } else {
+            self.graphics.render_area.w - self.graphics.render_area.x
         }
     }
 

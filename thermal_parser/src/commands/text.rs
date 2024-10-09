@@ -1,4 +1,4 @@
-use crate::graphics::TextSpan;
+use crate::text::TextSpan;
 use crate::{command::*, context::*};
 
 #[derive(Clone)]

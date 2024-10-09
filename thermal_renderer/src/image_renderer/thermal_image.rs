@@ -9,10 +9,8 @@ use std::rc::Rc;
 
 use fontdue::layout::CharacterData;
 use png::BitDepth;
-use textwrap::WordSeparator;
-
-use thermal_parser::context::TextJustify;
-use thermal_parser::graphics::{Image, Rectangle, TextLayout, TextSpan};
+use thermal_parser::graphics::{Image, Rectangle};
+use thermal_parser::text::TextSpan;
 
 const THRESHOLD: u8 = 120;
 const SCALE_THRESHOLD: u8 = 140;
@@ -156,11 +154,11 @@ impl ThermalImage {
         let width = layout.max_w;
         let newline = Vec::<(&TextSpan, String, u32)>::new();
         let mut lines = vec![newline.clone()];
-
+    
         for span in &mut layout.spans {
             let char_width = self.char_width(span);
             let words = WordSeparator::UnicodeBreakProperties.find_words(span.text.as_str());
-
+    
             for word in words {
                 let word_len: u32 = (word.word.len() + word.whitespace.len()) as u32;
                 if word_len * char_width <= width - temp_x {
@@ -174,7 +172,7 @@ impl ThermalImage {
                 } else if word_len * char_width > width {
                     //Break the word into parts for super long words
                     let broken = word.break_apart((width / char_width) as usize);
-
+    
                     for broke in broken {
                         let broke_word_len =
                             broke.word.len() as f32 + broke.whitespace.len() as f32;
@@ -211,16 +209,16 @@ impl ThermalImage {
                 }
             }
         }
-
+    
         let mut new_x = layout.x;
         let mut new_y = layout.y;
-
+    
         for line in lines.into_iter() {
             let mut line_height = layout.line_height;
             let mut precalculated_width = 0u32;
             let mut justify = TextJustify::Left;
             let mut iter = 0;
-
+    
             for word in &line {
                 if iter == 0 {
                     justify = word.0.justify.clone();
@@ -228,22 +226,27 @@ impl ThermalImage {
                 precalculated_width += word.1.len() as u32 * self.char_width(word.0);
                 iter += 1;
             }
-
+    
             //Prevent issues with line widths that are way too long
             //TODO write some tests for this
             if precalculated_width > width {
                 precalculated_width = width;
             }
-
+    
             match justify {
-                TextJustify::Center => new_x = (width - precalculated_width) / 2,
-                TextJustify::Right => new_x = width - precalculated_width,
+                TextJustify::Center => {
+                    new_x = (width - precalculated_width) / 2;
+                    println!("CENTER w{} x{} line w{}", width, new_x, precalculated_width);
+                },
+                TextJustify::Right => {
+                    println!("RIGHT");
+                    new_x = width - precalculated_width;
+                }
                 _ => {}
             }
-
+    
             for word in &line {
                 if word.1.contains('\t') {
-                    println!("TAB len{}",layout.tab_len);
                     let mut tab_len = layout.tab_len * self.char_width(word.0);
                     while tab_len < temp_x {
                         tab_len += tab_len;
@@ -253,23 +256,23 @@ impl ThermalImage {
                     }
                     continue;
                 }
-
+    
                 if word.1.contains('\r') {
                     new_x = layout.base_x;
                     continue;
                 }
-
+    
                 if word.1.eq("\n") {
                     new_y += layout.line_height;
                     new_x = layout.base_x;
                     continue;
                 }
-
+    
                 let (w, h) = self.render_word(new_x, new_y, word.1.as_str(), word.0);
                 new_x += w;
             }
         }
-
+    
         (new_x as u32, new_y as u32)
     }
 

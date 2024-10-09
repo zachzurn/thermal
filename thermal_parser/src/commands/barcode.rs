@@ -12,6 +12,7 @@ use barcoders::sym::ean8::EAN8;
 use barcoders::sym::tf::TF;
 
 use crate::{command::*, constants::*, context::*, graphics::*};
+use crate::text::TextSpan;
 
 #[derive(Clone)]
 enum BarcodeType {

@@ -9,11 +9,11 @@ pub struct Parser {
     current_command: Option<Command>,
     current_command_is_default: bool,
     command_buffer: Vec<u8>,
-    on_command_found: Box<dyn FnMut(Command)>,
+    captured_commands: Vec<Command>
 }
 
 impl Parser {
-    pub fn new(cmd_set: CommandSet, on_command_found: Box<dyn FnMut(Command)>) -> Self {
+    pub fn new(cmd_set: CommandSet) -> Self {
         Self {
             cmd_set,
             match_depth: 0,
@@ -21,11 +21,11 @@ impl Parser {
             current_command_is_default: false,
             command_buffer: Vec::<u8>::new(),
             current_command: None,
-            on_command_found,
+            captured_commands: vec![]
         }
     }
 
-    pub fn parse_bytes(&mut self, bytes: &Vec<u8>) {
+    pub fn parse_bytes(&mut self, bytes: &Vec<u8>) -> Vec<Command> {
         self.emit_command(self.cmd_set.begin_parsing.clone());
 
         for byte in bytes {
@@ -46,6 +46,10 @@ impl Parser {
         self.command_buffer.clear();
         self.command_matches.clear();
         self.current_command_is_default = false;
+        
+        let mut commands: Vec<Command> = Vec::new();
+        mem::swap(&mut self.captured_commands, &mut commands);
+        commands
     }
 
     fn emit_command(&mut self, mut cmd: Command) {
@@ -53,10 +57,10 @@ impl Parser {
             let command = &mut cmd;
 
             if let Some(subcommand) = command.handler.get_subcommand() {
-                (self.on_command_found)(subcommand)
+                self.captured_commands.push(subcommand);
             }
         } else {
-            (self.on_command_found)(cmd);
+            self.captured_commands.push(cmd);
         }
     }
 

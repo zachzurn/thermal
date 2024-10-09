@@ -10,7 +10,12 @@ impl CommandHandler for Handler {
             .get(0)
             .unwrap_or(&context.default.as_ref().unwrap().text.line_spacing);
 
-        context.text.tab_len = n;
+        let k = *command
+            .data
+            .get(1)
+            .unwrap_or(&context.default.as_ref().unwrap().text.line_spacing);
+
+        context.set_tab_len(n,k);
     }
 }
 
@@ -19,7 +24,7 @@ pub fn new() -> Command {
         "Set Tab Len",
         vec![ESC, 'D' as u8],
         CommandType::Context,
-        DataType::Single,
+        DataType::Double,
         Box::new(Handler {}),
     )
 }

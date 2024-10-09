@@ -1,6 +1,7 @@
 use crate::context::Context;
-use crate::graphics::{GraphicsCommand, TextSpan};
+use crate::graphics::GraphicsCommand;
 use std::rc::Rc;
+use crate::text::TextSpan;
 
 #[derive(Clone, PartialEq)]
 pub enum DeviceCommand {
