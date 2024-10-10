@@ -38,15 +38,15 @@ LF LF GS "!" 0x01 "LONG LINES" GS "!" 0x00 LF LF
 '// JUSTIFICATION
 LF LF GS "!" 0x01 "STYLE" GS "!" 0x00 LF LF
 
-"This should be -->" " inverted " "<--" LF LF
+"This should be -->" GS "B" 1 "inverted" GS "B" 0 " <--" LF LF
 
-"This should be -->" " underline " "<--" LF LF
+"This should be --> " ESC "-" 1 "underline" ESC "-" 0 " <--" LF LF
 
-"This should be -->" " bold " "<--" LF LF
+"This should be --> " ESC "E" 1 "bold" ESC "E" 0 " <--" LF LF
 
-"This should be -->" " italic " "<--" LF LF
+"This should be --> " ESC 0x34 "italic" ESC 0x35 " <--" LF LF
 
-"This should be -->" " upside down " "<--" LF LF
+"This should be --> " ESC "{" 1 "upside down" ESC "{" 0 " <--" LF LF
 
 '// JUSTIFICATION
 LF LF GS "!" 0x01 "JUSTIFICATION" GS "!" 0x00 LF LF
