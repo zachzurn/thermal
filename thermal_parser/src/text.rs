@@ -90,7 +90,7 @@ impl TextSpan {
 
         if text.len() - 1  < rest_at { return spans; }
         
-        let mut last = &text[rest_at..];
+        let mut last = &text[first_at..];
 
         // Now break the `last` string into spans of size `rest_at`
         while !last.is_empty() {

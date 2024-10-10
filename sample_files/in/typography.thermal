@@ -15,13 +15,13 @@
     "Price should be at the end" HT "$2.00" LF LF
 
 '// Set horizontal tab positions: 35th column
-    ESC "D" 8 0
+    ESC "D" 9 0 ESC "D" 9 1 ESC "D" 9 2 ESC "D" 9 3 ESC "D" 9 4 ESC "D" 9 5
 
-    "5 Columns:" LF
-    "COL 1" HT "COL 2" HT "COL 3" HT "COL 4" HT "COL 5" LF LF
+    "6 Columns:" LF
+    "COL 1" HT "COL 2" HT "COL 3" HT "COL 4" HT "COL 5" HT "COL 6" LF LF
 
 '// Set horizontal tab positions: 4 columns
-    ESC "D" 14 0 ESC "D" 14 1 ESC "D" 14 2 ESC "D" 14 3
+    ESC "D" 15 0 ESC "D" 15 1 ESC "D" 15 2 ESC "D" 15 3
 
     "4 Columns:" LF
     "COL 1" HT "COL 2" HT "COL 3" HT "COL 4" LF LF
@@ -30,7 +30,9 @@
 '// LONG LINES TEST
 LF LF GS "!" 0x01 "LONG LINES" GS "!" 0x00 LF LF
 
-"This text should break to the next line in chunks THISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINE" LF
+"This text should break to the next line in chunks THISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINE" LF LF
+
+"This text should break in chunks THISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINE" LF
 
 
 '// JUSTIFICATION

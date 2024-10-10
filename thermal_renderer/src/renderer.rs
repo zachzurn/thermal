@@ -343,17 +343,32 @@ impl<'a, Output> Renderer<'a, Output> {
                     (max_width / word.character_width) as usize,
                 );
 
-                //Add the part that fits into the line
-                word.get_dimensions(&self.context);
-                self.context.offset_x(word.get_width());
-                current_line.push(word);
+                //Start of broken word can fit on current line
+                if word_width <= avail_width {
+                    //Add the part that fits into the line
+                    word.get_dimensions(&self.context);
+                    self.context.offset_x(word.get_width());
+                    current_line.push(word);
 
-                //Line is full
-                let mut finished_line = vec![];
-                mem::swap(&mut current_line, &mut finished_line);
-                lines.push(finished_line);
-                self.context.newline(current_line_height_mult);
+                    //Line is full
+                    let mut finished_line = vec![];
+                    mem::swap(&mut current_line, &mut finished_line);
+                    lines.push(finished_line);
+                    self.context.newline(current_line_height_mult);
+                }
+                //Start of broken word can NOT fit on current line
+                else {
+                    //Line is full
+                    let mut finished_line = vec![];
+                    mem::swap(&mut current_line, &mut finished_line);
+                    lines.push(finished_line);
+                    self.context.newline(current_line_height_mult);
 
+                    //Add the part that fits into the line
+                    word.get_dimensions(&self.context);
+                    self.context.offset_x(word.get_width());
+                    current_line.push(word);
+                }
 
                 // Handle remaining parts of the broken word
                 if broken.is_empty() { continue; }
@@ -364,8 +379,10 @@ impl<'a, Output> Renderer<'a, Output> {
                     current_line.push(broke.clone()); //ugg
 
                     if last {
+                        println!("LAST BROKEN WORD {}", broke.text);
                         self.context.offset_x(broke.get_width());
                     } else {
+                        println!("BROKEN WORD {}", broke.text);
                         let mut finished_line = vec![];
                         mem::swap(&mut current_line, &mut finished_line);
                         lines.push(finished_line);
@@ -379,14 +396,20 @@ impl<'a, Output> Renderer<'a, Output> {
                 }
 
             } else {
-                //Close out previous line and add word to a newline
+                //Close out previous line
                 let mut finished_line = vec![];
                 mem::swap(&mut current_line, &mut finished_line);
                 lines.push(finished_line);
                 self.context.newline(current_line_height_mult);
+                
+                //Add text to newline at 0 x
+                let word_width = word.get_width();
                 word.get_dimensions(&self.context);
                 current_line.push(word);
                 current_line_height_mult = 1;
+                
+                //Advance the x
+                self.context.offset_x(word_width);
             }
         }
 
