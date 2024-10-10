@@ -76,20 +76,28 @@ impl TextSpan {
     }
 
     pub fn break_apart(&mut self, first_at: usize, rest_at: usize) -> Vec<TextSpan> {
-        println!("Break apart long word {}",self.text);
+        println!("First at {} rest at {}", first_at, rest_at);
         let mut spans = vec![];
 
-        // Handle edge cases where the indexes don't make sense
-        if first_at >= rest_at || first_at >= self.text.len() {
+        let text = self.text.clone();
+
+        //Nothing to break up
+        if rest_at == 0 || text.len() < first_at {
+            spans.push(self.clone());
             return spans;
         }
 
-        let text = self.text.clone();
         let first = &text[0..first_at];
-        self.text = first.to_string();
 
-        if text.len() - 1  < rest_at { return spans; }
-        
+        let mut first_span = self.clone();
+        first_span.text = first.to_string();
+
+        spans.push(first_span);
+
+        if text.len() - 1 < rest_at {
+            return spans;
+        }
+
         let mut last = &text[first_at..];
 
         // Now break the `last` string into spans of size `rest_at`
@@ -102,7 +110,7 @@ impl TextSpan {
                 next_span = last;
                 last = "";
             }
-            
+
             let mut span = self.clone();
             span.text = next_span.to_string();
             spans.push(span);

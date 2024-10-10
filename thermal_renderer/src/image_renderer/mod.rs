@@ -138,16 +138,26 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         }
     }
 
-    fn render_text(&mut self, context: &mut Context, spans: &Vec<TextSpan>, x_offset: u32, _text_justify: TextJustify) {
-        let canvas = if context.page_mode.enabled { &mut self.page_image } else { &mut self.image };
+    fn render_text(
+        &mut self,
+        context: &mut Context,
+        spans: &Vec<TextSpan>,
+        x_offset: u32,
+        _text_justify: TextJustify,
+    ) {
+        let canvas = if context.page_mode.enabled {
+            &mut self.page_image
+        } else {
+            &mut self.image
+        };
 
         for span in spans {
+            println!("Print text {:?}", span);
             if let Some(_) = &span.dimensions {
                 canvas.render_span(x_offset, span);
             }
         }
     }
-
 
     fn device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
 

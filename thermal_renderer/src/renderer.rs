@@ -2,7 +2,7 @@ use std::mem;
 use thermal_parser::command::{Command, CommandType, DeviceCommand};
 use thermal_parser::context::{Context, HumanReadableInterface, Rotation, TextJustify};
 use thermal_parser::graphics::{Barcode, Code2D, GraphicsCommand, Image, Rectangle, VectorGraphic};
-use thermal_parser::text::{TextSpan};
+use thermal_parser::text::TextSpan;
 
 pub struct RenderOutput<Output> {
     pub output: Vec<Output>,
@@ -53,6 +53,7 @@ impl<'a, Output> Renderer<'a, Output> {
         }
     }
 
+    #[allow(dead_code)]
     fn debug(&mut self, info: &str) {
         self.debug_buffer.push(info.to_string());
     }
@@ -122,7 +123,7 @@ impl<'a, Output> Renderer<'a, Output> {
                         //Start the render at two newlines worth of height
                         self.context.newline(2);
                         self.renderer.begin_render(&mut self.context)
-                    },
+                    }
                     DeviceCommand::EndPrint => {
                         self.process_text();
                         let output = self.renderer.end_render(&mut self.context);
@@ -163,9 +164,9 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.renderer
                             .page_area_changed(&mut self.context, rotation, width, height);
                     }
-                    DeviceCommand::ChangeTabs(count,at) => {
+                    DeviceCommand::ChangeTabs(count, at) => {
                         self.process_text();
-                        self.context.set_tab_len(*count,*at);
+                        self.context.set_tab_len(*count, *at);
                     }
                     _ => {}
                 }
@@ -287,7 +288,7 @@ impl<'a, Output> Renderer<'a, Output> {
         let mut words: Vec<TextSpan> = vec![];
 
         for span in &self.span_buffer {
-            let mut spans : Vec<TextSpan> = span.break_into_words();
+            let mut spans: Vec<TextSpan> = span.break_into_words();
             words.append(&mut spans);
         }
 
@@ -300,7 +301,9 @@ impl<'a, Output> Renderer<'a, Output> {
         words.reverse();
 
         while let Some(mut word) = words.pop() {
-            if word.stretch_height > 1.0 { current_line_height_mult = 2 }
+            if word.stretch_height > 1.0 {
+                current_line_height_mult = 2
+            }
 
             //Calculate available width every loop
             let avail_width = self.context.get_available_width();
@@ -343,35 +346,6 @@ impl<'a, Output> Renderer<'a, Output> {
                     (max_width / word.character_width) as usize,
                 );
 
-                //Start of broken word can fit on current line
-                if word_width <= avail_width {
-                    //Add the part that fits into the line
-                    word.get_dimensions(&self.context);
-                    self.context.offset_x(word.get_width());
-                    current_line.push(word);
-
-                    //Line is full
-                    let mut finished_line = vec![];
-                    mem::swap(&mut current_line, &mut finished_line);
-                    lines.push(finished_line);
-                    self.context.newline(current_line_height_mult);
-                }
-                //Start of broken word can NOT fit on current line
-                else {
-                    //Line is full
-                    let mut finished_line = vec![];
-                    mem::swap(&mut current_line, &mut finished_line);
-                    lines.push(finished_line);
-                    self.context.newline(current_line_height_mult);
-
-                    //Add the part that fits into the line
-                    word.get_dimensions(&self.context);
-                    self.context.offset_x(word.get_width());
-                    current_line.push(word);
-                }
-
-                // Handle remaining parts of the broken word
-                if broken.is_empty() { continue; }
                 let broken_len = broken.len() - 1;
                 for (i, broke) in broken.iter_mut().enumerate() {
                     let last = broken_len == i;
@@ -379,35 +353,29 @@ impl<'a, Output> Renderer<'a, Output> {
                     current_line.push(broke.clone()); //ugg
 
                     if last {
-                        println!("LAST BROKEN WORD {}", broke.text);
+                        //Last word doesn't geta a forced newline
                         self.context.offset_x(broke.get_width());
                     } else {
-                        println!("BROKEN WORD {}", broke.text);
+                        //Every other line we assume will fit into a line
                         let mut finished_line = vec![];
                         mem::swap(&mut current_line, &mut finished_line);
                         lines.push(finished_line);
                         self.context.newline(current_line_height_mult);
                     }
-
-                    // Add the part to the current (or new) line
-                    broke.get_dimensions(&self.context);
-                    self.context.offset_x(broke.get_width());
-                    current_line.push(broke.clone());
                 }
-
             } else {
                 //Close out previous line
                 let mut finished_line = vec![];
                 mem::swap(&mut current_line, &mut finished_line);
                 lines.push(finished_line);
                 self.context.newline(current_line_height_mult);
-                
+
                 //Add text to newline at 0 x
                 let word_width = word.get_width();
                 word.get_dimensions(&self.context);
                 current_line.push(word);
                 current_line_height_mult = 1;
-                
+
                 //Advance the x
                 self.context.offset_x(word_width);
             }
@@ -419,7 +387,9 @@ impl<'a, Output> Renderer<'a, Output> {
 
         //Adjust lines for justification
         for line in &lines {
-            if line.is_empty() { continue }
+            if line.is_empty() {
+                continue;
+            }
             let justification = line.first().unwrap().justify.clone();
 
             let max_width = self.context.get_width();
@@ -442,7 +412,8 @@ impl<'a, Output> Renderer<'a, Output> {
                 _ => {}
             }
 
-            self.renderer.render_text(&mut self.context, line, line_offset, justification);
+            self.renderer
+                .render_text(&mut self.context, line, line_offset, justification);
         }
     }
 }
@@ -461,7 +432,13 @@ pub trait OutputRenderer<Output> {
     fn render_page(&mut self, _context: &mut Context);
     fn render_graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>);
     fn render_image(&mut self, context: &mut Context, image: &Image);
-    fn render_text(&mut self, context: &mut Context, spans: &Vec<TextSpan>, x_offset: u32, text_justify: TextJustify);
+    fn render_text(
+        &mut self,
+        context: &mut Context,
+        spans: &Vec<TextSpan>,
+        x_offset: u32,
+        text_justify: TextJustify,
+    );
     fn device_command(&mut self, context: &mut Context, command: &DeviceCommand);
     fn end_render(&mut self, context: &mut Context) -> Output;
 }

@@ -180,7 +180,7 @@ fn parse_tokens(line: &str) -> Vec<&str> {
     tokens
 }
 
-pub fn parse_binary(bytes: Vec<u8>) -> Vec<String> {
+pub fn parse_binary(_bytes: Vec<u8>) -> Vec<String> {
     let lines: Vec<String> = vec![];
     lines
 }

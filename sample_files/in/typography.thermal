@@ -28,17 +28,22 @@
 
 
 '// LONG LINES TEST
-LF LF GS "!" 0x01 "LONG LINES" GS "!" 0x00 LF LF
+LF LF GS "!" 0x01 "LONG WORDS" GS "!" 0x00 LF LF
 
-"This text should break to the next line in chunks THISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINE" LF LF
+"This text should break to the next line in chunks ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()_+" LF LF
 
-"This text should break in chunks THISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINETHISISAREALLYLONGLINE" LF
+"This text should break in chunks THISISAREALLYLONGLINEABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()_+THISISAREALLYLONGLINE" LF LF
 
+ESC "a" 1
+"CenteredthistextshouldbreakinchunksTHISISAREALLYLONGLINEABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()_+" LF LF
+ESC "a" 2
+"RightthistextshouldbreakinchunksTHISISAREALLYLONGLINEABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()_+" LF LF
+ESC "a" 0
 
-'// JUSTIFICATION
+'// STYLE
 LF LF GS "!" 0x01 "STYLE" GS "!" 0x00 LF LF
 
-"This should be -->" GS "B" 1 "inverted" GS "B" 0 " <--" LF LF
+"This should be --> " GS "B" 1 "inverted" GS "B" 0 " <--" LF LF
 
 "This should be --> " ESC "-" 1 "underline" ESC "-" 0 " <--" LF LF
 
@@ -67,7 +72,51 @@ ESC "a" 2
 ESC "a" 0
 
 
+'// STRETCH
+LF LF GS "!" 1 "STRETCH" GS "!" 0 LF LF
 
+GS "!" 0x01 
+"This is some stretched text that should go onto a newline" LF LF
+
+
+"Small to big" LF
+GS "!" 0 "1" GS "!" 0 
+GS "!" 17 "2" GS "!" 0 
+GS "!" 34 "3" GS "!" 0 
+GS "!" 51 "4" GS "!" 0 
+GS "!" 68 "5" GS "!" 0 
+GS "!" 85 "6" GS "!" 0 
+GS "!" 102 "7" GS "!" 0 
+GS "!" 119 "8" GS "!" 0 
+LF LF
+
+"Stretch width low to high" LF
+GS "!" 0 "1" GS "!" 0 
+GS "!" 16 "2" GS "!" 0 
+GS "!" 32 "3" GS "!" 0 
+GS "!" 48 "4" GS "!" 0 
+GS "!" 64 "5" GS "!" 0 
+GS "!" 80 "6" GS "!" 0 
+GS "!" 96 "7" GS "!" 0 
+GS "!" 112 "8" GS "!" 0 
+LF LF
+
+"Stretch height low to high" LF
+GS "!" 0 "1" GS "!" 0 
+GS "!" 1 "2" GS "!" 0 
+GS "!" 2 "3" GS "!" 0 
+GS "!" 3 "4" GS "!" 0 
+GS "!" 4 "5" GS "!" 0 
+GS "!" 5 "6" GS "!" 0 
+GS "!" 6 "7" GS "!" 0 
+GS "!" 7 "8" GS "!" 0 
+LF LF
+
+GS "!" 17 ESC "-" 1  ESC "E" 1 
+"2X Width and Height, Bold, Underline" 
+ESC "-" 0  ESC "E" 0 LF LF 
+
+GS "!" 0
 
 '// Select cut mode and cut paper: [Function B] Feed paper to
 '// (cutting position + 4.23 mm (30/203 inches)) and executes a partial cut
