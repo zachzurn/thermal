@@ -4,6 +4,7 @@ use std::collections::HashMap;
 use std::mem;
 
 use crate::graphics::{Image, ImageRef};
+use crate::text::TextSpan;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum TextJustify {
@@ -535,6 +536,17 @@ impl Context {
         let line_height = self.text.line_spacing as u32 * self.graphics.v_motion_unit as u32;
         self.reset_x();
         self.offset_y(line_height * count);
+    }
+
+    pub fn newline_for_spans(&mut self, spans: &Vec<TextSpan>) {
+        let mut line_height = self.text.line_spacing as u32 * self.graphics.v_motion_unit as u32;
+        
+        for span in spans {
+           line_height = line_height.max(span.character_height);   
+        }
+
+        self.reset_x();
+        self.offset_y(line_height);
     }
 
     pub fn set_x(&mut self, x: u32) {

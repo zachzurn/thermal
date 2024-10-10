@@ -7,6 +7,8 @@ pub struct TextSpan {
     pub font: Font,
     pub character_width: u32,
     pub character_height: u32,
+    pub base_character_width: u32,
+    pub base_character_height: u32,
     pub text: String,
     pub bold: bool,
     pub italic: bool,
@@ -46,8 +48,10 @@ impl TextSpan {
 
         Self {
             font: context.text.font.clone(),
-            character_width: context.text.character_width as u32 * style.width_mult as u32,
-            character_height: context.text.character_height as u32 * style.height_mult as u32,
+            base_character_width: style.character_width as u32,
+            base_character_height: style.character_height as u32,
+            character_width: style.character_width as u32 * style.width_mult as u32,
+            character_height: style.character_height as u32 * style.height_mult as u32,
             text,
             bold: style.bold,
             italic: style.italic,

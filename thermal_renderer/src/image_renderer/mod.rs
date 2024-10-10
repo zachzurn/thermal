@@ -143,6 +143,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         context: &mut Context,
         spans: &Vec<TextSpan>,
         x_offset: u32,
+        max_height: u32,
         _text_justify: TextJustify,
     ) {
         let canvas = if context.page_mode.enabled {
@@ -152,9 +153,8 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         };
 
         for span in spans {
-            println!("Print text {:?}", span);
             if let Some(_) = &span.dimensions {
-                canvas.render_span(x_offset, span);
+                canvas.render_span(x_offset, max_height, span);
             }
         }
     }

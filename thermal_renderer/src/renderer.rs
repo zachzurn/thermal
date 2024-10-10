@@ -296,26 +296,26 @@ impl<'a, Output> Renderer<'a, Output> {
 
         let mut lines: Vec<Vec<TextSpan>> = vec![];
         let mut current_line: Vec<TextSpan> = vec![];
-        let mut current_line_height_mult = 1;
         let max_width = self.context.get_width();
         words.reverse();
 
         while let Some(mut word) = words.pop() {
-            if word.stretch_height > 1.0 {
-                current_line_height_mult = 2
-            }
-
             //Calculate available width every loop
             let avail_width = self.context.get_available_width();
             let word_width = word.text.len() as u32 * word.character_width;
 
-            //Newlines advance as normal
+            //Newlines advance y and reset x
             if word.text.eq("\n") {
+                //Advance line height
+                self.context.newline_for_spans(&current_line);
+                
+                //Swap current line
                 let mut finished_line = vec![];
                 mem::swap(&mut current_line, &mut finished_line);
                 lines.push(finished_line);
-                self.context.newline(current_line_height_mult);
-                current_line_height_mult = 1;
+                
+                //Start a new line
+                lines.push(vec![]); //Newline
                 continue;
             }
 
@@ -357,24 +357,27 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.context.offset_x(broke.get_width());
                     } else {
                         //Every other line we assume will fit into a line
+                        
+                        //Advance line
+                        self.context.newline_for_spans(&current_line);
+                        
+                        //Swap line
                         let mut finished_line = vec![];
                         mem::swap(&mut current_line, &mut finished_line);
                         lines.push(finished_line);
-                        self.context.newline(current_line_height_mult);
                     }
                 }
             } else {
                 //Close out previous line
                 let mut finished_line = vec![];
+                self.context.newline_for_spans(&current_line);
                 mem::swap(&mut current_line, &mut finished_line);
                 lines.push(finished_line);
-                self.context.newline(current_line_height_mult);
 
                 //Add text to newline at 0 x
                 let word_width = word.get_width();
                 word.get_dimensions(&self.context);
                 current_line.push(word);
-                current_line_height_mult = 1;
 
                 //Advance the x
                 self.context.offset_x(word_width);
@@ -393,11 +396,13 @@ impl<'a, Output> Renderer<'a, Output> {
             let justification = line.first().unwrap().justify.clone();
 
             let max_width = self.context.get_width();
+            let mut max_height = 0;
             let mut line_width = 0;
             let mut line_offset = 0;
 
             for span in line {
                 line_width += span.get_width();
+                max_height = max_height.max(span.character_height);
             }
 
             match justification {
@@ -413,7 +418,7 @@ impl<'a, Output> Renderer<'a, Output> {
             }
 
             self.renderer
-                .render_text(&mut self.context, line, line_offset, justification);
+                .render_text(&mut self.context, line, line_offset, max_height, justification);
         }
     }
 }
@@ -437,6 +442,7 @@ pub trait OutputRenderer<Output> {
         context: &mut Context,
         spans: &Vec<TextSpan>,
         x_offset: u32,
+        max_height: u32,
         text_justify: TextJustify,
     );
     fn device_command(&mut self, context: &mut Context, command: &DeviceCommand);
