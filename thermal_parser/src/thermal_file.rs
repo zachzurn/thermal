@@ -132,13 +132,13 @@ fn parse_tokens(line: &str) -> Vec<&str> {
             //End quote, push the string
             if c == '"' {
                 tokens.push(&line[span.0..span.1]);
-                span.1 += 1;
+                span.1 += c.len_utf8();
                 span.0 = span.1;
                 gobble_quoted = false;
             }
             //Still gobbling
             else {
-                span.1 += 1
+                span.1 += c.len_utf8()
             }
 
             continue;

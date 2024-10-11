@@ -57,8 +57,8 @@ fn test_receipt_3() {
 }
 
 #[test]
-fn test_receipt_4() {
-    test_sample("test_receipt_4", "bin")
+fn barcodes() {
+    test_sample("barcodes", "thermal")
 }
 
 #[test]
@@ -79,6 +79,13 @@ fn test_sample(name: &str, ext: &str) {
         .join("out")
         .join(format!("{}.{}", name, ext));
 
+    let rendered_file_img = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("sample_files")
+        .join("out")
+        .join("img")
+        .join(format!("{}.{}", name, ext));
+
     let bytes = if ext == "thermal" {
         let text = std::fs::read_to_string(sample_file.to_str().unwrap()).unwrap();
         parse_str(&text)
@@ -88,7 +95,8 @@ fn test_sample(name: &str, ext: &str) {
 
     render_image(
         &bytes,
-        format!("{}.png", rendered_file.to_str().unwrap().to_string()),
+        format!("{}.png", rendered_file_img.to_str().unwrap().to_string()),
+        name.to_string(),
     );
     //render_html(&bytes, rendered_file.to_str().unwrap().to_string());
 }
@@ -105,23 +113,23 @@ fn test_sample(name: &str, ext: &str) {
 //     command_parser.parse_bytes(bytes);
 // }
 
-fn render_image(bytes: &Vec<u8>, out_path: String) {
+fn render_image(bytes: &Vec<u8>, out_path: String, name: String) {
     let renders = ImageRenderer::render(bytes);
-
-    let errors = renders.errors;
-
-    if errors.len() > 0 {
-        println!("Errors found for test file {}:", out_path);
-        for error in errors {
-            println!("{:?}", error);
-        }
-        assert!(false, "There were errors when rendering an image.");
-    }
 
     if let Some(render) = renders.output.first() {
         save_image(&render.bytes, render.width, render.height, out_path);
     } else {
         assert!(false, "No image generated from renderer.");
+    }
+
+    let errors = renders.errors;
+
+    if errors.len() > 0 {
+        println!("Errors found for test file {}:", name);
+        for error in errors {
+            println!("{:?}", error);
+        }
+        assert!(false, "There were errors when rendering an image.");
     }
 }
 

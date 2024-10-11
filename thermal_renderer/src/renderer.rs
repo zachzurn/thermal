@@ -25,7 +25,7 @@ pub struct RenderError {
 
 impl fmt::Debug for RenderError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "🔴 [{:?}] {}", self.kind, self.description)
+        write!(f, "❌ [{:?}] {}", self.kind, self.description)
     }
 }
 
@@ -226,6 +226,11 @@ impl<'a, Output> Renderer<'a, Output> {
             }
 
             if *p > 0 {
+                //Prevent rendering outside of print area
+                if context.get_available_width() < code_2d.point_width as u32 {
+                    continue;
+                }
+
                 graphics.push(VectorGraphic::Rectangle(Rectangle {
                     x: context.get_x(),
                     y: context.get_y(),
@@ -261,6 +266,11 @@ impl<'a, Output> Renderer<'a, Output> {
 
         for bp in &barcode.points {
             if *bp > 0 {
+                //Prevent rendering when beyond page bounds
+                if self.context.get_available_width() < barcode.point_width as u32 {
+                    continue;
+                }
+
                 graphics.push(VectorGraphic::Rectangle(Rectangle {
                     x: self.context.get_x(),
                     y: self.context.get_y(),
@@ -280,6 +290,7 @@ impl<'a, Output> Renderer<'a, Output> {
             HumanReadableInterface::Below | HumanReadableInterface::Both => {
                 self.collect_text(barcode.text.clone());
                 self.process_text();
+                self.context.newline(1);
             }
             _ => {}
         }
@@ -337,7 +348,7 @@ impl<'a, Output> Renderer<'a, Output> {
         while let Some(mut word) = words.pop() {
             //Calculate available width every loop
             let avail_width = self.context.get_available_width();
-            let word_width = word.text.len() as u32 * word.character_width;
+            let word_width = word.get_width();
 
             //Newlines advance y and reset x
             if word.text.eq("\n") {

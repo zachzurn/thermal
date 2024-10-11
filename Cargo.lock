@@ -207,7 +207,6 @@ dependencies = [
  "barcoders",
  "iconv",
  "qr_code",
- "textwrap",
 ]
 
 [[package]]

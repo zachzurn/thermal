@@ -358,7 +358,7 @@ impl Context {
             },
             barcode: BarcodeContext {
                 human_readable: HumanReadableInterface::None,
-                width: 2,
+                width: 3,
                 height: 40,
                 font: Font::A,
             },
@@ -632,5 +632,12 @@ impl Context {
 
     pub fn update_decoder(&mut self) {
         self.text.decoder = get_codepage(self.text.code_table, self.text.character_set);
+
+        //Codepage 255 is used specifically in this project for UTF8 encoded text
+        self.text.decoder.use_utf8_table = if self.text.code_table == 255 {
+            true
+        } else {
+            false
+        };
     }
 }

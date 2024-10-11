@@ -11,8 +11,8 @@ use barcoders::sym::ean13::UPCA;
 use barcoders::sym::ean8::EAN8;
 use barcoders::sym::tf::TF;
 
-use crate::{command::*, constants::*, context::*, graphics::*};
 use crate::text::TextSpan;
+use crate::{command::*, constants::*, context::*, graphics::*};
 
 #[derive(Clone)]
 enum BarcodeType {
@@ -51,6 +51,38 @@ struct BarcodeHandler {
     accept_data: bool,
 }
 
+impl BarcodeHandler {
+    fn decorate_error(&self, error: String, command: &Command) -> Option<GraphicsCommand> {
+        Some(GraphicsCommand::Error(format!(
+            "{} {} --> {}",
+            self.kind_to_string().to_string(),
+            error,
+            from_utf8(&command.data as &[u8]).unwrap_or("[Error parsing data as utf8]")
+        )))
+    }
+
+    fn kind_to_string(&self) -> &str {
+        match self.kind {
+            BarcodeType::UpcA => "UPC A",
+            BarcodeType::UpcE => "UPC E",
+            BarcodeType::Ean13 => "EAN 13",
+            BarcodeType::Ean8 => "EAN 8",
+            BarcodeType::Code39 => "CODE 39",
+            BarcodeType::Itf => "ITF",
+            BarcodeType::Nw7Codabar => "Nw7Codabar",
+            BarcodeType::Code93 => "Code93",
+            BarcodeType::Code128 => "Code128",
+            BarcodeType::Gs1128 => "GS1 128",
+            BarcodeType::Gs1DatabarOmni => "GS1 Omni",
+            BarcodeType::Gs1DatabarTruncated => "GS1 Truncated",
+            BarcodeType::Gs1DatabarLimited => "GS1 Kimited",
+            BarcodeType::Gs1DatabarExpanded => "GS1 Expanded",
+            BarcodeType::Code128Auto => "Code 128 Auto",
+            BarcodeType::Unknown => "Unknown",
+        }
+    }
+}
+
 impl CommandHandler for BarcodeHandler {
     fn get_graphics(&self, command: &Command, context: &Context) -> Option<GraphicsCommand> {
         let raw_data = &command.data.clone() as &[u8];
@@ -70,24 +102,24 @@ impl CommandHandler for BarcodeHandler {
                 return match Code128::new(adjusted_data.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new(data.to_string(), context),
+                        text: TextSpan::new_for_barcode(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
                     })),
-                    Err(error) => Some(GraphicsCommand::Error(error.to_string())),
+                    Err(error) => self.decorate_error(error.to_string(), command),
                 };
             }
             BarcodeType::Nw7Codabar => {
                 return match Codabar::new(data.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new(data.to_string(), context),
+                        text: TextSpan::new_for_barcode(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
                     })),
-                    Err(error) => Some(GraphicsCommand::Error(error.to_string())),
+                    Err(error) => self.decorate_error(error.to_string(), command),
                 };
             }
             BarcodeType::Code39 => {
@@ -101,79 +133,75 @@ impl CommandHandler for BarcodeHandler {
                 return match Code39::new(data) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new(text, context),
+                        text: TextSpan::new_for_barcode(text, context),
                         point_width,
                         point_height,
                         hri,
                     })),
-                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                    Err(error) => self.decorate_error(error.to_string(), command),
                 };
             }
             BarcodeType::Code93 => {
                 return match Code93::new(data.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new(data.to_string(), context),
+                        text: TextSpan::new_for_barcode(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
                     })),
-                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                    Err(error) => self.decorate_error(error.to_string(), command),
                 };
             }
             BarcodeType::Ean13 => {
                 return match EAN13::new(data.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new(data.to_string(), context),
+                        text: TextSpan::new_for_barcode(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
                     })),
-                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                    Err(error) => self.decorate_error(error.to_string(), command),
                 };
             }
             BarcodeType::UpcA => {
                 return match UPCA::new(data.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new(data.to_string(), context),
+                        text: TextSpan::new_for_barcode(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
                     })),
-                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                    Err(error) => self.decorate_error(error.to_string(), command),
                 };
             }
             BarcodeType::Ean8 => {
                 return match EAN8::new(data.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new(data.to_string(), context),
+                        text: TextSpan::new_for_barcode(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
                     })),
-                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                    Err(error) => self.decorate_error(error.to_string(), command),
                 };
             }
             BarcodeType::Itf => {
                 return match TF::interleaved(data.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new(data.to_string(), context),
+                        text: TextSpan::new_for_barcode(data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
                     })),
-                    Err(e) => Some(GraphicsCommand::Error(e.to_string())),
+                    Err(error) => self.decorate_error(error.to_string(), command),
                 };
             }
-            _ => {
-                return Some(GraphicsCommand::Error(
-                    "Unsupported Barcode Type".to_string(),
-                ))
-            }
+            _ => return self.decorate_error("Unknown barcode type".to_string(), command),
         }
     }
 
@@ -184,25 +212,6 @@ impl CommandHandler for BarcodeHandler {
             EncodingFunction::Unknown => "Unknown",
         };
 
-        let type_str = match self.kind {
-            BarcodeType::UpcA => "UPC A",
-            BarcodeType::UpcE => "UPC E",
-            BarcodeType::Ean13 => "EAN 13",
-            BarcodeType::Ean8 => "EAN 8",
-            BarcodeType::Code39 => "CODE 39",
-            BarcodeType::Itf => "ITF",
-            BarcodeType::Nw7Codabar => "Nw7Codabar",
-            BarcodeType::Code93 => "Code93",
-            BarcodeType::Code128 => "Code128",
-            BarcodeType::Gs1128 => "GS1 128",
-            BarcodeType::Gs1DatabarOmni => "GS1 Omni",
-            BarcodeType::Gs1DatabarTruncated => "GS1 Truncated",
-            BarcodeType::Gs1DatabarLimited => "GS1 Kimited",
-            BarcodeType::Gs1DatabarExpanded => "GS1 Expanded",
-            BarcodeType::Code128Auto => "Code 128 Auto",
-            BarcodeType::Unknown => "Unknown",
-        };
-
         if matches!(self.kind, BarcodeType::Unknown) {
             return format!(
                 "Unknown Barcode Format with {} encoding and a type id of {} and data {:02X?}",
@@ -211,7 +220,7 @@ impl CommandHandler for BarcodeHandler {
         }
         format!(
             "{} Barcode with {} bytes: {}",
-            type_str,
+            self.kind_to_string(),
             command.data.len(),
             from_utf8(&command.data as &[u8]).unwrap_or("[No Data]")
         )

@@ -350,8 +350,10 @@
 
 '// Print data in Page mode: Batch print
     ESC FF
+
+'// Select Standard mode (return to Standard mode)
+    ESC "S"
+    
 '// Select cut mode and cut paper: [Function B] Feed paper to (cutting position
 '// + 10 mm (80/203 inches)) and executes a partial cut (one point left uncut).
     GS "V" 66 80
-'// Select Standard mode (return to Standard mode)
-    ESC "S"

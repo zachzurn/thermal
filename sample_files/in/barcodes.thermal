@@ -1,0 +1,56 @@
+'// BARCODES
+GS "!" 0x01 "BARCODES" GS "!" 0x00 LF LF
+    
+'// Center
+ESC "a" 1
+
+'// --- CODE 39 --->>>
+"Code 39 HRI Below" LF LF
+'// Set barcode height: in case TM-T20, 6.25 mm (50/203 inches)
+    GS "h" 50
+'// Select print position of HRI characters: Print position, below the barcode
+    GS "H" 2
+'// Select font for HRI characters: Font B
+    GS "f" 1
+'// Print barcode: (A) format, barcode system = CODE39
+    GS "k" 4 "*00014*" 0
+
+LF LF "Code 39 HRI Above" LF LF
+
+'// Select print position of HRI characters: Print position, above the barcode
+    GS "H" 1
+    
+'// Print barcode: (A) format, barcode system = CODE39
+    GS "k" 4 "*00015*" 0
+
+LF LF "Code 39 HRI Both" LF LF
+
+'// Select print position of HRI characters: Print position, above the barcode
+    GS "H" 3
+    
+'// Print barcode: (A) format, barcode system = CODE39
+    GS "k" 4 "*00016*" 0
+    
+    
+LF LF "Code 39 no HRI" LF LF
+
+'// Select print position of HRI characters: Print position, above the barcode
+    GS "H" 0
+    
+'// Print barcode: (A) format, barcode system = CODE39
+    GS "k" 4 "*00017*" 0
+
+'// --- CODE 39 ---<<<
+
+'// End Center
+ESC "a" 0
+
+'// CODE 2D
+LF LF  GS "!" 0x01 "CODE 2D" GS "!" 0x00 LF LF
+
+'// Center
+ESC "a" 1
+
+
+'// End center
+ESC "a" 0

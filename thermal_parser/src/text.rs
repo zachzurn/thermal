@@ -1,6 +1,5 @@
 use crate::context::{Context, Font, TextJustify, TextStrikethrough, TextUnderline};
 use std::fmt;
-use textwrap::WordSeparator;
 
 #[derive(Clone)]
 pub struct TextSpan {
@@ -66,72 +65,113 @@ impl TextSpan {
         }
     }
 
+    pub fn new_for_barcode(text: String, context: &Context) -> Self {
+        let mut span = TextSpan::new(text, context);
+        span.font = context.barcode.font.clone();
+        span
+    }
+
     pub fn get_dimensions(&mut self, context: &Context) {
         self.dimensions = Some(Dimensions {
             x: context.get_x(),
             y: context.get_y(),
-            w: self.text.len() as u32 * self.character_width,
+            w: self.get_width(),
             h: self.character_height,
         });
     }
 
     pub fn get_width(&self) -> u32 {
-        self.text.len() as u32 * self.character_width
+        self.character_count() * self.character_width
     }
 
-    pub fn break_apart(&mut self, first_at: usize, rest_at: usize) -> Vec<TextSpan> {
-        let mut spans = vec![];
+    pub fn character_count(&self) -> u32 {
+        self.text.chars().count() as u32
+    }
 
-        let text = self.text.clone();
+    pub fn clone_with(&self, string: String) -> Self {
+        let mut clone = TextSpan {
+            font: self.font.clone(),
+            character_width: self.character_width,
+            character_height: self.character_height,
+            base_character_width: self.base_character_width,
+            base_character_height: self.base_character_height,
+            text: "".to_string(),
+            bold: self.bold,
+            italic: self.italic,
+            underline: self.underline,
+            strikethrough: self.strikethrough,
+            stretch_width: self.stretch_width,
+            stretch_height: self.stretch_height,
+            inverted: self.inverted,
+            upside_down: self.upside_down,
+            justify: self.justify.clone(),
+            dimensions: None,
+        };
+        clone.text = string;
+        clone
+    }
 
-        //Nothing to break up
-        if rest_at == 0 || text.len() < first_at {
-            spans.push(self.clone());
-            return spans;
+    pub fn break_apart(&self, first_line_length: usize, line_length: usize) -> Vec<TextSpan> {
+        let chars: Vec<char> = self.text.chars().collect();
+        let mut result = Vec::new();
+        let mut index = 0;
+
+        // First split, which is often smaller
+        if first_line_length > 0 && chars.len() > 0 {
+            let first_chunk = chars
+                .iter()
+                .take(first_line_length)
+                .cloned()
+                .collect::<String>();
+            result.push(self.clone_with(first_chunk));
+            index += first_line_length;
         }
 
-        let first = &text[0..first_at];
-
-        let mut first_span = self.clone();
-        first_span.text = first.to_string();
-
-        spans.push(first_span);
-
-        if text.len() - 1 < rest_at {
-            return spans;
+        //We are always expecting a first line value, even if there isn't one
+        if index == 0 {
+            result.push(self.clone_with("".to_string()));
         }
 
-        let mut last = &text[first_at..];
-
-        // Now break the `last` string into spans of size `rest_at`
-        while !last.is_empty() {
-            let next_span;
-            if last.len() > rest_at {
-                next_span = &last[0..rest_at];
-                last = &last[rest_at..];
-            } else {
-                next_span = last;
-                last = "";
-            }
-
-            let mut span = self.clone();
-            span.text = next_span.to_string();
-            spans.push(span);
+        // Split the rest of the string into chunks
+        while index < chars.len() {
+            let chunk = chars
+                .iter()
+                .skip(index)
+                .take(line_length)
+                .cloned()
+                .collect::<String>();
+            result.push(self.clone_with(chunk));
+            index += line_length;
         }
 
-        spans
+        result
     }
 
     pub fn break_into_words(&self) -> Vec<TextSpan> {
-        let words = WordSeparator::UnicodeBreakProperties.find_words(self.text.as_str());
+        let mut words = Vec::new();
+        let mut current_word = String::new();
+
+        for c in self.text.chars() {
+            if c.is_whitespace() {
+                // If we encounter a whitespace character, we add it to the current word
+                current_word.push(c);
+
+                if !current_word.is_empty() {
+                    words.push(self.clone_with(current_word.clone()));
+                    current_word.clear();
+                }
+            } else {
+                // Add regular characters to the current word
+                current_word.push(c);
+            }
+        }
+
+        // Push the last word if there is any
+        if !current_word.is_empty() {
+            words.push(self.clone_with(current_word));
+        }
 
         words
-            .map(|word| {
-                let mut w = self.clone();
-                w.text = format!("{}{}", word.word, word.whitespace);
-                w
-            })
-            .collect()
     }
 }
 

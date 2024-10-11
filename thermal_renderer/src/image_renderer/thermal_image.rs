@@ -510,7 +510,9 @@ impl ThermalImage {
         //Completely out of bounds, unrenderable
         if exceeds_w || (exceeds_h && !self.auto_grow) {
             self.errors.push(format!(
-                "Image exceeded expected paper width w{} h{} max --> w{} h{}",
+                "Image exceeded paper x{} y{} w{} h{} paper[w{} h{}]",
+                x,
+                y,
                 exceeds_w,
                 exceeds_h,
                 self.width,
