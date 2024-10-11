@@ -227,7 +227,7 @@
 '// Select character size: (horizontal (times 2) x vertical (times 2))
     GS "!" 0x11
 '// Print and line feed and print character string
-    " Merry Christmas !!" LF LF
+    LF " Merry Christmas !!" LF LF
 
 '// Select character size: (horizontal (times 2) x vertical (times 1))
     GS "!" 0x10

@@ -2,14 +2,16 @@ extern crate fontdue;
 extern crate png;
 extern crate textwrap;
 
-use std::rc::Rc;
 use fontdue::layout::CharacterData;
+use std::rc::Rc;
+use thermal_parser::context::Font;
 use thermal_parser::graphics::{Image, Rectangle};
 use thermal_parser::text::TextSpan;
 
 const THRESHOLD: u8 = 120;
 const SCALE_THRESHOLD: u8 = 140;
-const BASE_FONT_SIZE: f32 = 21.0;
+const SIZE_TO_FONT_RATIO: f32 = 1.68;
+const SIZE_TO_BASELINE_RATIO: f32 = 0.0315;
 
 pub struct FontFamily {
     pub regular: Rc<fontdue::Font>,
@@ -28,6 +30,10 @@ pub struct ThermalImage {
     pub auto_grow: bool,
     pub allow_greyscale: bool,
     pub debug: bool,
+    pub character_width: u32,
+    pub character_height: u32,
+    pub font_size: f32,
+    pub errors: Vec<String>,
 }
 
 impl ThermalImage {
@@ -61,13 +67,27 @@ impl ThermalImage {
         };
 
         Self {
+            errors: vec![],
             bytes: Vec::<u8>::new(),
             font,
             width,
             allow_greyscale: true,
             auto_grow: true,
-            debug: true
+            debug: false,
+            character_width: 12,
+            character_height: 24,
+            font_size: 12 as f32 * SIZE_TO_FONT_RATIO,
         }
+    }
+
+    pub fn enable_debug(&mut self) {
+        self.debug = true;
+    }
+
+    pub fn set_character_size(&mut self, character_width: u32, character_height: u32) {
+        self.character_width = character_width;
+        self.character_height = character_height;
+        self.font_size = character_width as f32 * SIZE_TO_FONT_RATIO;
     }
 
     pub fn get_font(&self, span: &TextSpan) -> Rc<fontdue::Font> {
@@ -81,6 +101,20 @@ impl ThermalImage {
             return self.font.italic.clone();
         }
         self.font.regular.clone()
+    }
+
+    pub fn get_font_size(&self, font: &Font) -> (f32, f32) {
+        match font {
+            Font::B => (
+                self.font_size * 0.8,
+                (self.font_size * 0.8) * SIZE_TO_BASELINE_RATIO,
+            ),
+            Font::C => (
+                self.font_size * 0.7,
+                (self.font_size * 0.5) * SIZE_TO_BASELINE_RATIO,
+            ),
+            _ => (self.font_size, self.font_size * SIZE_TO_BASELINE_RATIO),
+        }
     }
 
     pub fn rotate_90(&mut self) {
@@ -165,19 +199,41 @@ impl ThermalImage {
         }
     }
 
-    fn render_char(char: char, width: u32, height: u32, final_width: u32, final_height: u32, font: Rc<fontdue::Font>, font_size: f32) -> Option<(Vec<u8>, u32, u32)> {
-        let mut bytes = vec![0u8; width as usize * height as usize];
-        let font_metrics = font.horizontal_line_metrics(font_size).unwrap();
+    fn render_char(
+        char: char,
+        width: u32,
+        height: u32,
+        final_width: u32,
+        final_height: u32,
+        font: Rc<fontdue::Font>,
+        font_size: f32,
+    ) -> Option<(Vec<u8>, u32, u32)> {
+        let w_scale = final_width / width;
+        let h_scale = final_height / height;
+        let scale = h_scale.max(w_scale);
+        let scaled_font_size = font_size * scale as f32;
+
+        //We render the char at full width/height, then scale down dimensions as needed
+        let rendered_w = width * scale;
+        let rendered_h = height * scale;
+
+        let mut bytes = vec![0u8; rendered_w as usize * rendered_h as usize];
+
+        let (metrics, char_bitmap) = font.rasterize(char, scaled_font_size);
+        let font_metrics = font.horizontal_line_metrics(scaled_font_size).unwrap();
         let baseline = f32::ceil(font_metrics.ascent + font_metrics.descent);
-        let (metrics, char_bitmap) = font.rasterize(char, font_size);
         let glyph_index = font.lookup_glyph_index(char);
         let char_data = CharacterData::classify(char, glyph_index);
-        if char_data.is_control() { return None; }
+        if char_data.is_control() {
+            return None;
+        }
 
         let y_offset =
             f32::ceil((baseline - metrics.bounds.height) + (-1.0 * metrics.bounds.ymin)) as u32;
-        
-        let x_offset = 0;
+        let x_offset = metrics.bounds.xmin.round().abs() as u32;
+        //^ This can cut some chars off. We prefer to have thw whole char
+        //show vs changing the font size ratio
+        // let x_offset = 0;
 
         // Add text to empty char bitmap
         if metrics.width > 0 {
@@ -188,9 +244,9 @@ impl ThermalImage {
                     let target_y = (y as u32).saturating_add(y_offset); // Ensure y_offset is positive
 
                     // Check if the target position is within the bounds of the larger bitmap
-                    if target_x < width && target_y < height {
+                    if target_x < rendered_w && target_y < rendered_h {
                         // Calculate the index in the larger bitmap
-                        let idx = (target_y * width + target_x) as usize;
+                        let idx = (target_y * rendered_w + target_x) as usize;
 
                         // Safely place the pixel into the larger bitmap
                         bytes[idx] = pixel;
@@ -198,36 +254,60 @@ impl ThermalImage {
                 }
             }
         }
-        
+
         // Scale if needed
-        if final_width > width || final_height > height {
-            return Some((ThermalImage::scale_bitmap(
-                &bytes,
-                width,
-                height,
+        if scale > 1 {
+            return Some((
+                ThermalImage::scale_bitmap(
+                    &bytes,
+                    rendered_w,
+                    rendered_h,
+                    final_width,
+                    final_height,
+                ),
                 final_width,
                 final_height,
-            ), final_width, final_height));
+            ));
         }
 
         Some((bytes, final_width, final_height))
     }
 
     pub fn render_span(&mut self, x_offset: u32, max_height: u32, span: &TextSpan) {
-        if span.dimensions.is_none() { return; }
+        if span.dimensions.is_none() {
+            return;
+        }
         let dimensions = span.dimensions.as_ref().unwrap();
         let font = self.get_font(span);
+        let (font_size, baseline_ratio) = self.get_font_size(&span.font);
         let mut cur_x = dimensions.x + x_offset;
-        let y_offset = max_height - span.character_height;
-        
+        let mut y_offset = max_height - span.character_height;
+
+        if y_offset > 0 {
+            //Calculate the actual y offset based on the preset baseline ratio
+            let max_height_baseline = max_height as f32 * baseline_ratio;
+            let span_baseline = span.character_height as f32 * baseline_ratio;
+            y_offset = (max_height_baseline - span_baseline) as u32;
+        }
+
         for char in span.text.chars() {
-            let char_bitmap = ThermalImage::render_char(char, span.base_character_width, span.base_character_height, span.character_width, span.character_height, font.clone(), BASE_FONT_SIZE);
+            let char_bitmap = ThermalImage::render_char(
+                char,
+                span.base_character_width,
+                span.base_character_height,
+                span.character_width,
+                span.character_height,
+                font.clone(),
+                font_size,
+            );
 
             if let Some(mut bitmap) = char_bitmap {
-                if bitmap.1 == 0 || bitmap.2 == 0 { continue; }
-                
+                if bitmap.1 == 0 || bitmap.2 == 0 {
+                    continue;
+                }
+
                 if self.debug {
-                    ThermalImage::draw_border(&mut bitmap.0, bitmap.1, bitmap.2, 255);
+                    ThermalImage::draw_border(&mut bitmap.0, bitmap.1, bitmap.2, 40);
                 }
 
                 self.put_pixels(
@@ -244,40 +324,55 @@ impl ThermalImage {
             cur_x += span.character_width;
         }
 
+        //Draw baseline
+        if self.debug {
+            self.draw_rect(
+                dimensions.x + x_offset,
+                (dimensions.y + y_offset) + (span.character_height as f32 * baseline_ratio) as u32,
+                dimensions.w,
+                1,
+            )
+        }
+
         if span.underline > 0 {
-            //TODO
-            //self.draw_rect(under_x, under_y, dimensions.w, span.underline);
+            self.draw_rect(
+                dimensions.x + x_offset,
+                (dimensions.y + y_offset + 3)
+                    + (span.character_height as f32 * baseline_ratio) as u32,
+                dimensions.w,
+                1,
+            )
         }
 
         if span.strikethrough > 0 {
-            //TODO
-            // let strike_y = dimensions.y + ((font_metrics.ascent * span.stretch_height) / 2.0) as u32;
-            // let strike_x = dimensions.x + x_offset;
-            //
-            // self.draw_rect(
-            //     strike_x,
-            //     strike_y - span.strikethrough,
-            //     dimensions.w,
-            //     span.strikethrough,
-            // );
+            self.draw_rect(
+                dimensions.x + x_offset,
+                (dimensions.y + y_offset) + (span.character_height as f32 / 2.5) as u32,
+                dimensions.w,
+                span.strikethrough,
+            )
         }
 
         if span.inverted {
-            self.invert_pixels(dimensions.x + x_offset, dimensions.y + y_offset, dimensions.w, dimensions.h);
+            self.invert_pixels(
+                dimensions.x + x_offset,
+                dimensions.y + y_offset,
+                dimensions.w,
+                dimensions.h,
+            );
         }
 
         if span.upside_down {
-            self.flip_pixels(dimensions.x + x_offset, dimensions.y + y_offset, dimensions.w, dimensions.h);
+            self.flip_pixels(
+                dimensions.x + x_offset,
+                dimensions.y + y_offset,
+                dimensions.w,
+                dimensions.h,
+            );
         }
     }
 
-    pub fn scale_bitmap(
-        bitmap: &Vec<u8>,
-        width: u32,
-        height: u32,
-        sw: u32,
-        sh: u32,
-    ) -> Vec<u8> {
+    pub fn scale_bitmap(bitmap: &Vec<u8>, width: u32, height: u32, sw: u32, sh: u32) -> Vec<u8> {
         // Create a new scaled bitmap
         let mut scaled_bitmap = vec![0u8; (sw * sh) as usize];
 
@@ -332,19 +427,34 @@ impl ThermalImage {
         if x + width > self.width {
             return;
         };
+
         self.expand_to_height(y + height);
 
+        // Vector to store rows
         let mut sub_image = Vec::<u8>::with_capacity((width * height) as usize);
 
+        // Collect the sub-image row by row
         for cur_y in y..y + height {
-            let idx = cur_y * self.width + x;
-            for cur_x in x..width {
-                sub_image.push(self.bytes[idx as usize + cur_x as usize]);
+            let start_idx = (cur_y * self.width + x) as usize;
+            let end_idx = start_idx + width as usize;
+
+            // Collect the current row and push it to the sub_image
+            sub_image.extend_from_slice(&self.bytes[start_idx..end_idx]);
+        }
+
+        // Now reverse the rows to flip the image top-to-bottom
+        let row_size = width as usize;
+        for i in 0..(height as usize / 2) {
+            let top_row_start = i * row_size;
+            let bottom_row_start = (height as usize - i - 1) * row_size;
+
+            // Swap rows by using a temporary buffer
+            for j in 0..row_size {
+                sub_image.swap(top_row_start + j, bottom_row_start + j);
             }
         }
 
-        sub_image.reverse();
-
+        // Put the flipped pixels back into the image
         self.put_pixels(x, y, width, height, sub_image, false, false);
     }
 
@@ -389,7 +499,8 @@ impl ThermalImage {
 
         //Bad pixel data
         if width * height < pixels.len() as u32 {
-            println!("Bad pixel data, not enough bytes");
+            self.errors
+                .push("Bad pixel data, not enough bytes".to_string());
             return false;
         }
 
@@ -399,13 +510,13 @@ impl ThermalImage {
 
         //Completely out of bounds, unrenderable
         if exceeds_w || (exceeds_h && !self.auto_grow) {
-            println!(
+            self.errors.push(format!(
                 "Exceeds ew{} eh{} w{} h{}",
                 exceeds_w,
                 exceeds_h,
                 self.width,
                 self.get_height()
-            );
+            ));
             return false;
         }
 
@@ -578,5 +689,3 @@ impl ThermalImage {
         self.bytes.clear()
     }
 }
-
-

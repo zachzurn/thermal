@@ -1,7 +1,7 @@
+use png::BitDepth;
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::{Path, PathBuf};
-use png::BitDepth;
 use thermal_parser::thermal_file::parse_str;
 // use thermal_renderer::html_renderer::HtmlRenderer;
 use thermal_renderer::image_renderer::ImageRenderer;
@@ -106,7 +106,10 @@ fn test_sample(name: &str, ext: &str) {
         std::fs::read(sample_file.to_str().unwrap()).unwrap()
     };
 
-    render_image(&bytes, format!("{}.png",rendered_file.to_str().unwrap().to_string()));
+    render_image(
+        &bytes,
+        format!("{}.png", rendered_file.to_str().unwrap().to_string()),
+    );
     //render_html(&bytes, rendered_file.to_str().unwrap().to_string());
 }
 
@@ -125,10 +128,16 @@ fn test_sample(name: &str, ext: &str) {
 fn render_image(bytes: &Vec<u8>, out_path: String) {
     let renders = ImageRenderer::render(bytes);
 
+    let errors = renders.errors;
+
+    if errors.len() > 0 {
+        println!("{:?}", errors);
+        assert!(false, "There were errors when rendering an image.");
+    }
+
     if let Some(render) = renders.output.first() {
         save_image(&render.bytes, render.width, render.height, out_path);
     } else {
-        //should fail the test
         assert!(false, "No image generated from renderer.");
     }
 }
@@ -142,11 +151,7 @@ fn save_image(bytes: &Vec<u8>, width: u32, height: u32, out_path: String) {
     let path = Path::new(&out_path);
     let file = File::create(path).unwrap();
     let ref mut writer = BufWriter::new(file);
-    let mut encoder = png::Encoder::new(
-        writer,
-        width,
-        height,
-    );
+    let mut encoder = png::Encoder::new(writer, width, height);
     encoder.set_color(png::ColorType::Grayscale);
     encoder.set_depth(BitDepth::Eight);
 

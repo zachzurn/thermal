@@ -80,7 +80,6 @@ impl TextSpan {
     }
 
     pub fn break_apart(&mut self, first_at: usize, rest_at: usize) -> Vec<TextSpan> {
-        println!("First at {} rest at {}", first_at, rest_at);
         let mut spans = vec![];
 
         let text = self.text.clone();

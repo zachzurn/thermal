@@ -1,3 +1,4 @@
+use crate::renderer::RenderErrorKind::ChildRenderError;
 use std::mem;
 use thermal_parser::command::{Command, CommandType, DeviceCommand};
 use thermal_parser::context::{Context, HumanReadableInterface, Rotation, TextJustify};
@@ -6,14 +7,27 @@ use thermal_parser::text::TextSpan;
 
 pub struct RenderOutput<Output> {
     pub output: Vec<Output>,
-    pub errors: Vec<String>,
+    pub errors: Vec<RenderError>,
     pub debug: Vec<String>,
+}
+
+#[derive(Debug)]
+pub enum RenderErrorKind {
+    ChildRenderError,
+    GraphicsError,
+    UnknownCommand,
+}
+
+#[derive(Debug)]
+pub struct RenderError {
+    kind: RenderErrorKind,
+    description: String,
 }
 
 pub struct Renderer<'a, Output> {
     renderer: &'a mut Box<dyn OutputRenderer<Output>>,
     output_buffer: Vec<Output>,
-    error_buffer: Vec<String>,
+    error_buffer: Vec<RenderError>,
     span_buffer: Vec<TextSpan>,
     debug_buffer: Vec<String>,
     context: Context,
@@ -61,6 +75,12 @@ impl<'a, Output> Renderer<'a, Output> {
     //default implementation
     fn process_command(&mut self, command: &Command) {
         match command.kind {
+            CommandType::Unknown => {
+                self.error_buffer.push(RenderError {
+                    kind: RenderErrorKind::UnknownCommand,
+                    description: command.handler.debug(command, &self.context),
+                });
+            }
             CommandType::Text => {
                 let maybe_text = command.handler.get_text(command, &self.context);
                 if let Some(text) = maybe_text {
@@ -75,7 +95,10 @@ impl<'a, Output> Renderer<'a, Output> {
                 if let Some(gfx) = maybe_gfx {
                     match gfx {
                         GraphicsCommand::Error(error) => {
-                            self.error_buffer.push(error);
+                            self.error_buffer.push(RenderError {
+                                kind: RenderErrorKind::GraphicsError,
+                                description: error,
+                            });
                         }
                         GraphicsCommand::Code2D(code_2d) => {
                             self.process_code_2d(&code_2d);
@@ -126,6 +149,15 @@ impl<'a, Output> Renderer<'a, Output> {
                     }
                     DeviceCommand::EndPrint => {
                         self.process_text();
+                        let errors = self.renderer.get_render_errors();
+
+                        for error in errors {
+                            self.error_buffer.push(RenderError {
+                                kind: ChildRenderError,
+                                description: error,
+                            })
+                        }
+
                         let output = self.renderer.end_render(&mut self.context);
                         self.output_buffer.push(output);
                     }
@@ -308,12 +340,12 @@ impl<'a, Output> Renderer<'a, Output> {
             if word.text.eq("\n") {
                 //Advance line height
                 self.context.newline_for_spans(&current_line);
-                
+
                 //Swap current line
                 let mut finished_line = vec![];
                 mem::swap(&mut current_line, &mut finished_line);
                 lines.push(finished_line);
-                
+
                 //Start a new line
                 lines.push(vec![]); //Newline
                 continue;
@@ -357,10 +389,10 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.context.offset_x(broke.get_width());
                     } else {
                         //Every other line we assume will fit into a line
-                        
+
                         //Advance line
                         self.context.newline_for_spans(&current_line);
-                        
+
                         //Swap line
                         let mut finished_line = vec![];
                         mem::swap(&mut current_line, &mut finished_line);
@@ -417,8 +449,13 @@ impl<'a, Output> Renderer<'a, Output> {
                 _ => {}
             }
 
-            self.renderer
-                .render_text(&mut self.context, line, line_offset, max_height, justification);
+            self.renderer.render_text(
+                &mut self.context,
+                line,
+                line_offset,
+                max_height,
+                justification,
+            );
         }
     }
 }
@@ -446,5 +483,6 @@ pub trait OutputRenderer<Output> {
         text_justify: TextJustify,
     );
     fn device_command(&mut self, context: &mut Context, command: &DeviceCommand);
+    fn get_render_errors(&mut self) -> Vec<String>;
     fn end_render(&mut self, context: &mut Context) -> Output;
 }

@@ -47,11 +47,21 @@ LF LF GS "!" 0x01 "STYLE" GS "!" 0x00 LF LF
 
 "This should be --> " ESC "-" 1 "underline" ESC "-" 0 " <--" LF LF
 
+"This should be --> " ESC "G" 1 ESC "G" 0 "strikethrough" ESC "G" 0 " <--" LF LF
+
+"This should be --> " ESC "G" 1 ESC "G" 1 "double strike" ESC "G" 0 ESC "G" 0 " <--" LF LF
+
 "This should be --> " ESC "E" 1 "bold" ESC "E" 0 " <--" LF LF
 
-"This should be --> " ESC 0x34 "italic" ESC 0x35 " <--" LF LF
+"This should be --> " ESC 0x34 1 "italic" ESC 0x34 0 " <--" LF LF
 
 "This should be --> " ESC "{" 1 "upside down" ESC "{" 0 " <--" LF LF
+
+"This should be --> " ESC "M" 0 "Font A" ESC "M" 0 " <--" LF LF
+
+"This should be --> " ESC "M" 1 "Font B" ESC "M" 0 " <--" LF LF
+
+"This should be --> " ESC "M" 2 "Font C" ESC "M" 0 " <--" LF LF
 
 '// JUSTIFICATION
 LF LF GS "!" 0x01 "JUSTIFICATION" GS "!" 0x00 LF LF
@@ -75,46 +85,50 @@ ESC "a" 0
 '// STRETCH
 LF LF GS "!" 1 "STRETCH" GS "!" 0 LF LF
 
-GS "!" 0x01 
+GS "!" 0x01
 "This is some stretched text that should go onto a newline" LF LF
 
 
 "Small to big" LF
-GS "!" 0 "1" GS "!" 0 
-GS "!" 17 "2" GS "!" 0 
-GS "!" 34 "3" GS "!" 0 
-GS "!" 51 "4" GS "!" 0 
-GS "!" 68 "5" GS "!" 0 
-GS "!" 85 "6" GS "!" 0 
-GS "!" 102 "7" GS "!" 0 
-GS "!" 119 "8" GS "!" 0 
+GS "!" 0 "1" GS "!" 0
+GS "!" 17 "2" GS "!" 0
+GS "!" 34 "3" GS "!" 0
+GS "!" 51 "4" GS "!" 0
+GS "!" 68 "5" GS "!" 0
+GS "!" 85 "6" GS "!" 0
+GS "!" 102 "7" GS "!" 0
+GS "!" 119 "8" GS "!" 0
 LF LF
 
 "Stretch width low to high" LF
-GS "!" 0 "1" GS "!" 0 
-GS "!" 16 "2" GS "!" 0 
-GS "!" 32 "3" GS "!" 0 
-GS "!" 48 "4" GS "!" 0 
-GS "!" 64 "5" GS "!" 0 
-GS "!" 80 "6" GS "!" 0 
-GS "!" 96 "7" GS "!" 0 
-GS "!" 112 "8" GS "!" 0 
+GS "!" 0 "1" GS "!" 0
+GS "!" 16 "2" GS "!" 0
+GS "!" 32 "3" GS "!" 0
+GS "!" 48 "4" GS "!" 0
+GS "!" 64 "5" GS "!" 0
+GS "!" 80 "6" GS "!" 0
+GS "!" 96 "7" GS "!" 0
+GS "!" 112 "8" GS "!" 0
 LF LF
 
 "Stretch height low to high" LF
-GS "!" 0 "1" GS "!" 0 
-GS "!" 1 "2" GS "!" 0 
-GS "!" 2 "3" GS "!" 0 
-GS "!" 3 "4" GS "!" 0 
-GS "!" 4 "5" GS "!" 0 
-GS "!" 5 "6" GS "!" 0 
-GS "!" 6 "7" GS "!" 0 
-GS "!" 7 "8" GS "!" 0 
+GS "!" 0 "1" GS "!" 0
+GS "!" 1 "2" GS "!" 0
+GS "!" 2 "3" GS "!" 0
+GS "!" 3 "4" GS "!" 0
+GS "!" 4 "5" GS "!" 0
+GS "!" 5 "6" GS "!" 0
+GS "!" 6 "7" GS "!" 0
+GS "!" 7 "8" GS "!" 0
 LF LF
 
-GS "!" 17 ESC "-" 1  ESC "E" 1 
-"2X Width and Height, Bold, Underline" 
-ESC "-" 0  ESC "E" 0 LF LF 
+GS "!" 17 ESC "-" 1  ESC "E" 1
+"2x Width and 2x Height, Bold, Underline" ESC "-" 0
+ESC "-" 0  ESC "E" 0 LF LF
+
+GS "!" 16 ESC "-" 1  ESC "E" 1
+"2x Width only with Bold, Underline" ESC "-" 0
+ESC "-" 0  ESC "E" 0 LF LF
 
 GS "!" 0
 

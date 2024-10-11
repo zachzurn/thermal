@@ -8,14 +8,14 @@ use thermal_parser::text::TextSpan;
 pub mod thermal_image;
 
 pub struct ImageRenderer {
-    pub image: ThermalImage,
+    pub paper_image: ThermalImage,
     pub page_image: ThermalImage,
 }
 
 impl ImageRenderer {
     pub fn new() -> Self {
         Self {
-            image: ThermalImage::new(0),
+            paper_image: ThermalImage::new(0),
             page_image: ThermalImage::new(0),
         }
     }
@@ -35,9 +35,23 @@ pub struct ReceiptImage {
 
 impl OutputRenderer<ReceiptImage> for ImageRenderer {
     fn begin_render(&mut self, context: &mut Context) {
-        self.image.empty();
-        self.image.set_width(context.graphics.render_area.w);
+        //self.paper_image.enable_debug();
+
+        //Initialize the main image area
+        self.paper_image.empty();
+        self.paper_image.set_width(context.graphics.render_area.w);
+        self.paper_image.set_character_size(
+            context.text.character_width as u32,
+            context.text.character_height as u32,
+        );
+
+        //Initialize image area for page mode
         self.page_image.set_width(0);
+        self.page_image.set_character_size(
+            context.text.character_width as u32,
+            context.text.character_height as u32,
+        );
+
         //Page images should not auto grow in either direction
         //Normally only the width is locked down, but for page mode
         //We want to lock down the height as well
@@ -103,7 +117,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
             _ => {}
         }
 
-        self.image.put_pixels(
+        self.paper_image.put_pixels(
             context.graphics.render_area.x,
             context.graphics.render_area.y,
             w,
@@ -123,7 +137,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
                     if page {
                         self.page_image.put_rect(rectangle);
                     } else {
-                        self.image.put_rect(rectangle);
+                        self.paper_image.put_rect(rectangle);
                     }
                 }
             }
@@ -134,7 +148,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         if context.page_mode.enabled {
             self.page_image.put_render_img(image);
         } else {
-            self.image.put_render_img(image);
+            self.paper_image.put_render_img(image);
         }
     }
 
@@ -149,7 +163,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         let canvas = if context.page_mode.enabled {
             &mut self.page_image
         } else {
-            &mut self.image
+            &mut self.paper_image
         };
 
         for span in spans {
@@ -161,14 +175,32 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
 
     fn device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
 
+    fn get_render_errors(&mut self) -> Vec<String> {
+        let mut errors = vec![];
+        let paper_errors = &self.paper_image.errors;
+        let page_errors = &self.page_image.errors;
+
+        for paper_error in paper_errors {
+            errors.push(paper_error.to_owned());
+        }
+
+        for page_error in page_errors {
+            errors.push(page_error.to_owned());
+        }
+
+        errors
+    }
+
     fn end_render(&mut self, context: &mut Context) -> ReceiptImage {
         //Add in the left and right margin;
-        self.image.expand_to_width(context.graphics.paper_area.w);
+        self.paper_image
+            .expand_to_width(context.graphics.paper_area.w);
 
         //Feed to the y height to ensure we catch any cut advances
-        self.image.expand_to_height(context.graphics.render_area.y);
+        self.paper_image
+            .expand_to_height(context.graphics.render_area.y);
 
-        let rendered = self.image.copy();
+        let rendered = self.paper_image.copy();
 
         ReceiptImage {
             width: rendered.0,
