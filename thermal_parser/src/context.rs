@@ -289,8 +289,6 @@ impl PageModeContext {
         r.h = l.w;
         r.x = p.w - (l.y + l.h);
         r.y = l.x;
-
-        println!("Page mode area set to X{} Y{} W{} H{}", r.x, r.y, r.w, r.h);
     }
 
     pub fn calculate_directional_rotation(
@@ -508,14 +506,8 @@ impl Context {
     pub fn offset_x(&mut self, x: u32) {
         if self.page_mode.enabled {
             self.page_mode.render_area.x += x;
-            if self.page_mode.render_area.x > self.page_mode.render_area.w {
-                self.page_mode.render_area.x = self.page_mode.render_area.w;
-            }
         } else {
             self.graphics.render_area.x += x;
-            if self.graphics.render_area.x > self.graphics.render_area.w {
-                self.graphics.render_area.x = self.graphics.render_area.w;
-            }
         }
     }
 
@@ -540,9 +532,9 @@ impl Context {
 
     pub fn newline_for_spans(&mut self, spans: &Vec<TextSpan>) {
         let mut line_height = self.text.line_spacing as u32 * self.graphics.v_motion_unit as u32;
-        
+
         for span in spans {
-           line_height = line_height.max(span.character_height);   
+            line_height = line_height.max(span.character_height);
         }
 
         self.reset_x();
@@ -558,7 +550,6 @@ impl Context {
     }
 
     pub fn set_y(&mut self, y: u32) {
-        println!("SET Y TO {}",y);
         if self.page_mode.enabled {
             self.page_mode.render_area.y = y;
         } else {
@@ -573,13 +564,21 @@ impl Context {
             self.graphics.render_area.w
         }
     }
-    
+
     pub fn get_available_width(&self) -> u32 {
         if self.page_mode.enabled {
-            self.page_mode.render_area.w - (self.page_mode.render_area.x - self.page_mode.page_area.x)
+            self.page_mode.render_area.w.saturating_sub(
+                self.page_mode
+                    .render_area
+                    .x
+                    .saturating_sub(self.page_mode.page_area.x),
+            )
         } else {
             if self.graphics.render_area.x <= self.graphics.render_area.w {
-                self.graphics.render_area.w - self.graphics.render_area.x   
+                self.graphics
+                    .render_area
+                    .w
+                    .saturating_sub(self.graphics.render_area.x)
             } else {
                 0
             }

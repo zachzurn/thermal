@@ -1,5 +1,5 @@
 use crate::renderer::RenderErrorKind::ChildRenderError;
-use std::mem;
+use std::{fmt, mem};
 use thermal_parser::command::{Command, CommandType, DeviceCommand};
 use thermal_parser::context::{Context, HumanReadableInterface, Rotation, TextJustify};
 use thermal_parser::graphics::{Barcode, Code2D, GraphicsCommand, Image, Rectangle, VectorGraphic};
@@ -18,10 +18,15 @@ pub enum RenderErrorKind {
     UnknownCommand,
 }
 
-#[derive(Debug)]
 pub struct RenderError {
     kind: RenderErrorKind,
     description: String,
+}
+
+impl fmt::Debug for RenderError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "🔴 [{:?}] {}", self.kind, self.description)
+    }
 }
 
 pub struct Renderer<'a, Output> {
@@ -288,9 +293,7 @@ impl<'a, Output> Renderer<'a, Output> {
         }
 
         //Images that exceed the render width will be bumped down to the next line
-        if !image.advances_y
-            && image.w + context.get_x() > context.get_base_x() + context.get_width()
-        {
+        if !image.advances_y && image.w > context.get_available_width() {
             context.newline(1);
         }
 

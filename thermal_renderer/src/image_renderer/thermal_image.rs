@@ -9,7 +9,6 @@ use thermal_parser::graphics::{Image, Rectangle};
 use thermal_parser::text::TextSpan;
 
 const THRESHOLD: u8 = 120;
-const SCALE_THRESHOLD: u8 = 140;
 const SIZE_TO_FONT_RATIO: f32 = 1.68;
 const SIZE_TO_BASELINE_RATIO: f32 = 0.0315;
 
@@ -511,7 +510,7 @@ impl ThermalImage {
         //Completely out of bounds, unrenderable
         if exceeds_w || (exceeds_h && !self.auto_grow) {
             self.errors.push(format!(
-                "Exceeds ew{} eh{} w{} h{}",
+                "Image exceeded expected paper width w{} h{} max --> w{} h{}",
                 exceeds_w,
                 exceeds_h,
                 self.width,

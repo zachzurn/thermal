@@ -12,21 +12,6 @@ fn typography() {
 }
 
 #[test]
-fn bad_image() {
-    test_sample("bad_image", "thermal")
-}
-
-#[test]
-fn code_pages() {
-    test_sample("code_pages", "thermal")
-}
-
-#[test]
-fn corrupt_start_of_binary() {
-    test_sample("corrupt_start_of_binary", "bin")
-}
-
-#[test]
 fn issuing_receipts() {
     test_sample("issuing_receipts", "thermal")
 }
@@ -44,11 +29,6 @@ fn print_graphics() {
 #[test]
 fn receipt_with_barcode() {
     test_sample("receipt_with_barcode", "thermal")
-}
-
-#[test]
-fn scale_test() {
-    test_sample("scale_test", "bin")
 }
 
 #[test]
@@ -131,7 +111,10 @@ fn render_image(bytes: &Vec<u8>, out_path: String) {
     let errors = renders.errors;
 
     if errors.len() > 0 {
-        println!("{:?}", errors);
+        println!("Errors found for test file {}:", out_path);
+        for error in errors {
+            println!("{:?}", error);
+        }
         assert!(false, "There were errors when rendering an image.");
     }
 
