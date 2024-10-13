@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Thermal</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f7f5f0;
+        }
+
+        section {
+            background: white;
+            font-family: monospace;
+            font-size: 21.8px;
+            line-height: 24px;
+            margin: 20px auto 20px auto;
+            text-align: left;
+            box-sizing: border-box;
+            transform: scale(0.7);
+            transform-origin: top;
+        }
+
+        @media print {
+            html, body { background: white; }
+            section { margin: 0 auto; }
+        }
+
+        p {
+            margin:0;
+            padding: 0;
+            position: relative;
+        }
+
+        p span, p .img, p .gfx {
+           position: absolute;
+        }
+
+        span {
+            display: block;
+            vertical-align: text-bottom;
+        }
+
+        .b{ font-weight: bold; }
+        .i{ font-style: italic; }
+        .u{ text-decoration: underline; }
+        .s{ text-decoration: line-through; }
+        .in{ background: black; color: white; }
+        .s, .sd{ text-decoration: line-through; }
+
+        /* Conflicts with scaling, need to figure out a solution */
+        .upd { transform: scale(1, -1); }
+
+        .str { transform-origin: top left; }
+        
+        .w2{ transform: scaleX(2); }
+        .h2{ transform: scaleY(2); }
+        .w2.h2{ transform: scale(2); }
+
+        .w3{ transform: scaleX(3); }
+        .h3{ transform: scaleY(3); }
+        .w3.h3{ transform: scale(3); }
+
+        .w4{ transform: scaleX(4); }
+        .h4{ transform: scaleY(4); }
+        .w4.h4{ transform: scale(4); }
+
+        .w5{ transform: scaleX(5); }
+        .h5{ transform: scaleY(5); }
+        .w5.h5{ transform: scale(5); }
+
+        .w6{ transform: scaleX(6); }
+        .h6{ transform: scaleY(6); }
+        .w6.h6{ transform: scale(6); }
+
+        .w7{ transform: scaleX(7); }
+        .h7{ transform: scaleY(7); }
+        .w7.h7{ transform: scale(7); }
+
+        .w8{ transform: scaleX(8); }
+        .h8{ transform: scaleY(8); }
+        .w8.h8{ transform: scale(8); }
+
+        img { display: block; }
+    </style>
+</head>
+<body>
+    <main><section style="width: 649px; padding-left: 20px; padding-right: 20px; padding-bottom: 48px;"><article><p style='height: 108px; margin-top: 0px'></p><p style='height: 48px; margin-top: 0px'><span style='left: 148px; top: 0px' class='w2 h2 str'>╔═══════════╗</span></p><p style='height: 48px; margin-top: 0px'><span style='left: 148px; top: 0px' class='w2 h2 str'>║ </span>
+<span style='left: 196px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 220px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 244px; top: 0px' class='w2 h2 str'>EPSON </span>
+<span style='left: 388px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 412px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 436px; top: 0px' class='w2 h2 str'>║</span></p><p style='height: 48px; margin-top: 0px'><span style='left: 148px; top: 0px' class='w2 h2 str'>║ </span>
+<span style='left: 196px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 220px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 244px; top: 18px' class=''>Thank </span>
+<span style='left: 316px; top: 18px' class=''>you </span>
+<span style='left: 364px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 388px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 412px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 436px; top: 0px' class='w2 h2 str'>║</span></p><p style='height: 48px; margin-top: 0px'><span style='left: 148px; top: 0px' class='w2 h2 str'>╚═══════════╝</span></p><p style='height: 24px; margin-top: 4px'><span style='left: 166px; top: 0px' class=''>NOVEMBER </span>
+<span style='left: 274px; top: 0px' class=''>1, </span>
+<span style='left: 310px; top: 0px' class=''>2012 </span>
+<span style='left: 370px; top: 0px' class=''> </span>
+<span style='left: 382px; top: 0px' class=''>10:30</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 0px; top: 0px' class=''>TM-Uxxx </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''> </span>
+<span style='left: 420px; top: 0px' class=''>6.75</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>TM-Hxxx </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''> </span>
+<span style='left: 420px; top: 0px' class=''>6.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PS-xxx </span>
+<span style='left: 84px; top: 0px' class=''> </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''> </span>
+<span style='left: 420px; top: 0px' class=''>1.70</span></p><p style='height: 48px; margin-top: 24px'><span style='left: 0px; top: 0px' class='h2 str'>TOTAL </span>
+<span style='left: 72px; top: 0px' class='h2 str'> </span>
+<span style='left: 84px; top: 0px' class='h2 str'> </span>
+<span style='left: 96px; top: 0px' class='h2 str'> </span>
+<span style='left: 108px; top: 0px' class='h2 str'> </span>
+<span style='left: 120px; top: 0px' class='h2 str'> </span>
+<span style='left: 132px; top: 0px' class='h2 str'> </span>
+<span style='left: 144px; top: 0px' class='h2 str'> </span>
+<span style='left: 156px; top: 0px' class='h2 str'> </span>
+<span style='left: 168px; top: 0px' class='h2 str'> </span>
+<span style='left: 180px; top: 0px' class='h2 str'> </span>
+<span style='left: 192px; top: 0px' class='h2 str'> </span>
+<span style='left: 204px; top: 0px' class='h2 str'> </span>
+<span style='left: 216px; top: 0px' class='h2 str'> </span>
+<span style='left: 228px; top: 0px' class='h2 str'> </span>
+<span style='left: 240px; top: 0px' class='h2 str'> </span>
+<span style='left: 252px; top: 0px' class='h2 str'> </span>
+<span style='left: 264px; top: 0px' class='h2 str'> </span>
+<span style='left: 276px; top: 0px' class='h2 str'> </span>
+<span style='left: 288px; top: 0px' class='h2 str'> </span>
+<span style='left: 300px; top: 0px' class='h2 str'> </span>
+<span style='left: 312px; top: 0px' class='h2 str'> </span>
+<span style='left: 324px; top: 0px' class='h2 str'> </span>
+<span style='left: 336px; top: 0px' class='h2 str'> </span>
+<span style='left: 348px; top: 0px' class='h2 str'> </span>
+<span style='left: 360px; top: 0px' class='h2 str'> </span>
+<span style='left: 372px; top: 0px' class='h2 str'> </span>
+<span style='left: 384px; top: 0px' class='h2 str'> </span>
+<span style='left: 396px; top: 0px' class='h2 str'> </span>
+<span style='left: 408px; top: 0px' class='h2 str'>14.45</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>---------------------------------------</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PAID </span>
+<span style='left: 60px; top: 0px' class=''> </span>
+<span style='left: 72px; top: 0px' class=''> </span>
+<span style='left: 84px; top: 0px' class=''> </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''>50.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>CHANGE </span>
+<span style='left: 84px; top: 0px' class=''> </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''>35.55</span></p><p style='height: 48px; margin-top: 0px'><span style='left: 148px; top: 0px' class='w2 h2 str'>╔═══════════╗</span></p><p style='height: 48px; margin-top: 0px'><span style='left: 148px; top: 0px' class='w2 h2 str'>║ </span>
+<span style='left: 196px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 220px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 244px; top: 0px' class='w2 h2 str'>EPSON </span>
+<span style='left: 388px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 412px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 436px; top: 0px' class='w2 h2 str'>║</span></p><p style='height: 48px; margin-top: 0px'><span style='left: 148px; top: 0px' class='w2 h2 str'>║ </span>
+<span style='left: 196px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 220px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 244px; top: 18px' class=''>Thank </span>
+<span style='left: 316px; top: 18px' class=''>you </span>
+<span style='left: 364px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 388px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 412px; top: 0px' class='w2 h2 str'> </span>
+<span style='left: 436px; top: 0px' class='w2 h2 str'>║</span></p><p style='height: 48px; margin-top: 0px'><span style='left: 148px; top: 0px' class='w2 h2 str'>╚═══════════╝</span></p><p style='height: 24px; margin-top: 4px'><span style='left: 166px; top: 0px' class=''>NOVEMBER </span>
+<span style='left: 274px; top: 0px' class=''>1, </span>
+<span style='left: 310px; top: 0px' class=''>2012 </span>
+<span style='left: 370px; top: 0px' class=''> </span>
+<span style='left: 382px; top: 0px' class=''>10:30</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 0px; top: 0px' class=''>TM-Uxxx </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''> </span>
+<span style='left: 420px; top: 0px' class=''>6.75</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>TM-Hxxx </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''> </span>
+<span style='left: 420px; top: 0px' class=''>6.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PS-xxx </span>
+<span style='left: 84px; top: 0px' class=''> </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''> </span>
+<span style='left: 420px; top: 0px' class=''>1.70</span></p><p style='height: 48px; margin-top: 24px'><span style='left: 0px; top: 0px' class='h2 str'>TOTAL </span>
+<span style='left: 72px; top: 0px' class='h2 str'> </span>
+<span style='left: 84px; top: 0px' class='h2 str'> </span>
+<span style='left: 96px; top: 0px' class='h2 str'> </span>
+<span style='left: 108px; top: 0px' class='h2 str'> </span>
+<span style='left: 120px; top: 0px' class='h2 str'> </span>
+<span style='left: 132px; top: 0px' class='h2 str'> </span>
+<span style='left: 144px; top: 0px' class='h2 str'> </span>
+<span style='left: 156px; top: 0px' class='h2 str'> </span>
+<span style='left: 168px; top: 0px' class='h2 str'> </span>
+<span style='left: 180px; top: 0px' class='h2 str'> </span>
+<span style='left: 192px; top: 0px' class='h2 str'> </span>
+<span style='left: 204px; top: 0px' class='h2 str'> </span>
+<span style='left: 216px; top: 0px' class='h2 str'> </span>
+<span style='left: 228px; top: 0px' class='h2 str'> </span>
+<span style='left: 240px; top: 0px' class='h2 str'> </span>
+<span style='left: 252px; top: 0px' class='h2 str'> </span>
+<span style='left: 264px; top: 0px' class='h2 str'> </span>
+<span style='left: 276px; top: 0px' class='h2 str'> </span>
+<span style='left: 288px; top: 0px' class='h2 str'> </span>
+<span style='left: 300px; top: 0px' class='h2 str'> </span>
+<span style='left: 312px; top: 0px' class='h2 str'> </span>
+<span style='left: 324px; top: 0px' class='h2 str'> </span>
+<span style='left: 336px; top: 0px' class='h2 str'> </span>
+<span style='left: 348px; top: 0px' class='h2 str'> </span>
+<span style='left: 360px; top: 0px' class='h2 str'> </span>
+<span style='left: 372px; top: 0px' class='h2 str'> </span>
+<span style='left: 384px; top: 0px' class='h2 str'> </span>
+<span style='left: 396px; top: 0px' class='h2 str'> </span>
+<span style='left: 408px; top: 0px' class='h2 str'>14.45</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>---------------------------------------</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PAID </span>
+<span style='left: 60px; top: 0px' class=''> </span>
+<span style='left: 72px; top: 0px' class=''> </span>
+<span style='left: 84px; top: 0px' class=''> </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''>50.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>CHANGE </span>
+<span style='left: 84px; top: 0px' class=''> </span>
+<span style='left: 96px; top: 0px' class=''> </span>
+<span style='left: 108px; top: 0px' class=''> </span>
+<span style='left: 120px; top: 0px' class=''> </span>
+<span style='left: 132px; top: 0px' class=''> </span>
+<span style='left: 144px; top: 0px' class=''> </span>
+<span style='left: 156px; top: 0px' class=''> </span>
+<span style='left: 168px; top: 0px' class=''> </span>
+<span style='left: 180px; top: 0px' class=''> </span>
+<span style='left: 192px; top: 0px' class=''> </span>
+<span style='left: 204px; top: 0px' class=''> </span>
+<span style='left: 216px; top: 0px' class=''> </span>
+<span style='left: 228px; top: 0px' class=''> </span>
+<span style='left: 240px; top: 0px' class=''> </span>
+<span style='left: 252px; top: 0px' class=''> </span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''> </span>
+<span style='left: 300px; top: 0px' class=''> </span>
+<span style='left: 312px; top: 0px' class=''> </span>
+<span style='left: 324px; top: 0px' class=''> </span>
+<span style='left: 336px; top: 0px' class=''> </span>
+<span style='left: 348px; top: 0px' class=''> </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''> </span>
+<span style='left: 408px; top: 0px' class=''>35.55</span></p></article></section></main>
+</body>
+</html>

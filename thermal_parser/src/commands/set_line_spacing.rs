@@ -9,6 +9,7 @@ impl CommandHandler for Handler {
             .data
             .get(0)
             .unwrap_or(&context.default.as_ref().unwrap().text.line_spacing);
+
         context.text.line_spacing = n;
     }
 }

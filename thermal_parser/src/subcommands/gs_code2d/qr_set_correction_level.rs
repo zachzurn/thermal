@@ -7,11 +7,12 @@ impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         let n = *command.data.get(0).unwrap_or(&48u8);
 
-        //0 = L
-        //1 = M
-        //2 = Q
-        //3 = H
-        context.code2d.qr_model = n - 48;
+        context.code2d.qr_error_correction = match n {
+            1 => QrErrorCorrection::M,
+            2 => QrErrorCorrection::Q,
+            3 => QrErrorCorrection::H,
+            _ => QrErrorCorrection::L,
+        }
     }
 }
 

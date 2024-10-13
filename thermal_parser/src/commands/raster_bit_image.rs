@@ -1,9 +1,6 @@
 use crate::{command::*, constants::*, context::*, graphics::*};
 
 #[derive(Clone)]
-enum ImageScaling {}
-
-#[derive(Clone)]
 struct Handler {
     width: u32,
     height: u32,
@@ -25,11 +22,14 @@ impl CommandHandler for Handler {
         //possibly implement scaling here
         Some(GraphicsCommand::Image(Image {
             pixels: command.data.clone(),
-            width: self.width,
-            height: self.height,
+            x: 0,
+            y: 0,
+            w: self.width,
+            h: self.height,
             pixel_type: PixelType::Monochrome(1),
             stretch,
-            advances_xy: true,
+            advances_y: true,
+            upside_down: false,
         }))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {

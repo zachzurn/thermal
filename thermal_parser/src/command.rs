@@ -1,6 +1,7 @@
 use crate::context::Context;
 use crate::graphics::GraphicsCommand;
 use std::rc::Rc;
+use crate::text::TextSpan;
 
 #[derive(Clone, PartialEq)]
 pub enum DeviceCommand {
@@ -13,6 +14,12 @@ pub enum DeviceCommand {
     Cancel,
     Pulse,
     EndPrint,
+    BeginPageMode,
+    EndPageMode,
+    PrintPageMode,
+    ChangePageModeDirection,
+    ChangePageArea,
+    ChangeTabs(u8,u8),
     Transmit(Vec<u8>),
     MoveX(u16),
 }
@@ -29,6 +36,12 @@ impl DeviceCommand {
             Self::Pulse => "Pulse".to_string(),
             Self::EndPrint => "End Print".to_string(),
             Self::BeginPrint => "Begin Print".to_string(),
+            Self::BeginPageMode => "Begin Page Mode".to_string(),
+            Self::EndPageMode => "End Page Mode".to_string(),
+            Self::PrintPageMode => "Print Page Mode".to_string(),
+            Self::ChangePageModeDirection => "Change Page Mode Direction".to_string(),
+            Self::ChangePageArea => "Change Page Area".to_string(),
+            Self::ChangeTabs(_num,_at) => "Tabs Changed".to_string(),
             Self::Transmit(_b) => "Transmit Data Back".to_string(),
             Self::MoveX(_n) => "Move Horizontally".to_string(),
         }
@@ -68,10 +81,6 @@ pub struct Command {
     pub data_kind: DataType,
     pub handler: Box<dyn CommandHandler>,
 }
-
-#[derive(Clone)]
-struct EmptyHandler;
-impl CommandHandler for EmptyHandler {}
 
 impl Command {
     pub fn new(
@@ -151,7 +160,7 @@ impl Clone for Box<dyn CommandHandler> {
 
 pub trait CommandHandler: CloneCommandHandler {
     //Renders text
-    fn get_text(&self, _command: &Command, _context: &Context) -> Option<String> {
+    fn get_text(&self, _command: &Command, _context: &Context) -> Option<TextSpan> {
         None
     }
 

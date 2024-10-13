@@ -6,8 +6,8 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 
 [dependencies]
-barcoders = "1.0.2"
-qr_code = "1.1.0"
+barcoders = "2.0.0"
+qr_code = "2.0.0"
 
 [dev-dependencies]
 iconv = "0.1.1"

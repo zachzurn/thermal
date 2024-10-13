@@ -13,23 +13,33 @@ struct Handler {
 
 impl CommandHandler for Handler {
     fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
-        let bytes: Vec<u8> = if self.col_encoded {
+        let (w, h, bytes) = if self.col_encoded {
             graphics::column_to_raster(
                 &command.data.clone(),
-                self.width as usize,
-                self.height as usize,
+                self.stretch,
+                self.width as u32,
+                self.height as u32,
             )
         } else {
-            command.data.clone()
+            graphics::scale_pixels(
+                &command.data,
+                self.width as u32,
+                self.height as u32,
+                self.stretch.0,
+                self.stretch.1,
+            )
         };
 
         Some(GraphicsCommand::Image(Image {
             pixels: bytes,
-            width: self.width,
-            height: self.height,
+            x: 0,
+            y: 0,
+            w,
+            h,
             pixel_type: PixelType::MonochromeByte,
             stretch: self.stretch,
-            advances_xy: false,
+            advances_y: false,
+            upside_down: false,
         }))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
@@ -69,9 +79,10 @@ impl CommandHandler for Handler {
             self.capacity = (self.width * self.height) / 8;
         }
 
-        if m == 1 || m == 33 {
-            //Not currently sure what the purpose of this is
-            self.stretch = (2, 2);
+        //Image is single density, which oddly enough needs to
+        //have its pixels stretched by 2 on the w and 3 on the h
+        if m == 0 || m == 32 {
+            self.stretch = (2, 3);
         }
 
         //After this, we accept data until the capacity is met
@@ -91,7 +102,7 @@ pub fn new() -> Command {
             width: 0,
             height: 0,
             capacity: 0,
-            col_encoded: false,
+            col_encoded: true,
             size: 0,
             accept_data: false,
             stretch: (1, 1),

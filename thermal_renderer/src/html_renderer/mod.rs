@@ -1,241 +1,244 @@
-use crate::renderer::CommandRenderer;
-use base64::engine::general_purpose;
-use base64::Engine;
-use png::{ColorType, Encoder};
-use std::path::PathBuf;
-use thermal_parser::command::DeviceCommand;
-use thermal_parser::context::{Context, TextJustify, TextStrikethrough, TextUnderline};
+//! HTML Renderer
+//!
+//! The HTML Renderer renders receipts to html.
+//!
+//! All CSS and images are embedded into the one file.
+//!
+//! Page mode is a special mode that generates a separate image.
+//! Any page mode commands are rendered to an image using the
+//! same thermal_image module that Image Renderer uses.
+//!
+//! Images are embedded into the html file by using the
+//! Base64 url format.
+//!
+//! Barcodes and Qr Codes are rendered to SVG that is
+//! inlined into the html content.
+
+mod thermal_html;
+
+use crate::html_renderer::thermal_html::{encode_html_image, graphics_to_svg, spans_to_html};
+use crate::image_renderer::thermal_image::ThermalImage;
+use crate::renderer::{OutputRenderer, RenderOutput, Renderer};
+use thermal_parser::context::{Context, PrintDirection, Rotation, TextJustify};
+use thermal_parser::graphics::{Image, PixelType, VectorGraphic};
+use thermal_parser::text::TextSpan;
+
+static TEMPLATE: &str = include_str!("../../resources/templates/thermal.html");
+
+/// ReceiptHtml is the main output for the html renderer
+/// the content contains all html necessary to render the
+/// receipt.
+pub struct ReceiptHtml {
+    pub content: String,
+}
 
 pub struct HtmlRenderer {
-    pub out_path: String,
+    pub last_y: u32,
     pub content: Vec<String>,
     pub template: String,
-    pub font_size_pixels: usize,
-    pub receipt_width_pixels: usize,
-    pub receipt_margin_left_pixels: usize,
-    pub receipt_margin_right_pixels: usize,
-    pub pixel_scale_ratio: f32,
-    pub current_justify: TextJustify,
-    pub gfx_x: usize,
-    pub gfx_y: usize,
-    pub gfx_w: usize,
-    pub gfx_h: usize,
-    pub gfx_svg: Vec<String>,
+    pub page_image: ThermalImage,
+}
+
+pub struct HtmlRow {
+    y: u32,
+    height: u32,
+    content: String,
+}
+
+impl HtmlRow {
+    pub fn empty() -> Self {
+        Self {
+            y: 0,
+            height: 0,
+            content: "".to_string(),
+        }
+    }
 }
 
 impl HtmlRenderer {
-    pub fn new(out_path: String) -> Self {
-        let template_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("resources")
-            .join("templates")
-            .join("thermal.html");
-
+    pub fn new() -> Self {
         Self {
-            out_path,
+            last_y: 0,
             content: vec![],
-            template: std::fs::read_to_string(template_path).unwrap(),
-            font_size_pixels: 0,
-            receipt_width_pixels: 0,
-            receipt_margin_left_pixels: 0,
-            receipt_margin_right_pixels: 0,
-            pixel_scale_ratio: 0.0,
-            current_justify: TextJustify::Left,
-            gfx_x: 0,
-            gfx_y: 0,
-            gfx_w: 0,
-            gfx_h: 0,
-            gfx_svg: vec![],
+            template: TEMPLATE.to_string(),
+            page_image: ThermalImage::new(0),
         }
+    }
+
+    /// This is the normal way to render bytes to an html
+    pub fn render(bytes: &Vec<u8>) -> RenderOutput<ReceiptHtml> {
+        let mut html_renderer: Box<dyn OutputRenderer<_>> = Box::new(HtmlRenderer::new());
+        let mut renderer = Renderer::new(&mut html_renderer);
+        renderer.render(bytes)
+    }
+
+    fn push_row(&mut self, row: HtmlRow) {
+        self.content.push(format!(
+            "<p style='height: {}px; margin-top: {}px'>{}</p>",
+            row.height,
+            row.y.saturating_sub(self.last_y),
+            row.content
+        ));
+        self.last_y = row.y + row.height;
     }
 }
 
-impl CommandRenderer for HtmlRenderer {
+impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
     fn begin_render(&mut self, context: &mut Context) {
+        //Initialize image area for page mode
+        self.page_image.set_width(0);
+        self.page_image.set_character_size(
+            context.text.character_width as u32,
+            context.text.character_height as u32,
+        );
+
+        //Page images should not auto grow in either direction
+        //Normally only the width is locked down, but for page mode
+        //We want to lock down the height as well
+        self.page_image.auto_grow = false;
+
+        //We keep track of the last y so that we can render things
+        //from top to bottom in the html flow instead of having
+        //every element be position absolute
+        self.last_y = context.get_y();
+
         self.content.clear();
-        let dpi = 152.0;
-        self.pixel_scale_ratio = dpi / context.graphics.dots_per_inch as f32;
-        self.font_size_pixels = (context.text.font_size as f32 * 1.63) as usize;
-        self.receipt_width_pixels = (context.graphics.paper_width * dpi) as usize;
-        self.receipt_margin_left_pixels = (context.graphics.margin_left * dpi) as usize;
-        self.receipt_margin_right_pixels = (context.graphics.margin_left * dpi) as usize;
-        self.start_container(context);
+        self.push_row(HtmlRow {
+            y: 0,
+            height: context.get_y(),
+            content: "".to_string(),
+        })
     }
 
-    fn begin_graphics(&mut self, context: &mut Context) {
-        self.end_container();
-        self.start_container(context);
-        self.gfx_x = context.graphics.x;
-        self.gfx_y = context.graphics.y;
-        self.gfx_w = 0;
-        self.gfx_h = 0;
-        self.gfx_svg = vec![];
+    fn page_begin(&mut self, _context: &mut Context) {
+        self.page_image.set_width(0);
     }
 
-    fn draw_rect(&mut self, context: &mut Context, w: usize, h: usize) {
-        let x = context.graphics.x - self.gfx_x;
-        let y = context.graphics.y - self.gfx_y;
+    fn page_area_changed(
+        &mut self,
+        _context: &mut Context,
+        rotation: Rotation,
+        width: u32,
+        height: u32,
+    ) {
+        let img = &mut self.page_image;
 
-        self.gfx_w = self.gfx_w.max(x + w);
-        self.gfx_h = self.gfx_h.max(y + h);
+        match rotation {
+            Rotation::R90 => img.rotate_90(),
+            Rotation::R180 => img.rotate_180(),
+            Rotation::R270 => img.rotate_270(),
+            _ => {}
+        }
 
-        self.gfx_svg.push(format!(
-            "<rect width='{}' height='{}' x='{}' y='{}' fill='black' />",
-            w, h, x, y
-        ));
-    }
-    fn end_graphics(&mut self, context: &mut Context) {
-        self.maybe_start_container(context);
-
-        self.content.push(format!(
-            "<svg width='{}' height='{}'>{}</svg>",
-            self.gfx_w,
-            self.gfx_h,
-            self.gfx_svg.join("\n")
-        ));
-
-        self.end_container();
-        self.start_container(context);
+        if width > self.page_image.width {
+            self.page_image.expand_to_width(width)
+        }
+        if height > self.page_image.get_height() {
+            self.page_image.expand_to_height(height)
+        }
     }
 
-    fn draw_image(&mut self, context: &mut Context, bytes: Vec<u8>, width: usize, height: usize) {
-        self.end_container();
-        self.start_container(context);
+    fn render_page(&mut self, context: &mut Context) {
+        let rotation_to_standard = context.page_mode.calculate_directional_rotation(
+            &context.page_mode.direction,
+            &PrintDirection::TopLeft2Right,
+        );
 
-        self.content
-            .push(self.encode_html_image(bytes, width as u32, height as u32));
+        //Rotate to standard direction
+        match rotation_to_standard {
+            Rotation::R90 => self.page_image.rotate_90(),
+            Rotation::R180 => self.page_image.rotate_180(),
+            Rotation::R270 => self.page_image.rotate_270(),
+            _ => {}
+        }
 
-        self.end_container();
-        self.start_container(context);
+        let (w, h, pixels) = self.page_image.copy();
+
+        //Rotate back to how it was
+        let rotation_to_previous = context.page_mode.calculate_directional_rotation(
+            &PrintDirection::TopLeft2Right,
+            &context.page_mode.direction,
+        );
+
+        match rotation_to_previous {
+            Rotation::R90 => self.page_image.rotate_90(),
+            Rotation::R180 => self.page_image.rotate_180(),
+            Rotation::R270 => self.page_image.rotate_270(),
+            _ => {}
+        }
+
+        let image = thermal_parser::graphics::Image {
+            pixels,
+            x: context.graphics.render_area.x,
+            y: context.graphics.render_area.y,
+            w,
+            h,
+            pixel_type: PixelType::MonochromeByte,
+            stretch: (0, 0),
+            advances_y: false,
+            upside_down: false,
+        };
+
+        self.push_row(encode_html_image(&image));
     }
 
-    fn draw_text(&mut self, context: &mut Context, text: String) {
-        self.maybe_start_container(context);
-        let mut class_list = vec![];
-
-        if context.text.bold {
-            class_list.push("b");
+    fn render_graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>) {
+        if context.page_mode.enabled {
+            for graphic in graphics {
+                match graphic {
+                    VectorGraphic::Rectangle(rectangle) => {
+                        self.page_image.put_rect(rectangle);
+                    }
+                }
+            }
+        } else {
+            self.push_row(graphics_to_svg(graphics));
         }
-
-        if context.text.italic {
-            class_list.push("i");
-        }
-
-        if context.text.strikethrough == TextStrikethrough::On {
-            class_list.push("s");
-        }
-
-        if context.text.strikethrough == TextStrikethrough::Double {
-            class_list.push("sd");
-        }
-
-        if context.text.width_mult == 2 {
-            class_list.push("dw");
-        }
-
-        if context.text.height_mult == 2 {
-            class_list.push("dh");
-        }
-
-        if context.text.invert == true {
-            class_list.push("in");
-        }
-
-        if context.text.underline == TextUnderline::On {
-            class_list.push("u");
-        }
-
-        if context.text.underline == TextUnderline::Double {
-            class_list.push("ud");
-        }
-
-        if context.text.upside_down == true {
-            class_list.push("upd");
-        }
-
-        let css_class = class_list.join(" ");
-        let br_text = text.replace("\n", &*format!("</span><br/><span class='{}'>", css_class));
-
-        self.content
-            .push(format!("<span class='{}'>{}</span>", css_class, br_text))
     }
 
-    fn draw_device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
+    fn render_image(&mut self, context: &mut Context, image: &Image) {
+        if context.page_mode.enabled {
+            self.page_image.put_render_img(image);
+        } else {
+            self.push_row(encode_html_image(image));
+        }
+    }
 
-    fn end_render(&mut self, _context: &mut Context) {
-        //Close the last container
-        self.end_container();
+    fn render_text(
+        &mut self,
+        context: &mut Context,
+        spans: &Vec<TextSpan>,
+        x_offset: u32,
+        max_height: u32,
+        _text_justify: TextJustify,
+    ) {
+        if context.page_mode.enabled {
+            for span in spans {
+                if let Some(_) = &span.dimensions {
+                    self.page_image.render_span(x_offset, max_height, span);
+                }
+            }
+        } else {
+            self.push_row(spans_to_html(spans, x_offset, max_height, 0.78));
+        }
+    }
 
-        let out = self
+    fn end_render(&mut self, context: &mut Context) -> ReceiptHtml {
+        let padding_bottom = context.get_y().saturating_sub(self.last_y);
+        let content = self
             .template
             .replace("{{content}}", &self.content.join(""))
             .replace(
                 "{{receipt-style}}",
                 &*format!(
-                    "max-width: {}px; padding-left: {}px; padding-right: {}px;",
-                    self.receipt_width_pixels,
-                    self.receipt_margin_left_pixels,
-                    self.receipt_margin_right_pixels
+                    "width: {}px; padding-left: {}px; padding-right: {}px; padding-bottom: {}px;",
+                    context.graphics.paper_area.w,
+                    context.graphics.paper_area.x,
+                    context.graphics.paper_area.y,
+                    padding_bottom
                 ),
-            )
-            .replace("{{font-size}}", &self.font_size_pixels.to_string());
+            );
 
-        std::fs::write(PathBuf::from(format!("{}{}", self.out_path, ".html")), out)
-            .expect("Invalid out path");
-    }
-}
-
-impl HtmlRenderer {
-    fn maybe_start_container(&mut self, context: &mut Context) {
-        //No need if justification hasn't changed
-        if self.current_justify == context.text.justify {
-            return;
-        }
-
-        self.end_container();
-        self.start_container(context);
-    }
-
-    fn start_container(&mut self, context: &mut Context) {
-        self.current_justify = context.text.justify.clone();
-        let css_class = match self.current_justify {
-            TextJustify::Left => String::from("al"),
-            TextJustify::Center => String::from("ac"),
-            TextJustify::Right => String::from("ar"),
-        };
-
-        self.content
-            .push(format!("<div class='cnt {}'>", css_class));
-    }
-
-    fn end_container(&mut self) {
-        self.content.push(String::from("</div>"));
-    }
-
-    fn encode_html_image(&self, bytes: Vec<u8>, width: u32, height: u32) -> String {
-        // Create a buffer to hold the PNG image data
-        let mut png_data: Vec<u8> = Vec::new();
-
-        // Create a PNG encoder with the specified width, height, and color type
-        let mut encoder = Encoder::new(&mut png_data, width, height);
-        encoder.set_color(ColorType::Grayscale);
-        encoder.set_depth(png::BitDepth::Eight);
-
-        // Write the PNG header and the image data
-        let mut writer = encoder.write_header().expect("Failed to write PNG header");
-        writer
-            .write_image_data(&bytes)
-            .expect("Failed to write PNG image data");
-
-        writer.finish().expect("Error encoding png");
-
-        // Calculate the base64 representation of the PNG image
-        let base64_encoded_image = general_purpose::STANDARD_NO_PAD.encode(&png_data);
-
-        // Print or use the base64_encoded_image as needed
-        format!(
-            "<img width='{}' src='data:image/png;base64, {}' />",
-            (width as f32 * self.pixel_scale_ratio) as usize,
-            base64_encoded_image
-        )
+        ReceiptHtml { content }
     }
 }

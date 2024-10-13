@@ -14,6 +14,8 @@ impl CommandHandler for Handler {
             strike = TextStrikethrough::Double
         } else if strike == TextStrikethrough::Double {
             strike = TextStrikethrough::On
+        } else {
+            strike = TextStrikethrough::Off
         }
 
         context.text.strikethrough = strike;

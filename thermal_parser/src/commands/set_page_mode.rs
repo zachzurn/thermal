@@ -1,3 +1,4 @@
+use crate::command::DeviceCommand::BeginPageMode;
 use crate::context::Context;
 use crate::{command::*, constants::*};
 
@@ -5,8 +6,12 @@ use crate::{command::*, constants::*};
 struct Handler;
 
 impl CommandHandler for Handler {
-    fn apply_context(&self, _command: &Command, context: &mut Context) {
-        context.is_page_mode = true;
+    fn get_device_command(
+        &self,
+        _command: &Command,
+        _context: &Context,
+    ) -> Option<Vec<DeviceCommand>> {
+        Some(vec![BeginPageMode])
     }
 }
 
@@ -14,7 +19,7 @@ pub fn new() -> Command {
     Command::new(
         "Set page mode",
         vec![ESC, 'L' as u8],
-        CommandType::Context,
+        CommandType::ContextControl,
         DataType::Empty,
         Box::new(Handler {}),
     )

@@ -1,6 +1,7 @@
 use std::mem;
 use std::rc::Rc;
 
+use crate::text::TextSpan;
 use crate::{command::*, context::*, graphics::*};
 
 pub mod gs_code2d;
@@ -49,7 +50,6 @@ impl SubCommandHandler {
         if data_len == 4 {
             self.capacity = data[0] as u32 + data[1] as u32 * 256;
             self.capacity -= 2;
-            println!("CAPACITY {}", self.capacity);
             self.m = *data.get(2).unwrap();
             self.subcommand_id = *data.get(3).unwrap();
         }
@@ -73,7 +73,7 @@ impl SubCommandHandler {
 
 //We are proxying all command handler commands to the subcommand with the exception of parse
 impl CommandHandler for SubCommandHandler {
-    fn get_text(&self, command: &Command, context: &Context) -> Option<String> {
+    fn get_text(&self, command: &Command, context: &Context) -> Option<TextSpan> {
         if let Some(subcommand) = &self.subcommand {
             return subcommand.handler.get_text(command, context);
         }

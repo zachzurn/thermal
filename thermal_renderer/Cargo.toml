@@ -10,4 +10,4 @@ thermal_parser = { path = "../thermal_parser" }
 fontdue = "0.7.2"
 textwrap = "0.16.0"
 png = "0.17.5"
-base64 = "0.21.5"
+base64 = "0.22.1"

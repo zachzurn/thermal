@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Thermal</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f7f5f0;
+        }
+
+        section {
+            background: white;
+            font-family: monospace;
+            font-size: 21.8px;
+            line-height: 24px;
+            margin: 20px auto 20px auto;
+            text-align: left;
+            box-sizing: border-box;
+            transform: scale(0.7);
+            transform-origin: top;
+        }
+
+        @media print {
+            html, body { background: white; }
+            section { margin: 0 auto; }
+        }
+
+        p {
+            margin:0;
+            padding: 0;
+            position: relative;
+        }
+
+        p span, p .img, p .gfx {
+           position: absolute;
+        }
+
+        span {
+            display: block;
+            vertical-align: text-bottom;
+        }
+
+        .b{ font-weight: bold; }
+        .i{ font-style: italic; }
+        .u{ text-decoration: underline; }
+        .s{ text-decoration: line-through; }
+        .in{ background: black; color: white; }
+        .s, .sd{ text-decoration: line-through; }
+
+        /* Conflicts with scaling, need to figure out a solution */
+        .upd { transform: scale(1, -1); }
+
+        .str { transform-origin: top left; }
+        
+        .w2{ transform: scaleX(2); }
+        .h2{ transform: scaleY(2); }
+        .w2.h2{ transform: scale(2); }
+
+        .w3{ transform: scaleX(3); }
+        .h3{ transform: scaleY(3); }
+        .w3.h3{ transform: scale(3); }
+
+        .w4{ transform: scaleX(4); }
+        .h4{ transform: scaleY(4); }
+        .w4.h4{ transform: scale(4); }
+
+        .w5{ transform: scaleX(5); }
+        .h5{ transform: scaleY(5); }
+        .w5.h5{ transform: scale(5); }
+
+        .w6{ transform: scaleX(6); }
+        .h6{ transform: scaleY(6); }
+        .w6.h6{ transform: scale(6); }
+
+        .w7{ transform: scaleX(7); }
+        .h7{ transform: scaleY(7); }
+        .w7.h7{ transform: scale(7); }
+
+        .w8{ transform: scaleX(8); }
+        .h8{ transform: scaleY(8); }
+        .w8.h8{ transform: scale(8); }
+
+        img { display: block; }
+    </style>
+</head>
+<body>
+    <main><section style="width: 649px; padding-left: 20px; padding-right: 20px; padding-bottom: 78px;"><article><p style='height: 108px; margin-top: 0px'></p><p style='height: 40px; margin-top: 0px'><img style='left: 184px;' class='img' width='240' src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAPAAAAAoCAAAAADlUygMAAAFh0lEQVR4Ae3gAZAkSZIkSRKLqpm7R0REZmZmVlVVVVV3d3d3d/fMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMdHd3d3dXV1VVVVVmZkZGRIS7m5kKz0xmV3d1d3dPz8zMzMxMovj/BfH/CwLz/4cQmP8/hMD8/yEE5v8PITD/fwiBeSZhnk2YK8QV5gphnk0YEA9gnpt4AHOZeE7mCnGFuUI8JwMIwADiAQwA4jmZZxIC80zCPJswl4n7mcuEeTZhQDyQeS7igQyAeE7mMnE/c5l4TgYQgAHEAxkA8ZzMMwmBuZ8w9xPmMoEBEBgAYZ5NGBDmfgLznIS5n8AAwjwvgQEQGABhnpcwlwlzP4F5NmGekxCY+wlzP2EuE+YKYQCEeTZhQJhnEZjnIMyzCAwI87yEuUJgAGGelzCXCfMsAvMswjwnITDPIswVwlwmMFcIDCDMswkDwjybMM9BmGcTBoR5HgLzTMIAwjwvYS4T5tmEeRZhnpMQmGcR5gphLhPmfsIAwjybMCDMswnzHIR5NmFAmOchzLMIA8I8L2EuE+bZhHkWYZ6TEJhnEwZAmCuEuZ8wgDDPJgwI82zCPAdhnk0YEOa5CcyzCAPCPC9hLhPm2YR5FmGekxCYZxMGQJjLhHk2YUCYZxMGhHk2YZ6DMM8mDAjz3IR5bsI8L2EuE+bZhHkWYZ6TEJgHEAaEuUKYZxMGhHk2YUCYZxPmOQjzbMKAMM9NmOcmzPMS5jJhnk2YZxHmOQmBeQBhQJgrhHk2YUCYZxMGhHkWgXkOwjyLwIAwz02Y5ybM8xLmMmGeRWCeRZjnJATmgYQR5pmEeTZhQJhnEwaEuZ/APCdh7icwgDDPTZjnJszzEuYyYe4nMM8mzHMSAvNAwgjzTMI8mzAgzLMJA+KBzHMRD2QAhHluwjw3YZ6XMJeJBzIPIMxzEgLzHASY+wnzbMKAMM8mDIgHMM9NPIC5TDwHAwjz3MRzMJcJc5l4APNAwjwnITDPQYC5nzDPJgwI82zCgDCAMM+PMIAwzyKegwGEeW7iOZjLhLlMmBdAmOckBOY5CfMswjybMCDMswkDwgAI83wIAyDM/YR5bsI8N2GelzCXCfMCCPOchMA8J2GeRZhnEwaEeTZhQBgAYZ4PYQCEuZ8wz02Y5ybM8xLmMmFeAGGekxCY5yTMswjzbMKAMM8mDAhzmTDPS5jLhHkmYZ6bMM9NmOclzGXCvADCPCchMM9JmGcR5tmEAWGeTRgQ5jJhnpcwlwnzTMI8N2GemzDPS5jLhHkBhHlOQmCekzDPIsyzCQPCPJswIMwVwjwPYa4Q5gphnpswz02Y5yXMZcK8AMI8JyEwz0mYZxPmfsIAwjybMCDMFcI8D2GuEOYKYZ6HMM8iDAjzvIS5TJgXQJjnJATmOQnzbMLcTxhAYO4nMCDMMwnz3IR5JmEuE+Z5CPMswoAwz0uYy4R5AYR5TkJgnpMwzyYwVwgMgDD3EwYQ5pmEeW7CPJMwlwnzPATmmYQBhHlewlwmzAsgzHMSAvOchHkAYa4Q5jKBuUJgAGHuJ8xzEeZ+wgAI87yEuUJgAGGelzCXCfMCCPOchMA8J2EeQGAABOYKgQEQGABh7icwz0mY+wkMIMzzEhgAgQEQ5nkJc5kwL4Awz0kIzHMS5oHE/cz9xP3MZcI8i8A8B2GeRWBAPCdzmbifuUw8JwMIwADCvADCPCchMM9JmOcgrjDPJq4wVwjzLALzHIR5FoEB8ZzMFeIKc4V4TgYQgAGEeQGEeU5CYP7/EALz/4cQmP8/hMD8/yEE5v8PIf5/Qfz/wj8CiGG7OJ7SDEcAAAAASUVORK5CYII' /></p><p style='height: 24px; margin-top: 32px'><span style='left: 250px; top: 0px' class=''>Thank </span>
+<span style='left: 322px; top: 0px' class=''>you</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 172px; top: 0px' class=''>NOVEMBER </span>
+<span style='left: 280px; top: 0px' class=''>1, </span>
+<span style='left: 316px; top: 0px' class=''>2012 </span>
+<span style='left: 376px; top: 0px' class=''>15:00</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 0px; top: 0px' class=''>TM-Hxxx</span>
+<span style='left: 420px; top: 0px' class=''> </span>
+<span style='left: 432px; top: 0px' class=''> </span>
+<span style='left: 444px; top: 0px' class=''>6.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PS-xxx</span>
+<span style='left: 420px; top: 0px' class=''> </span>
+<span style='left: 432px; top: 0px' class=''> </span>
+<span style='left: 444px; top: 0px' class=''>1.70</span></p><p style='height: 48px; margin-top: 24px'><span style='left: 0px; top: 0px' class='h2 str'>TOTAL</span>
+<span style='left: 420px; top: 0px' class='h2 str'> </span>
+<span style='left: 432px; top: 0px' class='h2 str'> </span>
+<span style='left: 444px; top: 0px' class='h2 str'>7.70</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>------------------------------------------</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PAID</span>
+<span style='left: 420px; top: 0px' class=''> </span>
+<span style='left: 432px; top: 0px' class=''>10.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>CHANGE</span>
+<span style='left: 420px; top: 0px' class=''> </span>
+<span style='left: 432px; top: 0px' class=''> </span>
+<span style='left: 444px; top: 0px' class=''>2.30</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 166px; top: 0px' class=''><< </span>
+<span style='left: 202px; top: 0px' class=''>Bonus </span>
+<span style='left: 274px; top: 0px' class=''>points </span>
+<span style='left: 358px; top: 0px' class=''>: </span>
+<span style='left: 382px; top: 0px' class=''>14 </span>
+<span style='left: 418px; top: 0px' class=''>>></span></p><p style='height: 50px; margin-top: 11px'><svg style='left: 169px;' class='gfx' width='270' height='50'><rect width='3' height='50' x='0' y='0' fill='black' />
+<rect width='3' height='50' x='9' y='0' fill='black' />
+<rect width='3' height='50' x='15' y='0' fill='black' />
+<rect width='3' height='50' x='18' y='0' fill='black' />
+<rect width='3' height='50' x='24' y='0' fill='black' />
+<rect width='3' height='50' x='27' y='0' fill='black' />
+<rect width='3' height='50' x='33' y='0' fill='black' />
+<rect width='3' height='50' x='39' y='0' fill='black' />
+<rect width='3' height='50' x='45' y='0' fill='black' />
+<rect width='3' height='50' x='54' y='0' fill='black' />
+<rect width='3' height='50' x='57' y='0' fill='black' />
+<rect width='3' height='50' x='63' y='0' fill='black' />
+<rect width='3' height='50' x='66' y='0' fill='black' />
+<rect width='3' height='50' x='72' y='0' fill='black' />
+<rect width='3' height='50' x='78' y='0' fill='black' />
+<rect width='3' height='50' x='84' y='0' fill='black' />
+<rect width='3' height='50' x='93' y='0' fill='black' />
+<rect width='3' height='50' x='96' y='0' fill='black' />
+<rect width='3' height='50' x='102' y='0' fill='black' />
+<rect width='3' height='50' x='105' y='0' fill='black' />
+<rect width='3' height='50' x='111' y='0' fill='black' />
+<rect width='3' height='50' x='117' y='0' fill='black' />
+<rect width='3' height='50' x='123' y='0' fill='black' />
+<rect width='3' height='50' x='132' y='0' fill='black' />
+<rect width='3' height='50' x='135' y='0' fill='black' />
+<rect width='3' height='50' x='141' y='0' fill='black' />
+<rect width='3' height='50' x='144' y='0' fill='black' />
+<rect width='3' height='50' x='150' y='0' fill='black' />
+<rect width='3' height='50' x='156' y='0' fill='black' />
+<rect width='3' height='50' x='159' y='0' fill='black' />
+<rect width='3' height='50' x='165' y='0' fill='black' />
+<rect width='3' height='50' x='174' y='0' fill='black' />
+<rect width='3' height='50' x='180' y='0' fill='black' />
+<rect width='3' height='50' x='186' y='0' fill='black' />
+<rect width='3' height='50' x='189' y='0' fill='black' />
+<rect width='3' height='50' x='195' y='0' fill='black' />
+<rect width='3' height='50' x='201' y='0' fill='black' />
+<rect width='3' height='50' x='210' y='0' fill='black' />
+<rect width='3' height='50' x='213' y='0' fill='black' />
+<rect width='3' height='50' x='219' y='0' fill='black' />
+<rect width='3' height='50' x='225' y='0' fill='black' />
+<rect width='3' height='50' x='228' y='0' fill='black' />
+<rect width='3' height='50' x='234' y='0' fill='black' />
+<rect width='3' height='50' x='243' y='0' fill='black' />
+<rect width='3' height='50' x='249' y='0' fill='black' />
+<rect width='3' height='50' x='252' y='0' fill='black' />
+<rect width='3' height='50' x='258' y='0' fill='black' />
+<rect width='3' height='50' x='261' y='0' fill='black' />
+<rect width='3' height='50' x='267' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 262px; top: 0px' class=''>*00014*</span></p><p style='height: 40px; margin-top: 0px'><img style='left: 184px;' class='img' width='240' src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAPAAAAAoCAAAAADlUygMAAAFh0lEQVR4Ae3gAZAkSZIkSRKLqpm7R0REZmZmVlVVVVV3d3d3d/fMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMdHd3d3dXV1VVVVVmZkZGRIS7m5kKz0xmV3d1d3dPz8zMzMxMovj/BfH/CwLz/4cQmP8/hMD8/yEE5v8PITD/fwiBeSZhnk2YK8QV5gphnk0YEA9gnpt4AHOZeE7mCnGFuUI8JwMIwADiAQwA4jmZZxIC80zCPJswl4n7mcuEeTZhQDyQeS7igQyAeE7mMnE/c5l4TgYQgAHEAxkA8ZzMMwmBuZ8w9xPmMoEBEBgAYZ5NGBDmfgLznIS5n8AAwjwvgQEQGABhnpcwlwlzP4F5NmGekxCY+wlzP2EuE+YKYQCEeTZhQJhnEZjnIMyzCAwI87yEuUJgAGGelzCXCfMsAvMswjwnITDPIswVwlwmMFcIDCDMswkDwjybMM9BmGcTBoR5HgLzTMIAwjwvYS4T5tmEeRZhnpMQmGcR5gphLhPmfsIAwjybMCDMswnzHIR5NmFAmOchzLMIA8I8L2EuE+bZhHkWYZ6TEJhnEwZAmCuEuZ8wgDDPJgwI82zCPAdhnk0YEOa5CcyzCAPCPC9hLhPm2YR5FmGekxCYZxMGQJjLhHk2YUCYZxMGhHk2YZ6DMM8mDAjz3IR5bsI8L2EuE+bZhHkWYZ6TEJgHEAaEuUKYZxMGhHk2YUCYZxPmOQjzbMKAMM9NmOcmzPMS5jJhnk2YZxHmOQmBeQBhQJgrhHk2YUCYZxMGhHkWgXkOwjyLwIAwz02Y5ybM8xLmMmGeRWCeRZjnJATmgYQR5pmEeTZhQJhnEwaEuZ/APCdh7icwgDDPTZjnJszzEuYyYe4nMM8mzHMSAvNAwgjzTMI8mzAgzLMJA+KBzHMRD2QAhHluwjw3YZ6XMJeJBzIPIMxzEgLzHASY+wnzbMKAMM8mDIgHMM9NPIC5TDwHAwjz3MRzMJcJc5l4APNAwjwnITDPQYC5nzDPJgwI82zCgDCAMM+PMIAwzyKegwGEeW7iOZjLhLlMmBdAmOckBOY5CfMswjybMCDMswkDwgAI83wIAyDM/YR5bsI8N2GelzCXCfMCCPOchMA8J2GeRZhnEwaEeTZhQBgAYZ4PYQCEuZ8wz02Y5ybM8xLmMmFeAGGekxCY5yTMswjzbMKAMM8mDAhzmTDPS5jLhHkmYZ6bMM9NmOclzGXCvADCPCchMM9JmGcR5tmEAWGeTRgQ5jJhnpcwlwnzTMI8N2GemzDPS5jLhHkBhHlOQmCekzDPIsyzCQPCPJswIMwVwjwPYa4Q5gphnpswz02Y5yXMZcK8AMI8JyEwz0mYZxPmfsIAwjybMCDMFcI8D2GuEOYKYZ6HMM8iDAjzvIS5TJgXQJjnJATmOQnzbMLcTxhAYO4nMCDMMwnz3IR5JmEuE+Z5CPMswoAwz0uYy4R5AYR5TkJgnpMwzyYwVwgMgDD3EwYQ5pmEeW7CPJMwlwnzPATmmYQBhHlewlwmzAsgzHMSAvOchHkAYa4Q5jKBuUJgAGHuJ8xzEeZ+wgAI87yEuUJgAGGelzCXCfMCCPOchMA8J2EeQGAABOYKgQEQGABh7icwz0mY+wkMIMzzEhgAgQEQ5nkJc5kwL4Awz0kIzHMS5oHE/cz9xP3MZcI8i8A8B2GeRWBAPCdzmbifuUw8JwMIwADCvADCPCchMM9JmOcgrjDPJq4wVwjzLALzHIR5FoEB8ZzMFeIKc4V4TgYQgAGEeQGEeU5CYP7/EALz/4cQmP8/hMD8/yEE5v8PIf5/Qfz/wj8CiGG7OJ7SDEcAAAAASUVORK5CYII' /></p><p style='height: 24px; margin-top: 32px'><span style='left: 250px; top: 0px' class=''>Thank </span>
+<span style='left: 322px; top: 0px' class=''>you</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 172px; top: 0px' class=''>NOVEMBER </span>
+<span style='left: 280px; top: 0px' class=''>1, </span>
+<span style='left: 316px; top: 0px' class=''>2012 </span>
+<span style='left: 376px; top: 0px' class=''>15:00</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 0px; top: 0px' class=''>TM-Hxxx</span>
+<span style='left: 420px; top: 0px' class=''> </span>
+<span style='left: 432px; top: 0px' class=''> </span>
+<span style='left: 444px; top: 0px' class=''>6.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PS-xxx</span>
+<span style='left: 420px; top: 0px' class=''> </span>
+<span style='left: 432px; top: 0px' class=''> </span>
+<span style='left: 444px; top: 0px' class=''>1.70</span></p><p style='height: 48px; margin-top: 24px'><span style='left: 0px; top: 0px' class='h2 str'>TOTAL</span>
+<span style='left: 420px; top: 0px' class='h2 str'> </span>
+<span style='left: 432px; top: 0px' class='h2 str'> </span>
+<span style='left: 444px; top: 0px' class='h2 str'>7.70</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>------------------------------------------</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PAID</span>
+<span style='left: 420px; top: 0px' class=''> </span>
+<span style='left: 432px; top: 0px' class=''>10.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>CHANGE</span>
+<span style='left: 420px; top: 0px' class=''> </span>
+<span style='left: 432px; top: 0px' class=''> </span>
+<span style='left: 444px; top: 0px' class=''>2.30</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 166px; top: 0px' class=''><< </span>
+<span style='left: 202px; top: 0px' class=''>Bonus </span>
+<span style='left: 274px; top: 0px' class=''>points </span>
+<span style='left: 358px; top: 0px' class=''>: </span>
+<span style='left: 382px; top: 0px' class=''>14 </span>
+<span style='left: 418px; top: 0px' class=''>>></span></p><p style='height: 50px; margin-top: 11px'><svg style='left: 169px;' class='gfx' width='270' height='50'><rect width='3' height='50' x='0' y='0' fill='black' />
+<rect width='3' height='50' x='9' y='0' fill='black' />
+<rect width='3' height='50' x='15' y='0' fill='black' />
+<rect width='3' height='50' x='18' y='0' fill='black' />
+<rect width='3' height='50' x='24' y='0' fill='black' />
+<rect width='3' height='50' x='27' y='0' fill='black' />
+<rect width='3' height='50' x='33' y='0' fill='black' />
+<rect width='3' height='50' x='39' y='0' fill='black' />
+<rect width='3' height='50' x='45' y='0' fill='black' />
+<rect width='3' height='50' x='54' y='0' fill='black' />
+<rect width='3' height='50' x='57' y='0' fill='black' />
+<rect width='3' height='50' x='63' y='0' fill='black' />
+<rect width='3' height='50' x='66' y='0' fill='black' />
+<rect width='3' height='50' x='72' y='0' fill='black' />
+<rect width='3' height='50' x='78' y='0' fill='black' />
+<rect width='3' height='50' x='84' y='0' fill='black' />
+<rect width='3' height='50' x='93' y='0' fill='black' />
+<rect width='3' height='50' x='96' y='0' fill='black' />
+<rect width='3' height='50' x='102' y='0' fill='black' />
+<rect width='3' height='50' x='105' y='0' fill='black' />
+<rect width='3' height='50' x='111' y='0' fill='black' />
+<rect width='3' height='50' x='117' y='0' fill='black' />
+<rect width='3' height='50' x='123' y='0' fill='black' />
+<rect width='3' height='50' x='132' y='0' fill='black' />
+<rect width='3' height='50' x='135' y='0' fill='black' />
+<rect width='3' height='50' x='141' y='0' fill='black' />
+<rect width='3' height='50' x='144' y='0' fill='black' />
+<rect width='3' height='50' x='150' y='0' fill='black' />
+<rect width='3' height='50' x='156' y='0' fill='black' />
+<rect width='3' height='50' x='159' y='0' fill='black' />
+<rect width='3' height='50' x='165' y='0' fill='black' />
+<rect width='3' height='50' x='174' y='0' fill='black' />
+<rect width='3' height='50' x='180' y='0' fill='black' />
+<rect width='3' height='50' x='186' y='0' fill='black' />
+<rect width='3' height='50' x='189' y='0' fill='black' />
+<rect width='3' height='50' x='195' y='0' fill='black' />
+<rect width='3' height='50' x='201' y='0' fill='black' />
+<rect width='3' height='50' x='210' y='0' fill='black' />
+<rect width='3' height='50' x='213' y='0' fill='black' />
+<rect width='3' height='50' x='219' y='0' fill='black' />
+<rect width='3' height='50' x='225' y='0' fill='black' />
+<rect width='3' height='50' x='228' y='0' fill='black' />
+<rect width='3' height='50' x='234' y='0' fill='black' />
+<rect width='3' height='50' x='243' y='0' fill='black' />
+<rect width='3' height='50' x='249' y='0' fill='black' />
+<rect width='3' height='50' x='252' y='0' fill='black' />
+<rect width='3' height='50' x='258' y='0' fill='black' />
+<rect width='3' height='50' x='261' y='0' fill='black' />
+<rect width='3' height='50' x='267' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 262px; top: 0px' class=''>*00014*</span></p></article></section></main>
+</body>
+</html>

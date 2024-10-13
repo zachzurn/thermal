@@ -15,11 +15,17 @@ pub struct Codepage {
     table: [&'static str; 256],
     pub name: &'static str,
     pub language: &'static str,
+    //When this is true, we decode with utf8 instead of
+    //using the codepage
+    pub use_utf8_table: bool,
 }
 
 impl Codepage {
-    //TODO there may be a more efficient way to do this
     pub fn decode_utf8(&self, bytes: &[u8]) -> String {
+        if self.use_utf8_table {
+            return String::from_utf8_lossy(bytes).to_string();
+        }
+
         let mut decoded: Vec<&str> = Vec::new();
 
         for byte in bytes {
@@ -33,7 +39,7 @@ impl Codepage {
 
 pub fn get_codepage(codepage_index: u8, language_index: u8) -> Codepage {
     let mut codepage = [""; 256];
-    let mut index: usize = 0;
+    let mut index = 0;
     let (_base_name, base_table) = codepage_base::TABLE;
 
     //Apply the base codepage 0 - 128
@@ -52,14 +58,15 @@ pub fn get_codepage(codepage_index: u8, language_index: u8) -> Codepage {
 
     //Make language specific replacements
     let (language_name, language_replacements) = get_language_replacements(language_index);
-    for (index, str) in language_replacements {
-        codepage[*index as usize] = str
+    for (i, str) in language_replacements {
+        codepage[*i as usize] = str
     }
 
     Codepage {
         table: codepage,
         name: codepage_name,
         language: language_name,
+        use_utf8_table: false,
     }
 }
 

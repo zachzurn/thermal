@@ -104,7 +104,7 @@ pub fn parse_str(text: &str) -> Vec<u8> {
     parsed
 }
 
-pub fn parse_tokens(line: &str) -> Vec<&str> {
+fn parse_tokens(line: &str) -> Vec<&str> {
     let mut tokens = Vec::new();
     let mut span = (0, 0);
     let mut gobble_quoted = false;
@@ -132,13 +132,13 @@ pub fn parse_tokens(line: &str) -> Vec<&str> {
             //End quote, push the string
             if c == '"' {
                 tokens.push(&line[span.0..span.1]);
-                span.1 += 1;
+                span.1 += c.len_utf8();
                 span.0 = span.1;
                 gobble_quoted = false;
             }
             //Still gobbling
             else {
-                span.1 += 1
+                span.1 += c.len_utf8()
             }
 
             continue;
@@ -164,11 +164,11 @@ pub fn parse_tokens(line: &str) -> Vec<&str> {
             }
 
             //Move the span
-            span.1 += 1;
+            span.1 += c.len_utf8();
             span.0 = span.1;
         } else {
             //Move only the end of the span
-            span.1 += 1;
+            span.1 += c.len_utf8();
         }
     }
 
@@ -178,4 +178,9 @@ pub fn parse_tokens(line: &str) -> Vec<&str> {
     }
 
     tokens
+}
+
+pub fn parse_binary(_bytes: Vec<u8>) -> Vec<String> {
+    let lines: Vec<String> = vec![];
+    lines
 }

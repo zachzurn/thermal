@@ -5,86 +5,87 @@
     <title>Thermal</title>
 
     <style>
-        section {
-            font-family: monospace;
-            font-size: {{font-size}}px;
-            line-height: 1.2;
-            margin: 0 auto;
-            text-align: left;
-            box-sizing: border-box;
-            white-space: pre-wrap;
+        body {
+            margin: 0;
+            background: #f7f5f0;
         }
 
-        article{
-            overflow: hidden;
+        section {
+            background: white;
+            font-family: monospace;
+            font-size: 21.8px;
+            line-height: 24px;
+            margin: 20px auto 20px auto;
+            text-align: left;
+            box-sizing: border-box;
+            transform: scale(0.7);
+            transform-origin: top;
+        }
+
+        @media print {
+            html, body { background: white; }
+            section { margin: 0 auto; }
+        }
+
+        p {
+            margin:0;
+            padding: 0;
+            position: relative;
+        }
+
+        p span, p .img, p .gfx {
+           position: absolute;
         }
 
         span {
-            display: inline-block;
+            display: block;
+            vertical-align: text-bottom;
         }
 
-        .cnt {
-            text-wrap: wrap;
-        }
+        .b{ font-weight: bold; }
+        .i{ font-style: italic; }
+        .u{ text-decoration: underline; }
+        .s{ text-decoration: line-through; }
+        .in{ background: black; color: white; }
+        .s, .sd{ text-decoration: line-through; }
 
-        .ac{
-            text-align: center;
-        }
+        /* Conflicts with scaling, need to figure out a solution */
+        .upd { transform: scale(1, -1); }
 
-        .ac span {
-            transform-origin: center top;
-        }
+        .str { transform-origin: top left; }
 
-        .ar {
-            text-align: right;
-        }
+        .w2{ transform: scaleX(2); }
+        .h2{ transform: scaleY(2); }
+        .w2.h2{ transform: scale(2); }
 
-        .ar span {
-            transform-origin: right top;
-        }
+        .w3{ transform: scaleX(3); }
+        .h3{ transform: scaleY(3); }
+        .w3.h3{ transform: scale(3); }
 
-        .al {
-            text-align: left;
-        }
+        .w4{ transform: scaleX(4); }
+        .h4{ transform: scaleY(4); }
+        .w4.h4{ transform: scale(4); }
 
-        .al span {
-            transform-origin: left top;
-        }
+        .w5{ transform: scaleX(5); }
+        .h5{ transform: scaleY(5); }
+        .w5.h5{ transform: scale(5); }
 
-        .b{
-            font-weight: bold;
-        }
+        .w6{ transform: scaleX(6); }
+        .h6{ transform: scaleY(6); }
+        .w6.h6{ transform: scale(6); }
 
-        .i{
-            font-style: italic;
-        }
+        .w7{ transform: scaleX(7); }
+        .h7{ transform: scaleY(7); }
+        .w7.h7{ transform: scale(7); }
 
-        .u{
-            text-decoration: underline;
-        }
+        .w8{ transform: scaleX(8); }
+        .h8{ transform: scaleY(8); }
+        .w8.h8{ transform: scale(8); }
 
-        .s{
-            text-decoration: line-through;
-        }
-
-        .dw{
-            /* NOT FULLY SUPPORTED, NEED A BETTER IMPLEMENTATION */
-            transform: scaleX(2);
-        }
-
-        .dh{
-            /* NOT FULLY SUPPORTED, NEED A BETTER IMPLEMENTATION */
-            transform: scaleY(2);
-        }
-
-        img {
-            display: inline-block;
-        }
-
-
+        img { display: block; }
     </style>
 </head>
 <body>
-    <section style="{{receipt-style}}"><article>{{content}}</article></section>
+    <main><section style="{{receipt-style}}"><article>{{content}}</article></section></main>
 </body>
 </html>
