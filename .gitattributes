@@ -1,0 +1,4 @@
+sample_files/** linguist-vendored
+readme/** linguist-vendored
+thermal_renderer/resources/** linguist-vendored
+thermal_parser/resources/** linguist-vendored
