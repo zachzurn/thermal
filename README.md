@@ -23,6 +23,13 @@ Supports:
 
 [Read the docs](https://github.com/zachzurn/thermal/wiki)
 
+TOC:
+
+- [Image Rendering Example](#image-rendering)
+- [Html Rendering Example](#html-rendering)
+- [Thermal File Format](#thermal-file-format)
+- [Sample Renders](#samples)
+
 ## Image Rendering
 
 ```rust
