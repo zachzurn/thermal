@@ -1,15 +1,11 @@
 <img src="readme/thermal.png" width="124" height="124" style="float:right; margin-left: 30px;">
 
 > [!WARNING]
-> This project is not yet ready for production use. Contributions and feedback are welcome •
-> We are currently doing a major refactor of the rendering code with breaking API changes •
-> We are currently working on adding page mode support in the process.
+> This project is not yet ready for production use but the api is mostly stable as of Oct 2024. Contributions and feedback are welcome.
 
 # Receipt Renderer in Rust (ESC/POS)
 
 Thermal is a toolkit for parsing and rendering ESC/POS commands, capable of producing JPEG and HTML outputs.
-
-We currently don't have a crate published but will publish soon when we feel that the library is somewhat stable.
 
 Supports:
 
@@ -20,6 +16,13 @@ Supports:
 - Qr Codes
 - Some codepages (see docs)
 - International
+
+Plans
+
+- Crate (We currently don't have a crate published but will publish soon when we feel that the library has suffiecient tests.)
+- WASM Library
+- Playground
+- CLI
 
 [Read the docs](https://github.com/zachzurn/thermal/wiki)
 
