@@ -1,7 +1,8 @@
 extern crate qr_code;
-use qr_code::{EcLevel, QrCode, Version};
 
+use crate::context::QrModel::Micro;
 use crate::{command::*, context::*, graphics};
+use qr_code::{EcLevel, QrCode, Version};
 
 #[derive(Clone)]
 pub struct Handler;
@@ -9,15 +10,17 @@ pub struct Handler;
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         let data = command.data.to_owned();
-        let version = match context.code2d.qr_model {
-            0 => Version::Micro(4),
-            1 => Version::Normal(4),
-            _ => Version::Normal(4),
+
+        let version = match &context.code2d.qr_model {
+            QrModel::Model1 => Version::Normal(1),
+            QrModel::Model2 => Version::Normal(2),
+            Micro => Version::Micro(4),
         };
-        let error_correction = match context.code2d.qr_err_correction {
-            1 => EcLevel::M,
-            2 => EcLevel::Q,
-            3 => EcLevel::H,
+
+        let error_correction = match context.code2d.qr_error_correction {
+            QrErrorCorrection::M => EcLevel::M,
+            QrErrorCorrection::Q => EcLevel::Q,
+            QrErrorCorrection::H => EcLevel::H,
             _ => EcLevel::L,
         };
 

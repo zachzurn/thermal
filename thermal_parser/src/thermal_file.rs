@@ -164,11 +164,11 @@ fn parse_tokens(line: &str) -> Vec<&str> {
             }
 
             //Move the span
-            span.1 += 1;
+            span.1 += c.len_utf8();
             span.0 = span.1;
         } else {
             //Move only the end of the span
-            span.1 += 1;
+            span.1 += c.len_utf8();
         }
     }
 

@@ -14,7 +14,7 @@ pub enum VectorGraphic {
     Rectangle(Rectangle),
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Rectangle {
     pub x: u32,
     pub y: u32,

@@ -1,6 +1,23 @@
+//! Image Renderer
+//!
+//! The image renderer renders all output to a single raster image.
+//!
+//! A lot of the heavy lifting is done by the thermal_image module.
+//!
+//! A note on Page Mode:
+//!
+//! Page mode is a more complex way of creating print data.
+//!
+//! It allows different print directions to be set. In order
+//! to make this work, we actually rotate our image and coordinates
+//! whenever the page mode direction is changed and then render as usual
+//!
+//! Page mode shares a lot of context from the main context, but it
+//! has some of its own as well.
+//!
+
 use crate::image_renderer::thermal_image::ThermalImage;
 use crate::renderer::{OutputRenderer, RenderOutput, Renderer};
-use thermal_parser::command::DeviceCommand;
 use thermal_parser::context::{Context, PrintDirection, Rotation, TextJustify};
 use thermal_parser::graphics::{Image, VectorGraphic};
 use thermal_parser::text::TextSpan;
@@ -20,6 +37,7 @@ impl ImageRenderer {
         }
     }
 
+    /// This is the normal way to render bytes to an image
     pub fn render(bytes: &Vec<u8>) -> RenderOutput<ReceiptImage> {
         let mut image_renderer: Box<dyn OutputRenderer<_>> = Box::new(ImageRenderer::new());
         let mut renderer = Renderer::new(&mut image_renderer);
@@ -27,6 +45,7 @@ impl ImageRenderer {
     }
 }
 
+/// ReceiptImage is the main output for the image renderer
 pub struct ReceiptImage {
     pub bytes: Vec<u8>,
     pub width: u32,
@@ -85,8 +104,6 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
             self.page_image.expand_to_height(height)
         }
     }
-
-    fn page_end(&mut self, _context: &mut Context) {}
 
     fn render_page(&mut self, context: &mut Context) {
         let rotation_to_standard = context.page_mode.calculate_directional_rotation(
@@ -172,8 +189,6 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
             }
         }
     }
-
-    fn device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
 
     fn get_render_errors(&mut self) -> Vec<String> {
         let mut errors = vec![];

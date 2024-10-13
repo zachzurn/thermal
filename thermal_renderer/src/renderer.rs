@@ -1,3 +1,19 @@
+//! Thermal Renderer
+//!
+//! Creating your own renderer is made simple
+//! by abstracting away all the finicky context
+//! modifications.
+//!
+//! Renderer takes care of all positioning and then delegates the
+//! actual rendering to the OutputRenderer.
+//!
+//! When you create an OutputRenderer, you will need to define
+//! what kind of output the renderer creates.
+//!
+//! The ImageRenderer is a good place to look at for an example
+//! of how to implement an OutputRenderer.
+//!
+
 use crate::renderer::RenderErrorKind::ChildRenderError;
 use std::{fmt, mem};
 use thermal_parser::command::{Command, CommandType, DeviceCommand};
@@ -216,8 +232,8 @@ impl<'a, Output> Renderer<'a, Output> {
         let mut graphics = vec![];
 
         let mut i = 1;
-        let origin_x =
-            context.calculate_justification(code_2d.points.len() as u32 * code_2d.point_width);
+        let origin_x = context.calculate_justification(code_2d.width as u32 * code_2d.point_width);
+        context.set_x(origin_x);
 
         for p in &code_2d.points {
             if i != 1 && i % code_2d.width == 1 {
@@ -288,6 +304,7 @@ impl<'a, Output> Renderer<'a, Output> {
 
         match self.context.barcode.human_readable {
             HumanReadableInterface::Below | HumanReadableInterface::Both => {
+                self.context.offset_y(8);
                 self.collect_text(barcode.text.clone());
                 self.process_text();
                 self.context.newline(1);
@@ -474,8 +491,17 @@ impl<'a, Output> Renderer<'a, Output> {
     }
 }
 
+/// Implement the  Output Renderer in order to render to your own format.
+///
+/// The main Renderer takes care of all positioning of the xy coordinates.
+///
+/// You just need to render the elements at the provided xy and width height.
 pub trait OutputRenderer<Output> {
+    /// Do setup steps here for each page output
+    /// This can get called multiple times
     fn begin_render(&mut self, context: &mut Context);
+
+    /// Page mode has started
     fn page_begin(&mut self, _context: &mut Context);
     fn page_area_changed(
         &mut self,
@@ -484,10 +510,20 @@ pub trait OutputRenderer<Output> {
         _width: u32,
         _height: u32,
     );
-    fn page_end(&mut self, _context: &mut Context);
+
+    /// Page mode has ended
+    fn page_end(&mut self, _context: &mut Context) {}
+
+    /// Render the page mode area to the main paper
     fn render_page(&mut self, _context: &mut Context);
+
+    /// Render vector graphics
     fn render_graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>);
+
+    /// Render images
     fn render_image(&mut self, context: &mut Context, image: &Image);
+
+    /// Render text
     fn render_text(
         &mut self,
         context: &mut Context,
@@ -496,7 +532,17 @@ pub trait OutputRenderer<Output> {
         max_height: u32,
         text_justify: TextJustify,
     );
-    fn device_command(&mut self, context: &mut Context, command: &DeviceCommand);
-    fn get_render_errors(&mut self) -> Vec<String>;
+
+    /// Possibly render or do something with a device command
+    fn device_command(&mut self, _context: &mut Context, _command: &DeviceCommand) {}
+
+    /// During rendering, if there are any errors that
+    /// would fail a test, return them in this call
+    /// Generally gets called before page end
+    fn get_render_errors(&mut self) -> Vec<String> {
+        vec![]
+    }
+
+    /// End the render and return the output
     fn end_render(&mut self, context: &mut Context) -> Output;
 }

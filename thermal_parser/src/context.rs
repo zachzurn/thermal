@@ -126,13 +126,28 @@ pub struct BarcodeContext {
     pub font: Font,
 }
 
+#[derive(Clone, Debug)]
+pub enum QrModel {
+    Model1, //Numeric data
+    Model2, //Aplhanumeric data
+    Micro,  //32 chars
+}
+
+#[derive(Clone, Debug)]
+pub enum QrErrorCorrection {
+    L,
+    M,
+    Q,
+    H,
+}
+
 #[derive(Clone)]
 pub struct Code2DContext {
     pub symbol_storage: Option<graphics::Code2D>,
 
-    pub qr_model: u8,
+    pub qr_model: QrModel,
+    pub qr_error_correction: QrErrorCorrection,
     pub qr_size: u8,
-    pub qr_err_correction: u8,
 
     pub pdf417_columns: u8,
     pub pdf417_rows: u8,
@@ -364,9 +379,9 @@ impl Context {
             },
             code2d: Code2DContext {
                 symbol_storage: None,
-                qr_model: 0,
-                qr_size: 0,
-                qr_err_correction: 0,
+                qr_model: QrModel::Model1,
+                qr_error_correction: QrErrorCorrection::L,
+                qr_size: 3,
                 pdf417_columns: 0,
                 pdf417_rows: 0,
                 pdf417_width: 0,

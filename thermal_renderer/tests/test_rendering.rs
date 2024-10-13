@@ -1,8 +1,9 @@
 use png::BitDepth;
 use std::fs::File;
-use std::io::BufWriter;
+use std::io::{BufWriter, Write};
 use std::path::{Path, PathBuf};
 use thermal_parser::thermal_file::parse_str;
+use thermal_renderer::html_renderer::HtmlRenderer;
 // use thermal_renderer::html_renderer::HtmlRenderer;
 use thermal_renderer::image_renderer::ImageRenderer;
 
@@ -73,17 +74,18 @@ fn test_sample(name: &str, ext: &str) {
         .join("in")
         .join(format!("{}.{}", name, ext));
 
-    let rendered_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("sample_files")
-        .join("out")
-        .join(format!("{}.{}", name, ext));
-
-    let rendered_file_img = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let img_out = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("sample_files")
         .join("out")
         .join("img")
+        .join(format!("{}.{}", name, ext));
+
+    let html_out = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("sample_files")
+        .join("out")
+        .join("html")
         .join(format!("{}.{}", name, ext));
 
     let bytes = if ext == "thermal" {
@@ -95,23 +97,38 @@ fn test_sample(name: &str, ext: &str) {
 
     render_image(
         &bytes,
-        format!("{}.png", rendered_file_img.to_str().unwrap().to_string()),
+        format!("{}.png", img_out.to_str().unwrap().to_string()),
         name.to_string(),
     );
-    //render_html(&bytes, rendered_file.to_str().unwrap().to_string());
+    render_html(
+        &bytes,
+        format!("{}.html", html_out.to_str().unwrap().to_string()),
+        name.to_string(),
+    );
 }
 
-// fn render_html(bytes: &Vec<u8>, out_path: String) {
-//     let mut html_renderer = HtmlRenderer::new(out_path);
-//     let mut context = Context::new();
-//
-//     let on_new_command = move |mut cmd: Command| {
-//         html_renderer.process_command(&mut context, &mut cmd);
-//     };
-//
-//     let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
-//     command_parser.parse_bytes(bytes);
-// }
+fn render_html(bytes: &Vec<u8>, out_path: String, name: String) {
+    let renders = HtmlRenderer::render(bytes);
+
+    if let Some(render) = renders.output.first() {
+        let path = Path::new(&out_path);
+        let mut file = File::create(path).unwrap();
+        file.write_all(render.content.as_bytes())
+            .expect("Can't write output html");
+    } else {
+        assert!(false, "No image generated from renderer.");
+    }
+
+    let errors = renders.errors;
+
+    if errors.len() > 0 {
+        println!("Errors found for test file {}:", name);
+        for error in errors {
+            println!("{:?}", error);
+        }
+        assert!(false, "There were errors when rendering html.");
+    }
+}
 
 fn render_image(bytes: &Vec<u8>, out_path: String, name: String) {
     let renders = ImageRenderer::render(bytes);
