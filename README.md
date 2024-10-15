@@ -3,7 +3,8 @@
 > [!WARNING]
 > This project is not yet ready for production use but the api is mostly stable as of Oct 2024. Contributions and feedback are welcome.
 
-# Receipt Renderer in Rust (ESC/POS)
+# Receipt Renderer in Rust (ESC/POS) 
+
 
 Thermal is a toolkit for parsing and rendering ESC/POS commands, capable of producing JPEG and HTML outputs.
 
@@ -19,7 +20,7 @@ Supports:
 
 Plans
 
-- Crate (We currently don't have a crate published but will publish soon when we feel that the library has suffiecient tests.)
+- Crate (We currently don't have a crate published but will publish soon when we feel that the library has sufficient tests.)
 - WASM Library
 - Playground
 - CLI
@@ -51,7 +52,7 @@ let renders = ImageRenderer::render(bytes);
 // Write the image to a file.
 // Error handling is left out for brevity
 if let Some(render) = renders.output.first() {
-save_image( & render.bytes, render.width, render.height, "hello_world.png");
+    save_image( & render.bytes, render.width, render.height, "hello_world.png");
 }
 
 // Error handling is left out for brevity
@@ -88,8 +89,8 @@ let renders = HtmlRenderer::render(bytes);
 // Write the html to a file.
 // Error handling is left out for brevity
 if let Some(render) = renders.output.first() {
-let mut file = File::create("hello_world.html").unwrap();
-file.write_all(render.content.as_bytes());
+    let mut file = File::create("hello_world.html").unwrap();
+    file.write_all(render.content.as_bytes());
 }
 ```
 
