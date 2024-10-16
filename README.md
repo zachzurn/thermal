@@ -43,7 +43,7 @@ let text = read_to_string("hello_world.thermal");
 //Parse into esc/pos commands
 let bytes = parse_str( & text);
 
-//Render to html
+//Render to image
 let renders = ImageRenderer::render(bytes);
 
 // renders.output may contain multiple renders
