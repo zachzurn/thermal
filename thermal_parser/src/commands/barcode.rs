@@ -100,9 +100,9 @@ impl CommandHandler for BarcodeHandler {
                     .replace("{C", "Ć");
 
                 let hri_data: String = data
-                    .replace("{A", "A")
-                    .replace("{B", "B")
-                    .replace("{C", "C");
+                    .replace("{A", "")
+                    .replace("{B", "")
+                    .replace("{C", "");
 
                 return match Code128::new(adjusted_data.to_string()) {
 
@@ -160,6 +160,11 @@ impl CommandHandler for BarcodeHandler {
                 };
             }
             BarcodeType::Ean13 => {
+                //Prevent a panic and instead return a graphics error
+                if data.len() < 12 {
+                    return self.decorate_error("Too few digits provided for EAN 13".to_string(), command);     
+                }
+                
                 let data_sp = &data[..12];
                 return match EAN13::new(data_sp.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
