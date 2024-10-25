@@ -154,7 +154,8 @@ impl CommandHandler for BarcodeHandler {
                 };
             }
             BarcodeType::Ean13 => {
-                return match EAN13::new(data.to_string()) {
+                let data_sp = &data[..12];
+                return match EAN13::new(data_sp.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
                         text: TextSpan::new_for_barcode(data.to_string(), context),
