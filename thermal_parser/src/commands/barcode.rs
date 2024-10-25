@@ -99,10 +99,16 @@ impl CommandHandler for BarcodeHandler {
                     .replace("{B", "Ɓ")
                     .replace("{C", "Ć");
 
+                let hri_data: String = data
+                    .replace("{A", "A")
+                    .replace("{B", "B")
+                    .replace("{C", "C");
+
                 return match Code128::new(adjusted_data.to_string()) {
+
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new_for_barcode(data.to_string(), context),
+                        text: TextSpan::new_for_barcode(hri_data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
