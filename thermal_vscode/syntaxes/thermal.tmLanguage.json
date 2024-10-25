@@ -1,0 +1,57 @@
+{
+    "fileTypes": ["thermal"],
+    "name": "Thermal File Format",
+    "scopeName": "source.thermal",
+    "patterns": [
+        {
+            "name": "comment.line.double-slash.thermal",
+            "match": "'//.*$"
+        },
+        {
+            "name": "string.quoted.double.thermal",
+            "match": "\"(?:[^\"\\\\]|\\\\.)*\""
+        },
+        {
+            "name": "constant.numeric.decimal.thermal",
+            "match": "0x[0-9A-Fa-f]+"
+        },
+        {
+            "name": "entity.name.function.thermal",
+            "match": "\\b\\d+\\b"
+        },
+        {
+            "name": "keyword.thermal",
+            "match": "\\b(NUL|ESC|HT|LF|FF|CR|GS|FS|DLE|CAN)\\b"
+        }
+    ],
+    "repository": {
+        "comment": {
+            "name": "comment.line.double-slash.thermal",
+            "begin": "'//",
+            "end": "$"
+        },
+        "string": {
+            "name": "string.quoted.double.thermal",
+            "begin": "\"",
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.thermal",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        "constant.numeric.decimal.": {
+            "name": "constant.numeric.decimal.thermal",
+            "match": "0x[0-9A-Fa-f]+"
+        },
+        "entity.name.function": {
+            "name": "entity.name.function.thermal",
+            "match": "\\b\\d+\\b"
+        },
+        "keyword": {
+            "name": "keyword.thermal",
+            "match": "\\b(NUL|ESC|HT|LF|FF|CR|GS|FS|DLE|CAN)\\b"
+        }
+    }
+}
