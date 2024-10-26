@@ -1,9 +1,14 @@
 [package]
 name = "thermal_parser"
-version = "0.0.1"
+description = "Parse ESC/POS commands."
+version = "0.1.0"
 authors = ["Zach Zurn <zachzurn@gmail.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/zachzurn/thermal"
+keywords = ["esc-pos", "thermal-printing", "emulator"]
+categories = ["parsing", "emulators", "parser-implementations"]
 
 [dependencies]
 barcoders = "2.0.0"

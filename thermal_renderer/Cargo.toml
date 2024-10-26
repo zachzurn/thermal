@@ -1,13 +1,17 @@
 [package]
 name = "thermal_renderer"
-version = "0.0.1"
+description = "Render Images, HTML and various formats from ESC/POS commnds."
+version = "0.1.0"
 authors = ["Zach Zurn <zachzurn@gmail.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/zachzurn/thermal"
+keywords = ["esc-pos", "thermal-printing", "emulator", "receipt", "point-of-sale"]
+categories = ["emulators", "parser-implementations", "rendering::data-formats", "rendering"]
 
 [dependencies]
 thermal_parser = { path = "../thermal_parser" }
-fontdue = "0.7.2"
-textwrap = "0.16.0"
+fontdue = "0.9.2"
 png = "0.17.5"
 base64 = "0.22.1"
