@@ -99,10 +99,16 @@ impl CommandHandler for BarcodeHandler {
                     .replace("{B", "Ɓ")
                     .replace("{C", "Ć");
 
+                let hri_data: String = data
+                    .replace("{A", "")
+                    .replace("{B", "")
+                    .replace("{C", "");
+
                 return match Code128::new(adjusted_data.to_string()) {
+
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
-                        text: TextSpan::new_for_barcode(data.to_string(), context),
+                        text: TextSpan::new_for_barcode(hri_data.to_string(), context),
                         point_width,
                         point_height,
                         hri,
@@ -154,6 +160,11 @@ impl CommandHandler for BarcodeHandler {
                 };
             }
             BarcodeType::Ean13 => {
+                //Prevent a panic and instead return a graphics error
+                if data.len() < 12 {
+                    return self.decorate_error("Too few digits provided for EAN 13".to_string(), command);     
+                }
+                
                 let data_sp = &data[..12];
                 return match EAN13::new(data_sp.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
@@ -167,7 +178,24 @@ impl CommandHandler for BarcodeHandler {
                 };
             }
             BarcodeType::UpcA => {
-                return match UPCA::new(data.to_string()) {
+                let mut data_sp = data.to_string();
+                let data_len = data.len();
+
+                match data_len {
+                    11 => {
+                        if let Some(first_char) = data.chars().next() {
+                            if first_char != '0' {
+                                data_sp = format!("0{}", &data[..11]);
+                            }
+                        }
+                    }
+                    12 => {
+                        data_sp = format!("0{}", &data[..11]);
+                    }
+                    _ => {}
+                }
+
+                return match UPCA::new(data_sp) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
                         text: TextSpan::new_for_barcode(data.to_string(), context),

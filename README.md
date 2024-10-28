@@ -97,7 +97,7 @@ if let Some(render) = renders.output.first() {
 ## Thermal File Format:
 
 This library supports raw binary, but also has support for a human readable format based on the programming examples
-from the Epson website.
+from the Epson website. We have created a VsCode sytax highlighting plugin for this format, see the thermal_vscode directory for installation instructions.
 
 Example:
 

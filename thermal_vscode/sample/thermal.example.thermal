@@ -1,60 +1,6 @@
 '// BARCODES
 GS "!" 0x01 "BARCODES" GS "!" 0x00 LF 
-"-------------------------------------------------" LF LF
-    
-'// Center
-ESC "a" 1
-
-'// Set barcode height: in case TM-T20, 6.25 mm (50/203 inches)
-    GS "h" 50
-'// Select print position of HRI characters: Print position, below the barcode
-    GS "H" 2
-'// Select font for HRI characters: Font B
-    GS "f" 1
-
-'// A note on sending barcode data:
-'//
-'// Some barcodes use null terminated data (Function A)
-'//
-'// Example:
-'//           -------  End of input
-'// GS "k" 4 "*00014*" NUL
-'//
-'// Some barcodes use length defined data (Function B)
-'// 
-'// Example:
-'//   9 bytes ↓  123456789
-'// GS "k" 73 9 "{A4589696"
-
-'// --- CODE 39 --->>>
-    "Code 39" LF LF
-    GS "k" 4 "*00014*" NUL 
-    LF LF
-
-'// --- EAN 13 --->>>
-    "Ean 13" LF LF
-    GS "k" 2 "4596979869696" NUL 
-    LF LF
-
-'// --- CODE 128 --->>>
-    "Code 128 (A)" LF LF
-    GS "k" 73 9 "{A4589696" 
-    LF LF
-
-
-'// --- UPC A --->>>
-    "UPC A" LF LF
-    GS "k" 0 "695878963521" NUL 
-    LF LF
-
-
-'// End Center
-ESC "a" 0
-
-
-'// BARCODE HRI
-GS "!" 0x01 "HUMAN READABLE INTERFACE" GS "!" 0x00 LF 
-"-------------------------------------------------" LF LF
+------------------------------------------------- LF LF
     
 '// Center
 ESC "a" 1
@@ -68,7 +14,7 @@ ESC "a" 1
 '// Select font for HRI characters: Font B
     GS "f" 1
 '// Print barcode: (A) format, barcode system = CODE39
-    GS "k" 4 "*00014*" NUL
+    GS "k" 4 "*00014*" 0
 
 LF LF "Code 39 HRI Above" LF LF
 
@@ -76,7 +22,7 @@ LF LF "Code 39 HRI Above" LF LF
     GS "H" 1
     
 '// Print barcode: (A) format, barcode system = CODE39
-    GS "k" 4 "*00015*" NUL
+    GS "k" 4 "*00015*" 0
 
 LF LF "Code 39 HRI Both" LF LF
 
@@ -84,7 +30,7 @@ LF LF "Code 39 HRI Both" LF LF
     GS "H" 3
     
 '// Print barcode: (A) format, barcode system = CODE39
-    GS "k" 4 "*00016*" NUL
+    GS "k" 4 "*00016*" 0
     
     
 LF LF "Code 39 no HRI" LF LF
@@ -93,7 +39,7 @@ LF LF "Code 39 no HRI" LF LF
     GS "H" 0
     
 '// Print barcode: (A) format, barcode system = CODE39
-    GS "k" 4 "*00017*" NUL
+    GS "k" 4 "*00017*" 0
 
 '// --- CODE 39 ---<<<
 
@@ -102,7 +48,7 @@ ESC "a" 0
 
 '// CODE 2D
 LF LF  GS "!" 0x01 "CODE 2D" GS "!" 0x00 LF
-"-------------------------------------------------" LF LF
+------------------------------------------------- LF LF
 
 '// Center
 ESC "a" 1

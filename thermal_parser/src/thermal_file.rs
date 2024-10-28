@@ -104,7 +104,7 @@ pub fn parse_str(text: &str) -> Vec<u8> {
     parsed
 }
 
-fn parse_tokens(line: &str) -> Vec<&str> {
+pub fn parse_tokens(line: &str) -> Vec<&str> {
     let mut tokens = Vec::new();
     let mut span = (0, 0);
     let mut gobble_quoted = false;
