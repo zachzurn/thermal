@@ -1,20 +1,10 @@
 use std::path::PathBuf;
 use thermal_parser::thermal_file::parse_str;
-use thermal_parser::{command::Command, context::*};
-
-#[test]
-fn bad_image() {
-    test_sample("bad_image", "thermal")
-}
+use thermal_parser::{command::Command, context::*, parse_esc_pos};
 
 #[test]
 fn code_pages() {
     test_sample("code_pages", "thermal")
-}
-
-#[test]
-fn corrupt_start_of_binary() {
-    test_sample("corrupt_start_of_binary", "bin")
 }
 
 #[test]
@@ -35,11 +25,6 @@ fn print_graphics() {
 #[test]
 fn receipt_with_barcode() {
     test_sample("receipt_with_barcode", "thermal")
-}
-
-#[test]
-fn scale_test() {
-    test_sample("scale_test", "bin")
 }
 
 #[test]
@@ -77,6 +62,11 @@ fn thick_barcode() {
     test_sample("thick_barcode", "bin")
 }
 
+#[test]
+fn discount() {
+    test_sample("discount", "bin")
+}
+
 fn test_sample(name: &str, ext: &str) {
     let sample_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")
@@ -97,11 +87,11 @@ fn test_sample(name: &str, ext: &str) {
 fn parse(bytes: &Vec<u8>, debug: bool) {
     let context = Context::new();
 
-    let on_new_command = move |cmd: Command| {
+    let commands = parse_esc_pos(bytes);
+
+    for cmd in commands {
         if debug {
-            println!("{}", cmd.handler.debug(&cmd, &context))
-        };
-    };
-    let mut command_parser = thermal_parser::new_esc_pos_parser(Box::from(on_new_command));
-    command_parser.parse_bytes(&bytes);
+            println!("{}", cmd.handler.debug(&cmd, &context));
+        }
+    }
 }

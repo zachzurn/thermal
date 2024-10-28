@@ -67,6 +67,12 @@ fn thick_barcode() {
     test_sample("thick_barcode", "bin")
 }
 
+#[test]
+fn discount() {
+    test_sample("discount", "bin")
+}
+
+
 fn test_sample(name: &str, ext: &str) {
     let sample_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")
