@@ -13,6 +13,7 @@ use barcoders::sym::tf::TF;
 
 use crate::text::TextSpan;
 use crate::{command::*, constants::*, context::*, graphics::*};
+use crate::utils::barcodes::upce::UPCE;
 
 #[derive(Clone)]
 enum BarcodeType {
@@ -168,6 +169,18 @@ impl CommandHandler for BarcodeHandler {
             }
             BarcodeType::UpcA => {
                 return match UPCA::new(data.to_string()) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: TextSpan::new_for_barcode(data.to_string(), context),
+                        point_width,
+                        point_height,
+                        hri,
+                    })),
+                    Err(error) => self.decorate_error(error.to_string(), command),
+                };
+            }
+            BarcodeType::UpcE => {
+                return match UPCE::new(data.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
                         text: TextSpan::new_for_barcode(data.to_string(), context),
