@@ -60,7 +60,7 @@ fn convert_binary_to_thermal(name: &str) {
         .join("..")
         .join("sample_files")
         .join("in")
-        .join(format!("{}.thermal", name));
+        .join(format!("{}.converted.thermal", name));
 
     let original_bytes = std::fs::read(binary_filepath.to_str().unwrap()).unwrap();
     let parsed_commands = parse_esc_pos(&original_bytes);

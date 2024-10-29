@@ -296,6 +296,8 @@ impl PageModeContext {
         r.y = p.h - (l.x + l.w);
     }
 
+    /// Translates x and y coordinates for when
+    /// Page is in bottom left to top orientation
     fn translate_bottom_left_to_top(&mut self) {
         let l = &self.logical_area;
         let r = &mut self.render_area;

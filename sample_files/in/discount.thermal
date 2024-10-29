@@ -1,19 +1,13 @@
-'// Begin Print
-
-
-'// Set Print Mode
-ESC "!"  0
-
 '// Initialize
 ESC "@" 
 
-'// Set page mode
+'// Set page mode on
 ESC "L" 
 
 '// Set Print Mode
 ESC "!"  0
 
-'// Set Print Area
+'// Set Print Area { x: 0, y: 0, w: 512, h: 831 }
 ESC "W"  0 0 0 0 0 2 63 3
 
 '// Set Print Mode
