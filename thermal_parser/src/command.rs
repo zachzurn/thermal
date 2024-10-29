@@ -198,4 +198,13 @@ pub trait CommandHandler: CloneCommandHandler {
     fn get_subcommand(&mut self) -> Option<Command> {
         None
     }
+
+    //Returns bytes for the command
+    //First vec is the command, like ESC * and the second vec is the data
+    //This command is generally used for rebuilding commands in another format
+    fn get_command_bytes(&self, command: &Command) -> (Vec<u8>,Vec<u8>) {
+        let commands = command.commands.clone().to_vec();
+        let data = command.data.clone();
+        (commands, data)
+    }
 }

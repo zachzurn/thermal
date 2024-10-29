@@ -35,12 +35,9 @@
 //! GS "V" 66 30
 //!
 //! ```
-
 use crate::command::{Command, CommandType};
 use crate::constants;
 use crate::constants::*;
-use std::fmt::format;
-use std::rc::Rc;
 
 pub static COMMENT_PREFIX: &str = "'//";
 pub static HEX_PREFIX: &str = "0x";
@@ -209,16 +206,18 @@ pub fn cmds_to_thermal(cmds: &Vec<Command>) -> String {
     thermal.join("")
 }
 
-fn cmd_to_thermal(cmd: &Command) -> String {
+pub fn cmd_to_thermal(cmd: &Command) -> String {
+    let (commands,data) = cmd.handler.get_command_bytes(&cmd);
+
     if cmd.kind == CommandType::Text {
-        if cmd.commands.len() > 0 && cmd.commands[0] == constants::LF {
+        if commands.len() > 0 && commands[0] == constants::LF {
             return "LF \n".to_string();
         }
 
-        let text = String::from_utf8_lossy(cmd.data.as_slice());
+        let text = String::from_utf8_lossy(data.as_slice());
         return format!("\"{}\"\n", text);
     } else if cmd.kind == CommandType::Unknown {
-        return format!("'// Unknown command \n {}\n\n", explain_unknown(&cmd)).to_string();
+        return format!("'// Unknown command \n {}\n\n", explain_unknown(&data)).to_string();
     }
 
     let mut lines: Vec<String> = vec![];
@@ -227,17 +226,17 @@ fn cmd_to_thermal(cmd: &Command) -> String {
     lines.push(format!("'// {}", cmd.name).to_string());
 
     //Convert command bytes to constant and decimal
-    let mut cmd_str = explain_command(&cmd.commands);
+    let mut cmd_str = explain_command(&commands);
 
     //Small data lists are best expressed as digits
-    if cmd.data.len() < 10 {
-        for b in cmd.data.clone().into_iter() {
+    if data.len() < 10 {
+        for b in data.iter() {
             cmd_str.push_str(&format!(" {}", b));
         }
     //Large data lists are often graphics and best expressed with hex
     } else {
         cmd_str.push_str("\n");
-        for chunk in cmd.data.chunks(32) {
+        for chunk in data.chunks(32) {
             let mut data_str = String::new();
             for b in chunk {
                 //add bytes as 0xFF with a space after
@@ -272,7 +271,7 @@ static BACKSLASH: &u8 = &0x5C;
 static QUOTE: &u8 = &0x22;
 
 pub fn try_string(byte: &u8) -> String {
-    if byte.is_ascii_control() {
+    if byte.is_ascii() && byte.is_ascii_control() {
         format!("{}", byte)
     } else if byte == BACKSLASH {
         //Escape the backslash
@@ -284,16 +283,18 @@ pub fn try_string(byte: &u8) -> String {
         "\"\\\"\"".to_string()
     } else {
         let str = vec![*byte];
-        let char = String::from_utf8_lossy(str.as_slice());
-        format!("\"{}\"", char)
+        if let Ok(str) = String::from_utf8(str) {
+            return format!("\"{}\"", str)
+        }
+        format!("{}", byte)
     }
 }
 
-fn explain_unknown(cmd: &Command) -> String {
-    if cmd.commands.len() > 1 {
-        let first = &cmd.data[0];
-        let second = &cmd.data[1];
-        let rest = &cmd.data[2..];
+fn explain_unknown(data: &Vec<u8>) -> String {
+    if data.len() > 1 {
+        let first = &data[0];
+        let second = &data[1];
+        let rest = &data[2..];
 
         //Normally the first byte is a const value
         let mut str = try_const(first);
@@ -311,13 +312,13 @@ fn explain_unknown(cmd: &Command) -> String {
         }
 
         return str;
-    } else if cmd.data.len() == 1 {
-        return try_const(&cmd.data[0]);
+    } else if data.len() == 1 {
+        return try_const(&data[0]);
     }
     "'// No bytes provided".to_string()
 }
 
-fn explain_command(rc: &Rc<Vec<u8>>) -> String {
+fn explain_command(rc: &Vec<u8>) -> String {
     if rc.is_empty() {
         return "".to_string();
     } else {

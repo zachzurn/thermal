@@ -16,8 +16,7 @@ pub struct SubCommandHandler {
     subcommand_id: u8,
     capacity: u32,
     accept_data: bool,
-    use_m: bool,
-    meta_bytes: Vec<u8>,
+    use_m: bool
 }
 
 impl SubCommandHandler {
@@ -137,19 +136,18 @@ impl CommandHandler for SubCommandHandler {
 
         //Move the data into the subcommand
         if let Some(sub) = &mut self.subcommand {
-            let mut empty_data = vec![];
-            mem::swap(&mut sub.data, &mut empty_data);
+            mem::swap(&mut sub.data, data);
         }
 
+        //Stop accepting bytes
         false
     }
 
     //Returns a subcommand that can be owned and stubs
     fn get_subcommand(&mut self) -> Option<Command> {
-        //swap subcommand
         let mut subcommand = None;
         mem::swap(&mut self.subcommand, &mut subcommand);
-        return subcommand;
+        subcommand
     }
 }
 
@@ -163,7 +161,6 @@ pub fn new(is_large: bool, use_m: bool, commands: Rc<Vec<Command>>) -> Box<SubCo
         capacity: 0,
         accept_data: false,
         use_m,
-        meta_bytes: vec![],
     })
 }
 

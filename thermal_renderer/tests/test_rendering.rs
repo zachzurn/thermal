@@ -69,7 +69,7 @@ fn thick_barcode() {
 
 #[test]
 fn discount() {
-    test_sample("discount", "bin")
+    test_sample("discount", "thermal")
 }
 
 fn test_sample(name: &str, ext: &str) {

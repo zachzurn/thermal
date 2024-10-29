@@ -68,11 +68,6 @@ impl Parser {
                     expanded_cmds.push(*command);
                 }
 
-                //Why isn't this data coming out with the exporter
-                // for command in command.data.iter() {
-                //     expanded_cmds.push(*command);
-                // }
-
                 subcommand.commands = Rc::new(expanded_cmds);
 
                 self.captured_commands.push(subcommand);
