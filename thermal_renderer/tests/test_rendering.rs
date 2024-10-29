@@ -136,7 +136,7 @@ fn render_html(bytes: &Vec<u8>, out_path: String, name: String) {
 }
 
 fn render_image(bytes: &Vec<u8>, out_path: String, name: String) {
-    let renders = ImageRenderer::render(bytes);
+    let renders = ImageRenderer::render_debug(bytes);
 
     if let Some(render) = renders.output.first() {
         save_image(&render.bytes, render.width, render.height, out_path);

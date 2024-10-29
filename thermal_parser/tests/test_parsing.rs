@@ -64,7 +64,7 @@ fn thick_barcode() {
 
 #[test]
 fn discount() {
-    test_sample("discount", "bin")
+    test_sample("discount", "thermal")
 }
 
 fn test_sample(name: &str, ext: &str) {
@@ -91,7 +91,7 @@ fn parse(bytes: &Vec<u8>, debug: bool) {
 
     for cmd in commands {
         if debug {
-            cmd.handler.debug(&cmd, &context);
+            println!("{}", cmd.handler.debug(&cmd, &context));
         }
     }
 }

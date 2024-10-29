@@ -27,6 +27,7 @@ pub mod thermal_image;
 pub struct ImageRenderer {
     pub paper_image: ThermalImage,
     pub page_image: ThermalImage,
+    pub debug: bool,
 }
 
 impl ImageRenderer {
@@ -34,6 +35,7 @@ impl ImageRenderer {
         Self {
             paper_image: ThermalImage::new(0),
             page_image: ThermalImage::new(0),
+            debug: false,
         }
     }
 
@@ -41,6 +43,15 @@ impl ImageRenderer {
     pub fn render(bytes: &Vec<u8>) -> RenderOutput<ReceiptImage> {
         let mut image_renderer: Box<dyn OutputRenderer<_>> = Box::new(ImageRenderer::new());
         let mut renderer = Renderer::new(&mut image_renderer);
+        renderer.render(bytes)
+    }
+
+    pub fn render_debug(bytes: &Vec<u8>) -> RenderOutput<ReceiptImage> {
+        let mut img = ImageRenderer::new();
+        img.debug = true;
+        let mut image_renderer: Box<dyn OutputRenderer<_>> = Box::new(img);
+        let mut renderer = Renderer::new(&mut image_renderer);
+        renderer.debug = true;
         renderer.render(bytes)
     }
 }
@@ -54,6 +65,7 @@ pub struct ReceiptImage {
 
 impl OutputRenderer<ReceiptImage> for ImageRenderer {
     fn begin_render(&mut self, context: &mut Context) {
+        if self.debug { println!("Begin render"); }
         //self.paper_image.enable_debug();
 
         //Initialize the main image area
@@ -78,6 +90,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
     }
 
     fn page_begin(&mut self, _context: &mut Context) {
+        if self.debug { println!("Begin page"); }
         self.page_image.set_width(0);
     }
 
@@ -88,6 +101,8 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         width: u32,
         height: u32,
     ) {
+        if self.debug { println!("Page Area Changed {:?} w{} h{}", rotation, width, height ); }
+
         let img = &mut self.page_image;
 
         match rotation {
@@ -106,6 +121,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
     }
 
     fn render_page(&mut self, context: &mut Context) {
+        if self.debug { println!("Render Page"); }
         let rotation_to_standard = context.page_mode.calculate_directional_rotation(
             &context.page_mode.direction,
             &PrintDirection::TopLeft2Right,
@@ -146,6 +162,8 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
     }
 
     fn render_graphics(&mut self, context: &mut Context, graphics: &Vec<VectorGraphic>) {
+        if self.debug { println!("Render Graphics {:?}", graphics); }
+
         let page = context.page_mode.enabled;
 
         for graphic in graphics {
@@ -162,6 +180,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
     }
 
     fn render_image(&mut self, context: &mut Context, image: &Image) {
+        if self.debug { println!("Render Image x{} y{} w{} h{}", image.x, image.y, image.w, image.h); }
         if context.page_mode.enabled {
             self.page_image.put_render_img(image);
         } else {
@@ -177,6 +196,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         max_height: u32,
         _text_justify: TextJustify,
     ) {
+        if self.debug { println!("Render text {:?}", spans) }
         let canvas = if context.page_mode.enabled {
             &mut self.page_image
         } else {
@@ -207,6 +227,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
     }
 
     fn end_render(&mut self, context: &mut Context) -> ReceiptImage {
+        if self.debug { println!("End Render") }
         //Add in the left and right margin;
         self.paper_image
             .expand_to_width(context.graphics.paper_area.w);

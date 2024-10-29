@@ -184,7 +184,7 @@ pub enum PrintDirection {
     BottomLeft2Top,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RenderArea {
     pub x: u32,
     pub y: u32,
@@ -214,6 +214,7 @@ pub struct PageModeContext {
     pub previous_direction: PrintDirection,
 }
 
+#[derive(Debug)]
 pub enum Rotation {
     R0,
     R90,

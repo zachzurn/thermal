@@ -37,39 +37,47 @@ use crate::{command::*, constants::*, context::*};
 #[derive(Clone)]
 struct Handler;
 
+fn calculate_page_area(command: &Command, context: &Context) -> RenderArea {
+    let x_l = *command.data.get(0).unwrap_or(&0u8);
+    let x_h = *command.data.get(1).unwrap_or(&0u8);
+    let y_l = *command.data.get(2).unwrap_or(&0u8);
+    let y_h = *command.data.get(3).unwrap_or(&0u8);
+    let dx_l = *command.data.get(4).unwrap_or(&0u8);
+    let dx_h = *command.data.get(5).unwrap_or(&0u8);
+    let dy_l = *command.data.get(6).unwrap_or(&0u8);
+    let dy_h = *command.data.get(7).unwrap_or(&0u8);
+
+    let horizontal_logical_origin =
+        (u16::from(x_l) + u16::from(x_h) * 256) * context.graphics.h_motion_unit as u16;
+    let vertical_logical_origin =
+        (u16::from(y_l) + u16::from(y_h) * 256) * context.graphics.v_motion_unit as u16;
+
+    // Calculate print area dimensions
+    let print_area_width =
+        (u16::from(dx_l) + u16::from(dx_h) * 256) * context.graphics.h_motion_unit as u16;
+    let print_area_height =
+        (u16::from(dy_l) + u16::from(dy_h) * 256) * context.graphics.v_motion_unit as u16;
+
+    RenderArea {
+        x: horizontal_logical_origin as u32,
+        y: vertical_logical_origin as u32,
+        w: print_area_width as u32,
+        h: print_area_height as u32,
+    }
+}
+
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         if context.page_mode.enabled {
-            let x_l = *command.data.get(0).unwrap_or(&0u8);
-            let x_h = *command.data.get(1).unwrap_or(&0u8);
-            let y_l = *command.data.get(2).unwrap_or(&0u8);
-            let y_h = *command.data.get(3).unwrap_or(&0u8);
-            let dx_l = *command.data.get(4).unwrap_or(&0u8);
-            let dx_h = *command.data.get(5).unwrap_or(&0u8);
-            let dy_l = *command.data.get(6).unwrap_or(&0u8);
-            let dy_h = *command.data.get(7).unwrap_or(&0u8);
-
-            let horizontal_logical_origin =
-                (u16::from(x_l) + u16::from(x_h) * 256) * context.graphics.h_motion_unit as u16;
-            let vertical_logical_origin =
-                (u16::from(y_l) + u16::from(y_h) * 256) * context.graphics.v_motion_unit as u16;
-
-            // Calculate print area dimensions
-            let print_area_width =
-                (u16::from(dx_l) + u16::from(dx_h) * 256) * context.graphics.h_motion_unit as u16;
-            let print_area_height =
-                (u16::from(dy_l) + u16::from(dy_h) * 256) * context.graphics.v_motion_unit as u16;
-
             //Only logical elements should be set here.
             // All other area fields in the page_mode struct
             // are reserved For the rendering context
-            context.page_mode.logical_area = RenderArea {
-                x: horizontal_logical_origin as u32,
-                y: vertical_logical_origin as u32,
-                w: print_area_width as u32,
-                h: print_area_height as u32,
-            }
+            context.page_mode.logical_area = calculate_page_area(command, context)
         }
+    }
+
+    fn debug(&self, command: &Command, context: &Context) -> String {
+        format!("Set Print Area --> {:?}", calculate_page_area(command, context))
     }
 
     fn get_device_command(

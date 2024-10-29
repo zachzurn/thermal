@@ -112,6 +112,10 @@ impl TextSpan {
     }
 
     pub fn break_apart(&self, first_line_length: usize, line_length: usize) -> Vec<TextSpan> {
+        if line_length == 0 {
+            panic!("break_apart called with zero line length");
+        }
+        
         let chars: Vec<char> = self.text.chars().collect();
         let mut result = Vec::new();
         let mut index = 0;

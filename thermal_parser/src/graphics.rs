@@ -10,6 +10,7 @@ pub struct Barcode {
     pub text: TextSpan,
 }
 
+#[derive(Clone, Debug)]
 pub enum VectorGraphic {
     Rectangle(Rectangle),
 }

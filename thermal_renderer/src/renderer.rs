@@ -24,7 +24,6 @@ use thermal_parser::text::TextSpan;
 pub struct RenderOutput<Output> {
     pub output: Vec<Output>,
     pub errors: Vec<RenderError>,
-    pub debug: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -50,8 +49,8 @@ pub struct Renderer<'a, Output> {
     output_buffer: Vec<Output>,
     error_buffer: Vec<RenderError>,
     span_buffer: Vec<TextSpan>,
-    debug_buffer: Vec<String>,
     context: Context,
+    pub debug: bool,
 }
 
 impl<'a, Output> Renderer<'a, Output> {
@@ -61,36 +60,30 @@ impl<'a, Output> Renderer<'a, Output> {
             context: Context::new(),
             span_buffer: vec![],
             error_buffer: vec![],
-            debug_buffer: vec![],
             output_buffer: vec![],
+            debug: false,
         }
     }
 
     pub fn render(&mut self, bytes: &Vec<u8>) -> RenderOutput<Output> {
+        if self.debug { println!("[Renderer] Parse Commands") }
         let commands = thermal_parser::parse_esc_pos(bytes);
 
         for command in commands {
+            println!("[Renderer] Command {}", command.handler.debug(&command, &self.context));
             self.process_command(&command);
         }
 
         let mut output = vec![];
         let mut errors = vec![];
-        let mut debug = vec![];
 
         mem::swap(&mut output, &mut self.output_buffer);
         mem::swap(&mut errors, &mut self.error_buffer);
-        mem::swap(&mut debug, &mut self.debug_buffer);
 
         RenderOutput {
             output,
-            errors,
-            debug,
+            errors
         }
-    }
-
-    #[allow(dead_code)]
-    fn debug(&mut self, info: &str) {
-        self.debug_buffer.push(info.to_string());
     }
 
     //default implementation
@@ -363,6 +356,7 @@ impl<'a, Output> Renderer<'a, Output> {
         words.reverse();
 
         while let Some(mut word) = words.pop() {
+
             //Calculate available width every loop
             let avail_width = self.context.get_available_width();
             let word_width = word.get_width();
@@ -406,7 +400,7 @@ impl<'a, Output> Renderer<'a, Output> {
                 //Break the word into parts for super long words
                 let mut broken = word.break_apart(
                     (avail_width / word.character_width) as usize,
-                    (max_width / word.character_width) as usize,
+                    (max_width / word.character_width).max(word.character_width) as usize,
                 );
 
                 let broken_len = broken.len() - 1;

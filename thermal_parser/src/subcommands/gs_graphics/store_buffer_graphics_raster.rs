@@ -9,6 +9,14 @@ impl CommandHandler for Handler {
             context.graphics.buffer_graphics = Some(img)
         }
     }
+
+    fn debug(&self, command: &Command, _context: &Context) -> String {
+        if let Some(img) = Image::from_raster_data(&command.data) {
+            format!("Graphics Raster format x{} y{} w{} h{} bytes{}", img.x, img.y, img.w, img.h, img.pixels.len())
+        } else {
+            "Graphics raster format failed to create image".to_string()
+        }
+    }
 }
 
 //Deletes the Download graphics data defined by the key codes (kc1 and kc2).
