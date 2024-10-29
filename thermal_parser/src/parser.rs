@@ -1,6 +1,7 @@
 use crate::command::CommandType;
 use crate::{command::Command, command_sets::*};
 use std::mem;
+use std::rc::Rc;
 
 pub struct Parser {
     cmd_set: CommandSet,
@@ -56,7 +57,19 @@ impl Parser {
         if cmd.kind == CommandType::Subcommand {
             let command = &mut cmd;
 
-            if let Some(subcommand) = command.handler.get_subcommand() {
+            if let Some(mut subcommand) = command.handler.get_subcommand() {
+                let mut expanded_cmds = vec![];
+
+                for command in command.commands.iter() {
+                    expanded_cmds.push(*command);
+                }
+
+                for command in subcommand.commands.iter() {
+                    expanded_cmds.push(*command);
+                }
+                
+                subcommand.commands = Rc::new(expanded_cmds);
+                
                 self.captured_commands.push(subcommand);
             }
         } else {

@@ -1,6 +1,6 @@
 use std::path::PathBuf;
-use thermal_parser::thermal_file::parse_str;
-use thermal_parser::{command::Command, context::*, parse_esc_pos};
+use thermal_parser::thermal_file::{cmd_to_thermal, parse_str};
+use thermal_parser::{context::*, parse_esc_pos};
 
 #[test]
 fn code_pages() {
@@ -62,6 +62,11 @@ fn thick_barcode() {
     test_sample("thick_barcode", "bin")
 }
 
+#[test]
+fn discount() {
+    test_sample("discount", "bin")
+}
+
 fn test_sample(name: &str, ext: &str) {
     let sample_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")
@@ -76,7 +81,7 @@ fn test_sample(name: &str, ext: &str) {
         std::fs::read(sample_file.to_str().unwrap()).unwrap()
     };
 
-    parse(&bytes, false);
+    parse(&bytes, true);
 }
 
 fn parse(bytes: &Vec<u8>, debug: bool) {
@@ -86,7 +91,7 @@ fn parse(bytes: &Vec<u8>, debug: bool) {
 
     for cmd in commands {
         if debug {
-            println!("{}", cmd.handler.debug(&cmd, &context));
+            print!("{}", cmd_to_thermal(&cmd));
         }
     }
 }

@@ -36,6 +36,9 @@
 //!
 //! ```
 
+use std::rc::Rc;
+use crate::command::{Command, CommandType};
+use crate::constants;
 use crate::constants::*;
 
 pub static COMMENT_PREFIX: &str = "'//";
@@ -183,4 +186,73 @@ pub fn parse_tokens(line: &str) -> Vec<&str> {
 pub fn parse_binary(_bytes: Vec<u8>) -> Vec<String> {
     let lines: Vec<String> = vec![];
     lines
+}
+
+/// Utility for converting commands into the human readable
+/// Thermal file format.
+pub fn cmd_to_thermal(cmd: &Command) -> String {
+    if cmd.kind == CommandType::Text {
+        if cmd.commands.len() > 0 && cmd.commands[0] == constants::LF {
+            return "LF \n".to_string();
+        }
+        
+        let text = String::from_utf8_lossy(cmd.data.as_slice());
+        return format!("\"{}\"\n", text);
+    }
+
+    let mut lines : Vec<String> = vec![];
+
+    //Add comment explaining command
+    lines.push(format!("'// {}", cmd.name).to_string());
+
+    //Convert command bytes to constant and decimal
+    let mut cmd_str = explain_command(&cmd.commands);
+
+    //Convert data to hex
+    if cmd.data.len() < 10 {
+        for b in cmd.data.clone().into_iter() {
+            cmd_str.push_str(&format!(" {}", b));
+        }
+    } else {
+        cmd_str.push_str("\n");
+        for chunk in cmd.data.chunks(16) {
+            let mut data_str = String::new();
+            for b in chunk {
+                //add bytes as 0xFF with a space after
+                data_str.push_str(&format!(" 0x{:02X}", b));
+            }
+
+            cmd_str.push_str(&data_str);
+        }
+    }
+
+    lines.push(cmd_str);
+
+    format!("{}\n\n", lines.join("\n"))
+}
+
+fn explain_command(rc: &Rc<Vec<u8>>) -> String {
+    if rc.is_empty() {
+        return "".to_string();
+    } else {
+        let first = rc[0];
+        let rest = &rc[1..];
+
+        let mut first_str : String = match first {
+            0x1B => "ESC ".to_string(),
+            0x1D => "GS ".to_string(),
+            0x0A => "LF ".to_string(),
+            0x1C => "FS ".to_string(),
+            0x0C => "FF ".to_string(),
+            _ => format!("0x{:02X} ", first)
+        };
+
+        for byte in rest {
+            first_str.push_str(&*String::from_utf8_lossy(vec![*byte].as_slice()));
+            first_str.push_str(" ");
+        }
+
+        first_str
+
+    }
 }
