@@ -17,11 +17,12 @@ fn it_parses_tokens() {
 
 #[test]
 fn it_parses_lines() {
-    let bytes = parse_str("'// This is a comment\r\n ESC \"D\"   bob   35 0  0xFF 0x0 \"\\\"");
+    let bytes =
+        parse_str("'// This is a comment\r\n ESC \"D\"   bob   35 0  0xFF 0x0 \"\\\"\" \"\\\\\"");
 
     println!("{:?}", bytes);
 
-    assert_eq!(bytes.len(), 10);
+    assert_eq!(bytes.len(), 11);
     assert_eq!(bytes[0], 27); // ESC
     assert_eq!(bytes[1], 68); // D
     assert_eq!(bytes[2], 98); // b
@@ -32,4 +33,5 @@ fn it_parses_lines() {
     assert_eq!(bytes[7], 255); // 0xFF = 255
     assert_eq!(bytes[8], 0); // 0x0 = 0
     assert_eq!(bytes[9], 34); // "
+    assert_eq!(bytes[10], 92); // \
 }

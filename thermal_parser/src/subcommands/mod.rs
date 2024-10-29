@@ -17,6 +17,7 @@ pub struct SubCommandHandler {
     capacity: u32,
     accept_data: bool,
     use_m: bool,
+    meta_bytes: Vec<u8>,
 }
 
 impl SubCommandHandler {
@@ -67,6 +68,13 @@ impl SubCommandHandler {
         } else {
             self.detect_kind()
         }
+
+        // Here we are adding the commands into the subcommand
+        // so we don't lose any bytes
+        if let Some(sub) = &mut self.subcommand {
+            sub.commands = Rc::new(data.to_vec());
+        }
+
         self.accept_data = true;
     }
 }
@@ -129,8 +137,8 @@ impl CommandHandler for SubCommandHandler {
 
         //Move the data into the subcommand
         if let Some(sub) = &mut self.subcommand {
-            sub.data = data.clone();
-            data.clear();
+            let mut empty_data = vec![];
+            mem::swap(&mut sub.data, &mut empty_data);
         }
 
         false
@@ -155,6 +163,7 @@ pub fn new(is_large: bool, use_m: bool, commands: Rc<Vec<Command>>) -> Box<SubCo
         capacity: 0,
         accept_data: false,
         use_m,
+        meta_bytes: vec![],
     })
 }
 
