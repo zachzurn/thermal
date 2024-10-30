@@ -77,7 +77,10 @@ impl CommandHandler for Handler {
     }
 
     fn debug(&self, command: &Command, context: &Context) -> String {
-        format!("Set Print Area --> {:?}", calculate_page_area(command, context))
+        format!(
+            "Set Print Area --> {:?}",
+            calculate_page_area(command, context)
+        )
     }
 
     fn get_device_command(

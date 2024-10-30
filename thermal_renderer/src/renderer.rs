@@ -129,6 +129,12 @@ impl<'a, Output> Renderer<'a, Output> {
                         GraphicsCommand::Line(_) => {}
                     }
                 }
+
+                //Some graphics commands emit device commands
+                let device_commands = &command
+                    .handler
+                    .get_device_command(command, &mut self.context);
+                self.process_device_commands(device_commands);
             }
             CommandType::Context => {
                 command.handler.apply_context(command, &mut self.context);
@@ -215,6 +221,9 @@ impl<'a, Output> Renderer<'a, Output> {
                     DeviceCommand::ChangeTabs(count, at) => {
                         self.process_text();
                         self.context.set_tab_len(*count, *at);
+                    }
+                    DeviceCommand::ClearBufferGraphics => {
+                        self.context.graphics.buffer_graphics.clear();
                     }
                     _ => {}
                 }

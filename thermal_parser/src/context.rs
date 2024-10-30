@@ -115,7 +115,7 @@ pub struct GraphicsContext {
     pub h_motion_unit: u8,
     pub graphics_count: u16,
     pub stored_graphics: HashMap<ImageRef, Image>,
-    pub buffer_graphics: Option<Image>,
+    pub buffer_graphics: Vec<Image>,
 }
 
 #[derive(Clone)]
@@ -424,7 +424,7 @@ impl Context {
                 h_motion_unit: 1, //Pixels
                 graphics_count: 0,
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
-                buffer_graphics: None,
+                buffer_graphics: vec![],
             },
             page_mode: PageModeContext {
                 enabled: false,

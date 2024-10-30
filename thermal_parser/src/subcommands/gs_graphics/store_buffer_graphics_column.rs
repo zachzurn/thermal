@@ -5,8 +5,9 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        if let Some(img) = Image::from_column_data(&command.data) {
-            context.graphics.buffer_graphics = Some(img)
+        if let Some(mut img) = Image::from_column_data(&command.data) {
+            img.advances_y = false;
+            context.graphics.buffer_graphics.push(img)
         }
     }
 }

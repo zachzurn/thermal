@@ -22,8 +22,9 @@ GS "$"  144 0
 '// Set Text Justification
 ESC "a"  0
 
-'// Unknown command 
- GS "(" 0x47 0x02 NUL 0x50 0x01 
+'// Unknown command
+'// GS "(" "G"    2   0   80    1
+    GS "(" 0x47 0x02 NUL 0x50 0x01
 
 '// Set Relative Vertical Print
 GS "\\"  216 255
@@ -364,8 +365,9 @@ GS "(" "L" 2 0 "0" 2
 '// Set Print Mode
 ESC "!"  56
 
-'// Unknown command 
- GS "(" 0x4E 0x02 NUL 0x30 0x32 
+'// Unknown command
+'// GS "("  "N"    2   0   48   50
+    GS "(" 0x4E  0x02 NUL 0x30 0x32
 
 LF 
 LF 
@@ -401,8 +403,9 @@ GS "$"  52 3
 '// Set Text Justification
 ESC "a"  0
 
-'// Unknown command 
- GS "(" 0x47 0x02 NUL 0x50 0x01 
+'// Unknown command
+'// GS "("  "G"    2   0  80   1
+    GS "(" 0x47 0x02 NUL 0x50 0x01
 
 '// Set Relative Vertical Print
 GS "\\"  216 255
@@ -752,8 +755,9 @@ GS "$"  153 2
 '// Set Text Justification
 ESC "a"  0
 
-'// Unknown command 
- GS "(" 0x47 0x02 NUL 0x50 0x01 
+'// Unknown command
+'// GS "("  "G"    2   0   80   1
+    GS "(" 0x47 0x02  NUL 0x50 0x01
 
 '// Set Relative Vertical Print
 GS "\\"  128 254

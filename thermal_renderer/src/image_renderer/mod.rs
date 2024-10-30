@@ -65,10 +65,10 @@ pub struct ReceiptImage {
 
 impl OutputRenderer<ReceiptImage> for ImageRenderer {
     fn begin_render(&mut self, context: &mut Context) {
-        if self.debug {
-            self.paper_image.enable_debug();
-            self.page_image.enable_debug();
-        }
+        // if self.debug {
+        //     self.paper_image.enable_debug();
+        //     self.page_image.enable_debug();
+        // }
 
         //Initialize the main image area
         self.paper_image.empty();

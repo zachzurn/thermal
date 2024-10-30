@@ -5,14 +5,22 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        if let Some(img) = Image::from_raster_data(&command.data) {
-            context.graphics.buffer_graphics = Some(img)
+        if let Some(mut img) = Image::from_raster_data(&command.data) {
+            img.advances_y = false;
+            context.graphics.buffer_graphics.push(img)
         }
     }
 
     fn debug(&self, command: &Command, _context: &Context) -> String {
         if let Some(img) = Image::from_raster_data(&command.data) {
-            format!("Graphics Raster format x{} y{} w{} h{} bytes{}", img.x, img.y, img.w, img.h, img.pixels.len())
+            format!(
+                "Graphics Raster format x{} y{} w{} h{} bytes{}",
+                img.x,
+                img.y,
+                img.w,
+                img.h,
+                img.pixels.len()
+            )
         } else {
             "Graphics raster format failed to create image".to_string()
         }
