@@ -1,18 +1,27 @@
-use crate::context::Context;
-use crate::{command::*, constants::*};
-
-#[derive(Clone)]
-struct Handler;
-
 /// When Standard mode is selected the horizontal
 /// x is offset by the value, which can be positive or negative
 ///
 /// When Page mode is selected, the horizontal or vertical
 /// motion unit is used for the print direction set by ESC T.
+
+use crate::context::{Context, PrintDirection};
+use crate::{command::*, constants::*};
+
+#[derive(Clone)]
+struct Handler;
+
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
+        // Command is only applicable in page mode
         if context.page_mode.enabled {
-            context.offset_x_relative(get_pos(&command.data));
+            match context.page_mode.direction {
+                PrintDirection::BottomRight2Left | PrintDirection::TopLeft2Right => {
+                    context.offset_y_relative(get_pos(&command.data));
+                }
+                _ => {
+                    context.offset_x_relative(get_pos(&command.data));
+                }
+            }
         }
     }
 
@@ -36,7 +45,7 @@ fn get_pos(data: &Vec<u8>) -> i16 {
 
 pub fn new() -> Command {
     Command::new(
-        "Set Relative Horizontal Position",
+        "Set Relative Vertical Position",
         vec![GS, '\\' as u8],
         CommandType::Context,
         DataType::Double,

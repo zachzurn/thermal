@@ -111,6 +111,11 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
             _ => {}
         }
 
+        match rotation {
+            Rotation::R0 => {},
+            _ => { println!("Rotating image") }
+        }
+
         if width > self.page_image.width {
             self.page_image.expand_to_width(width);
         }

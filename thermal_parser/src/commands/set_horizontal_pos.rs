@@ -1,3 +1,10 @@
+///
+/// This command is used to set the x position in standard and page mode.
+///
+/// The position cannot exceed the width or height that is set
+///
+/// In page mode, the x/y may need to be swapped based on the orientation.
+///
 use crate::{command::*, constants::*, context::*};
 
 #[derive(Clone)]
@@ -13,6 +20,18 @@ fn get_pos(data: &Vec<u8>) -> u32 {
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         if context.page_mode.enabled {
+            match context.page_mode.direction {
+                PrintDirection::BottomRight2Left | PrintDirection::TopLeft2Right => {
+                    context.set_x(get_pos(&command.data));
+                }
+                _ => {
+                    context.set_y(get_pos(&command.data));
+                }
+            }
+            
+            println!("Set horiz pos for page mode");
+            println!("New pos x{} y{}", context.page_mode.render_area.x, context.page_mode.render_area.y);
+        } else {
             context.set_x(get_pos(&command.data));
         }
     }

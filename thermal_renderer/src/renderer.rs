@@ -212,7 +212,15 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.context.graphics.render_area.y += self.context.page_mode.page_area.h;
                         self.context.graphics.render_area.x = 0;
                     }
-                    DeviceCommand::ChangePageModeDirection | DeviceCommand::ChangePageArea => {
+                    DeviceCommand::ChangePageArea => {
+                        self.process_text();
+                        //This is important to make sure that we know the direction has already been altered previously
+                        self.context.page_mode.previous_direction = self.context.page_mode.direction.clone();
+                        let (rotation, width, height) = self.context.page_mode.apply_logical_area();
+                        self.renderer
+                            .page_area_changed(&mut self.context, rotation, width, height);
+                    }
+                    DeviceCommand::ChangePageModeDirection => {
                         self.process_text();
                         let (rotation, width, height) = self.context.page_mode.apply_logical_area();
                         self.renderer

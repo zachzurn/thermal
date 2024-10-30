@@ -63,8 +63,10 @@ pub enum HumanReadableInterface {
 
 #[derive(Clone)]
 pub enum Color {
-    Black,
-    Red,
+    Black, //1
+    Red, //2
+    Blue, //3
+    None //0
 }
 
 #[derive(Clone)]
@@ -97,6 +99,9 @@ pub struct TextContext {
     pub upside_down: bool,
     pub line_spacing: u8,
     pub color: Color,
+    pub background_color: Color,
+    pub shadow_color: Color,
+    pub shadow: bool,
     pub smoothing: bool,
     pub tabs: Vec<u8>,
 }
@@ -371,6 +376,9 @@ impl Context {
                 upside_down: false,
                 line_spacing: 24, //pixels
                 color: Color::Black,
+                background_color: Color::None,
+                shadow: false,
+                shadow_color: Color::Black,
                 smoothing: false,
                 tabs: vec![8; 32], //Every 8 character widths is a tab stop
             },
@@ -495,11 +503,27 @@ impl Context {
         }
     }
 
+    pub fn reset_y(&mut self) {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.y = self.get_base_y();
+        } else {
+            self.graphics.render_area.y = self.get_base_y();
+        }
+    }
+
     //The base x value, which is the furthest left
     //of the render area
     pub fn get_base_x(&self) -> u32 {
         if self.page_mode.enabled {
             self.page_mode.page_area.x
+        } else {
+            0
+        }
+    }
+
+    pub fn get_base_y(&self) -> u32 {
+        if self.page_mode.enabled {
+            self.page_mode.page_area.y
         } else {
             0
         }
@@ -542,6 +566,22 @@ impl Context {
                 new_x = 0;
             }
             self.graphics.render_area.x = new_x as u32;
+        }
+    }
+
+    pub fn offset_y_relative(&mut self, y: i16) {
+        if self.page_mode.enabled {
+            let mut new_y = self.page_mode.render_area.y as i32 + y as i32;
+            if new_y < 0 {
+                new_y = 0;
+            }
+            self.page_mode.render_area.y = new_y as u32;
+        } else {
+            let mut new_y = self.graphics.render_area.y as i32 + y as i32;
+            if new_y < 0 {
+                new_y = 0;
+            }
+            self.graphics.render_area.y = new_y as u32;
         }
     }
 
