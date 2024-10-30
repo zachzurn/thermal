@@ -47,7 +47,7 @@ pub mod set_page_mode;
 pub mod set_panel_buttons;
 pub mod set_peripheral_device;
 pub mod set_print_mode;
-pub mod set_relative_vertical_print;
+pub mod set_relative_print_position;
 pub mod set_smoothing;
 pub mod set_tab_len;
 pub mod set_underline;

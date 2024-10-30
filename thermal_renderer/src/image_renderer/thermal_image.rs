@@ -1,6 +1,5 @@
 extern crate fontdue;
 extern crate png;
-extern crate textwrap;
 
 use fontdue::layout::CharacterData;
 use std::rc::Rc;
@@ -510,13 +509,13 @@ impl ThermalImage {
         //Completely out of bounds, unrenderable
         if exceeds_w || (exceeds_h && !self.auto_grow) {
             self.errors.push(format!(
-                "Image exceeded paper x{} y{} w{} h{} paper[w{} h{}]",
+                "Image exceeded paper x{} y{} w{} h{} : exceeded: width? {} height? {}",
                 x,
                 y,
+                self.width,
+                self.get_height(),
                 exceeds_w,
                 exceeds_h,
-                self.width,
-                self.get_height()
             ));
             return false;
         }

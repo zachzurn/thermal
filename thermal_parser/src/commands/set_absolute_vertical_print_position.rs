@@ -16,22 +16,28 @@ use crate::context::Context;
 #[derive(Clone)]
 struct Handler;
 
+fn get_pos(data: &Vec<u8>) -> u32 {
+    let nl = data.get(0).unwrap_or(&0u8);
+    let nh = data.get(1).unwrap_or(&0u8);
+
+    (*nl as u16 + *nh as u16 * 256) as u32
+}
+
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         if context.page_mode.enabled {
-            let nl = *command.data.get(0).unwrap_or(&0u8);
-            let nh = *command.data.get(1).unwrap_or(&0u8);
-
-            let pos = (nl as u16 + nh as u16 * 256) as u32;
-
-            context.set_x(pos);
+            context.set_x(get_pos(&command.data));
         }
+    }
+
+    fn debug(&self, command: &Command, _context: &Context) -> String {
+        format!("{} --> {}", &command.name, get_pos(&command.data))
     }
 }
 
 pub fn new() -> Command {
     Command::new(
-        "Set Absolute Vertical Print POS", //should be JQuery Command :)
+        "Set Absolute Vertical Position", //should be JQuery Command :)
         vec![GS, '$' as u8],
         CommandType::Context,
         DataType::Double,

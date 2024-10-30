@@ -66,11 +66,16 @@ impl<'a, Output> Renderer<'a, Output> {
     }
 
     pub fn render(&mut self, bytes: &Vec<u8>) -> RenderOutput<Output> {
-        if self.debug { println!("[Renderer] Parse Commands") }
+        if self.debug {
+            println!("[Renderer] Parse Commands")
+        }
         let commands = thermal_parser::parse_esc_pos(bytes);
 
         for command in commands {
-            println!("[Renderer] Command {}", command.handler.debug(&command, &self.context));
+            println!(
+                "[Renderer] Command {}",
+                command.handler.debug(&command, &self.context)
+            );
             self.process_command(&command);
         }
 
@@ -80,10 +85,7 @@ impl<'a, Output> Renderer<'a, Output> {
         mem::swap(&mut output, &mut self.output_buffer);
         mem::swap(&mut errors, &mut self.error_buffer);
 
-        RenderOutput {
-            output,
-            errors
-        }
+        RenderOutput { output, errors }
     }
 
     //default implementation
@@ -204,7 +206,7 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.context.graphics.render_area.y += self.context.page_mode.page_area.h;
                         self.context.graphics.render_area.x = 0;
                     }
-                    DeviceCommand::ChangePageModeDirection => {
+                    DeviceCommand::ChangePageModeDirection | DeviceCommand::ChangePageArea => {
                         self.process_text();
                         let (rotation, width, height) = self.context.page_mode.apply_logical_area();
                         self.renderer
@@ -356,7 +358,6 @@ impl<'a, Output> Renderer<'a, Output> {
         words.reverse();
 
         while let Some(mut word) = words.pop() {
-
             //Calculate available width every loop
             let avail_width = self.context.get_available_width();
             let word_width = word.get_width();

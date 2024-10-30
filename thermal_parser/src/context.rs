@@ -282,7 +282,7 @@ impl PageModeContext {
         r.w = l.w;
         r.h = l.h;
         r.y = l.y;
-        r.x = p.w - (l.x + l.w);
+        r.x = p.w.saturating_sub(l.x + l.w);
     }
 
     fn translate_top_right_to_bottom(&mut self) {
@@ -292,8 +292,8 @@ impl PageModeContext {
 
         r.w = l.h;
         r.h = l.w;
-        r.x = p.w - (l.y + l.h);
-        r.y = p.h - (l.x + l.w);
+        r.x = p.w.saturating_sub(l.y + l.h);
+        r.y = p.h.saturating_sub(l.x + l.w);
     }
 
     /// Translates x and y coordinates for when
@@ -305,7 +305,7 @@ impl PageModeContext {
 
         r.w = l.h;
         r.h = l.w;
-        r.x = p.w - (l.y + l.h);
+        r.x = p.w.saturating_sub(l.y + l.h);
         r.y = l.x;
     }
 
@@ -526,6 +526,22 @@ impl Context {
             self.page_mode.render_area.x += x;
         } else {
             self.graphics.render_area.x += x;
+        }
+    }
+
+    pub fn offset_x_relative(&mut self, x: i16) {
+        if self.page_mode.enabled {
+            let mut new_x = self.page_mode.render_area.x as i32 + x as i32;
+            if new_x < 0 {
+                new_x = 0;
+            }
+            self.page_mode.render_area.x = new_x as u32;
+        } else {
+            let mut new_x = self.graphics.render_area.x as i32 + x as i32;
+            if new_x < 0 {
+                new_x = 0;
+            }
+            self.graphics.render_area.x = new_x as u32;
         }
     }
 

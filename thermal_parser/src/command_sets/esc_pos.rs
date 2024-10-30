@@ -44,7 +44,7 @@ pub fn new() -> CommandSet {
         set_panel_buttons::new(),
         set_peripheral_device::new(),
         set_print_mode::new(),
-        set_relative_vertical_print::new(),
+        set_relative_print_position::new(),
         set_smoothing::new(),
         set_tab_len::new(),
         set_underline::new(),
