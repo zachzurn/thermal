@@ -67,6 +67,11 @@ fn discount() {
     test_sample("discount", "bin")
 }
 
+#[test]
+fn coupon_retail_receipt() {
+    test_sample("coupon_retail_receipt", "bin")
+}
+
 fn test_sample(name: &str, ext: &str) {
     let sample_file = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")
