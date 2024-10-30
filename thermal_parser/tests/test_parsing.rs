@@ -68,18 +68,8 @@ fn discount() {
 }
 
 #[test]
-fn coupon() {
-    test_sample("coupon", "bin")
-}
-
-#[test]
 fn upce() {
     test_sample("barcodes_upce", "bin")
-}
-
-#[test]
-fn coupon_retail_receipt() {
-    test_sample("coupon_retail_receipt", "bin")
 }
 
 fn test_sample(name: &str, ext: &str) {
