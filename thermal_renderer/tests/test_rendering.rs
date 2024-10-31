@@ -23,6 +23,11 @@ fn page_mode() {
 }
 
 #[test]
+fn page_mode_debug() {
+    test_sample("page_mode_debug", "thermal")
+}
+
+#[test]
 fn print_graphics() {
     test_sample("print_graphics", "thermal")
 }

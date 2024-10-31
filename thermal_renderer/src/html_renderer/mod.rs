@@ -20,7 +20,7 @@ use crate::html_renderer::thermal_html::{encode_html_image, graphics_to_svg, spa
 use crate::image_renderer::thermal_image::ThermalImage;
 use crate::renderer::{OutputRenderer, RenderOutput, Renderer};
 use thermal_parser::context::{Context, PrintDirection, Rotation, TextJustify};
-use thermal_parser::graphics::{Image, PixelType, VectorGraphic};
+use thermal_parser::graphics::{Image, ImageFlow, PixelType, VectorGraphic};
 use thermal_parser::text::TextSpan;
 
 static TEMPLATE: &str = include_str!("../../resources/templates/thermal.html");
@@ -175,7 +175,7 @@ impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
             h,
             pixel_type: PixelType::MonochromeByte,
             stretch: (0, 0),
-            advances_y: false,
+            flow: ImageFlow::Block,
             upside_down: false,
         };
 

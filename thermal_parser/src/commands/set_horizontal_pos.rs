@@ -20,17 +20,13 @@ fn get_pos(data: &Vec<u8>) -> u32 {
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         if context.page_mode.enabled {
-            match context.page_mode.direction {
-                PrintDirection::BottomRight2Left | PrintDirection::TopLeft2Right => {
-                    context.set_x(get_pos(&command.data));
-                }
-                _ => {
-                    context.set_y(get_pos(&command.data));
-                }
-            }
-            
+            context.set_x(get_pos(&command.data));
+
             println!("Set horiz pos for page mode");
-            println!("New pos x{} y{}", context.page_mode.render_area.x, context.page_mode.render_area.y);
+            println!(
+                "New pos x{} y{}",
+                context.page_mode.render_area.x, context.page_mode.render_area.y
+            );
         } else {
             context.set_x(get_pos(&command.data));
         }

@@ -21,7 +21,7 @@ pub struct TextSpan {
     pub dimensions: Option<Dimensions>,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Dimensions {
     pub x: u32,
     pub y: u32,
@@ -115,7 +115,7 @@ impl TextSpan {
         if line_length == 0 {
             panic!("break_apart called with zero line length");
         }
-        
+
         let chars: Vec<char> = self.text.chars().collect();
         let mut result = Vec::new();
         let mut index = 0;
@@ -183,6 +183,7 @@ impl fmt::Debug for TextSpan {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.debug_struct("Span")
             .field("text", &self.text.replace("\n", "{LF}"))
+            .field("dim", &self.dimensions.clone())
             .finish()
     }
 }

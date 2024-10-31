@@ -1,0 +1,54 @@
+'// ============================================================================
+'//  Print in Page mode
+'// ============================================================================
+
+'// Initialize printer
+    ESC "@"
+
+'// Select Page mode
+    ESC "L"
+'// Set horizontal and vertical motion units: Horizontal motion unit = 0.125 mm
+'// (1/203 inch), vertical motion unit = 0.125 mm (1/203 inch)
+'// The above are values based on the dot density of the TM-T20 printing head,
+'// and this script must be changed for each model.
+    GS "P" 203 203
+
+'// --- Store edge data --->>>
+'// Set print area in Page mode: Horizontal logical origin = 6, vertical logical
+'// origin = 0, horizontal dimension = 500, vertical dimension = 750
+'// ESC  W  xL xH yL yH dxL dxH dyL dyH
+    ESC "W"  0  0  0  0 244  1  238   2
+
+    "-----------------------------------------"
+    "<-- TOP SIDE -->"
+
+
+'// Select print direction in Page mode:
+'// Starting position = lower left, print direction = bottom to top
+    ESC "T" 1
+
+    "--------------------------------------------------------------"
+    "<-- LEFT SIDE -->"
+
+
+'// Select print direction in Page mode:
+'// Starting position = lower right, print direction = right to left
+    ESC "T" 2
+
+    "-----------------------------------------"
+    "<-- BOTTOM SIDE -->"
+
+
+'// Select print direction in Page mode:
+'// Starting position = upper right, print direction = top to bottom
+    ESC "T" 3
+
+    "--------------------------------------------------------------"
+    "<-- RIGHT SIDE -->"
+
+'// Print Page and Select Standard mode (return to Standard mode)
+    FF ESC "S"
+
+'// Select cut mode and cut paper: [Function B] Feed paper to (cutting position
+'// + 10 mm (80/203 inches)) and executes a partial cut (one point left uncut).
+    GS "V" 66 80

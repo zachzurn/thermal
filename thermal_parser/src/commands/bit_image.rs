@@ -38,7 +38,7 @@ impl CommandHandler for Handler {
             h,
             pixel_type: PixelType::MonochromeByte,
             stretch: self.stretch,
-            advances_y: false,
+            flow: ImageFlow::Inline,
             upside_down: false,
         }))
     }

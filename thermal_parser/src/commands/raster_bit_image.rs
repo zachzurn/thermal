@@ -28,7 +28,7 @@ impl CommandHandler for Handler {
             h: self.height,
             pixel_type: PixelType::Monochrome(1),
             stretch,
-            advances_y: true,
+            flow: ImageFlow::None,
             upside_down: false,
         }))
     }

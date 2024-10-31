@@ -51,6 +51,13 @@ pub enum PixelType {
 }
 
 #[derive(Clone, Debug)]
+pub enum ImageFlow {
+    Inline, //Image acts somewhat like text, advances x until line is full
+    Block,  //Image advances y by height and resets x to 0
+    None,   //Image does not advance xy
+}
+
+#[derive(Clone, Debug)]
 pub struct Image {
     pub pixels: Vec<u8>,
     pub x: u32,
@@ -59,7 +66,7 @@ pub struct Image {
     pub h: u32,
     pub pixel_type: PixelType,
     pub stretch: (u8, u8),
-    pub advances_y: bool,
+    pub flow: ImageFlow,
     pub upside_down: bool,
 }
 
@@ -156,7 +163,7 @@ impl Image {
             h: height as u32,
             pixel_type,
             stretch,
-            advances_y: true,
+            flow: ImageFlow::None,
             upside_down: false,
         })
     }
@@ -204,7 +211,7 @@ impl Image {
                 h: height,
                 pixel_type,
                 stretch,
-                advances_y: true,
+                flow: ImageFlow::None,
                 upside_down: false,
             },
         ))
@@ -251,7 +258,7 @@ impl Image {
             h: height,
             pixel_type,
             stretch,
-            advances_y: false,
+            flow: ImageFlow::None,
             upside_down: false,
         })
     }
@@ -298,7 +305,7 @@ impl Image {
                 h: height,
                 pixel_type,
                 stretch,
-                advances_y: false,
+                flow: ImageFlow::None,
                 upside_down: false,
             },
         ))

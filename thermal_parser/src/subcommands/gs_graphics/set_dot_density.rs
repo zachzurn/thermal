@@ -8,6 +8,8 @@ impl CommandHandler for Handler {
         let x = *command.data.get(0).unwrap_or(&50);
         let y = *command.data.get(1).unwrap_or(&50);
 
+        // TODO investigate. This might be completely wrong
+        // It's possible that this should only affect graphic image dot count
         if x == 50 && y == 50 {
             context.graphics.dots_per_inch = 180
         } else if x == 51 && y == 51 {

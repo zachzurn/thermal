@@ -64,9 +64,9 @@ pub enum HumanReadableInterface {
 #[derive(Clone)]
 pub enum Color {
     Black, //1
-    Red, //2
-    Blue, //3
-    None //0
+    Red,   //2
+    Blue,  //3
+    None,  //0
 }
 
 #[derive(Clone)]
@@ -262,6 +262,78 @@ impl PageModeContext {
         (rotation, self.page_area.w, self.page_area.h)
     }
 
+    pub fn set_x(&mut self, x: u32) {
+        let l = &self.logical_area;
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+
+        match self.direction {
+            PrintDirection::TopLeft2Right => r.x = x,
+            PrintDirection::BottomRight2Left => r.y = x,
+            PrintDirection::TopRight2Bottom => r.x = x,
+            PrintDirection::BottomLeft2Top => r.y = x,
+            // PrintDirection::BottomLeft2Top => r.x = p.w.saturating_sub(x), //?
+            // PrintDirection::TopRight2Bottom => r.y = p.h.saturating_sub(x), //?
+        }
+    }
+
+    pub fn set_y(&mut self, y: u32) {
+        let l = &self.logical_area;
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+
+        match self.direction {
+            PrintDirection::TopLeft2Right => r.y = y,
+            PrintDirection::BottomRight2Left => r.x = y,
+            PrintDirection::TopRight2Bottom => r.x = y,
+            PrintDirection::BottomLeft2Top => r.y = y,
+            // PrintDirection::TopRight2Bottom => r.x = p.w.saturating_sub(y), //?
+            // PrintDirection::BottomLeft2Top => r.x = p.w.saturating_sub(y),  //?
+        }
+    }
+
+    pub fn offset_x(&mut self, x: u32) {
+        self.render_area.x += x;
+    }
+
+    pub fn offset_y(&mut self, y: u32) {
+        self.render_area.y += y;
+    }
+
+    pub fn offset_x_relative(&mut self, x: i16) {
+        match self.direction {
+            PrintDirection::TopLeft2Right | PrintDirection::BottomRight2Left => {
+                self.offset_x_relative(x);
+            }
+            _ => self.offset_y_relative(x),
+        }
+    }
+
+    pub fn offset_y_relative(&mut self, y: i16) {
+        match self.direction {
+            PrintDirection::TopLeft2Right | PrintDirection::BottomRight2Left => {
+                self.offset_y_relative(y);
+            }
+            _ => self.offset_x_relative(y),
+        }
+    }
+
+    pub fn _offset_x_relative(&mut self, x: i16) {
+        let mut new_x = self.render_area.x as i32 + x as i32;
+        if new_x < 0 {
+            new_x = 0;
+        }
+        self.render_area.x = new_x as u32;
+    }
+
+    pub fn _offset_y_relative(&mut self, y: i16) {
+        let mut new_y = self.render_area.y as i32 + y as i32;
+        if new_y < 0 {
+            new_y = 0;
+        }
+        self.render_area.y = new_y as u32;
+    }
+
     fn should_dimension_swap(direction: &PrintDirection) -> bool {
         match direction {
             PrintDirection::TopLeft2Right | PrintDirection::BottomRight2Left => false,
@@ -301,8 +373,6 @@ impl PageModeContext {
         r.y = p.h.saturating_sub(l.x + l.w);
     }
 
-    /// Translates x and y coordinates for when
-    /// Page is in bottom left to top orientation
     fn translate_bottom_left_to_top(&mut self) {
         let l = &self.logical_area;
         let r = &mut self.render_area;
@@ -547,19 +617,23 @@ impl Context {
 
     pub fn offset_x(&mut self, x: u32) {
         if self.page_mode.enabled {
-            self.page_mode.render_area.x += x;
+            self.page_mode.offset_x(x);
         } else {
             self.graphics.render_area.x += x;
         }
     }
 
+    pub fn offset_y(&mut self, y: u32) {
+        if self.page_mode.enabled {
+            self.page_mode.offset_y(y);
+        } else {
+            self.graphics.render_area.y += y;
+        }
+    }
+
     pub fn offset_x_relative(&mut self, x: i16) {
         if self.page_mode.enabled {
-            let mut new_x = self.page_mode.render_area.x as i32 + x as i32;
-            if new_x < 0 {
-                new_x = 0;
-            }
-            self.page_mode.render_area.x = new_x as u32;
+            self.page_mode.offset_x_relative(x);
         } else {
             let mut new_x = self.graphics.render_area.x as i32 + x as i32;
             if new_x < 0 {
@@ -571,25 +645,13 @@ impl Context {
 
     pub fn offset_y_relative(&mut self, y: i16) {
         if self.page_mode.enabled {
-            let mut new_y = self.page_mode.render_area.y as i32 + y as i32;
-            if new_y < 0 {
-                new_y = 0;
-            }
-            self.page_mode.render_area.y = new_y as u32;
+            self.page_mode.offset_y_relative(y);
         } else {
             let mut new_y = self.graphics.render_area.y as i32 + y as i32;
             if new_y < 0 {
                 new_y = 0;
             }
             self.graphics.render_area.y = new_y as u32;
-        }
-    }
-
-    pub fn offset_y(&mut self, y: u32) {
-        if self.page_mode.enabled {
-            self.page_mode.render_area.y += y;
-        } else {
-            self.graphics.render_area.y += y;
         }
     }
 
@@ -617,7 +679,7 @@ impl Context {
 
     pub fn set_x(&mut self, x: u32) {
         if self.page_mode.enabled {
-            self.page_mode.render_area.x = self.page_mode.page_area.x + x;
+            self.page_mode.set_x(x);
         } else {
             self.graphics.render_area.x = x;
         }
@@ -625,7 +687,7 @@ impl Context {
 
     pub fn set_y(&mut self, y: u32) {
         if self.page_mode.enabled {
-            self.page_mode.render_area.y = y;
+            self.page_mode.set_y(y);
         } else {
             self.graphics.render_area.y = y;
         }

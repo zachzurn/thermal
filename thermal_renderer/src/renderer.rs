@@ -18,7 +18,9 @@ use crate::renderer::RenderErrorKind::ChildRenderError;
 use std::{fmt, mem};
 use thermal_parser::command::{Command, CommandType, DeviceCommand};
 use thermal_parser::context::{Context, HumanReadableInterface, Rotation, TextJustify};
-use thermal_parser::graphics::{Barcode, Code2D, GraphicsCommand, Image, Rectangle, VectorGraphic};
+use thermal_parser::graphics::{
+    Barcode, Code2D, GraphicsCommand, Image, ImageFlow, Rectangle, VectorGraphic,
+};
 use thermal_parser::text::TextSpan;
 
 pub struct RenderOutput<Output> {
@@ -215,7 +217,8 @@ impl<'a, Output> Renderer<'a, Output> {
                     DeviceCommand::ChangePageArea => {
                         self.process_text();
                         //This is important to make sure that we know the direction has already been altered previously
-                        self.context.page_mode.previous_direction = self.context.page_mode.direction.clone();
+                        self.context.page_mode.previous_direction =
+                            self.context.page_mode.direction.clone();
                         let (rotation, width, height) = self.context.page_mode.apply_logical_area();
                         self.renderer
                             .page_area_changed(&mut self.context, rotation, width, height);
@@ -223,6 +226,12 @@ impl<'a, Output> Renderer<'a, Output> {
                     DeviceCommand::ChangePageModeDirection => {
                         self.process_text();
                         let (rotation, width, height) = self.context.page_mode.apply_logical_area();
+                        println!("Rotate {:?} deg at W={} H={}", rotation, width, height);
+                        println!(
+                            "X = {} and Y = {}",
+                            self.context.get_x(),
+                            self.context.get_y()
+                        );
                         self.renderer
                             .page_area_changed(&mut self.context, rotation, width, height);
                     }
@@ -328,26 +337,31 @@ impl<'a, Output> Renderer<'a, Output> {
     fn process_image(&mut self, image: &mut Image) {
         let context = &mut self.context;
 
-        if image.advances_y && context.get_x() == 0 {
-            context.set_x(context.calculate_justification(image.w));
-        }
-
-        //Images that exceed the render width will be bumped down to the next line
-        if !image.advances_y && image.w > context.get_available_width() {
-            context.newline(1);
+        match image.flow {
+            ImageFlow::Inline => {
+                if image.w > context.get_available_width() {
+                    context.newline(1);
+                }
+            }
+            ImageFlow::Block => {
+                context.set_x(context.calculate_justification(image.w));
+            }
+            ImageFlow::None => {}
         }
 
         image.x = context.get_x();
         image.y = context.get_y();
         self.renderer.render_image(context, image);
 
-        //Start a new line after the image
-        if image.advances_y {
-            context.reset_x();
-            context.offset_y(image.h);
-            context.offset_y(context.line_height_pixels());
-        } else {
-            context.offset_x(image.w);
+        match image.flow {
+            ImageFlow::Inline => {
+                context.offset_x(image.w);
+            }
+            ImageFlow::Block => {
+                context.offset_y(image.h);
+                context.reset_x();
+            }
+            _ => {}
         }
     }
 
@@ -491,6 +505,8 @@ impl<'a, Output> Renderer<'a, Output> {
                 }
                 _ => {}
             }
+
+            println!("Render Text {:?} at x offset = {}", line, line_offset);
 
             self.renderer.render_text(
                 &mut self.context,
