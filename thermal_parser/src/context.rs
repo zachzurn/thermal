@@ -263,32 +263,38 @@ impl PageModeContext {
     }
 
     pub fn set_x(&mut self, x: u32) {
-        let l = &self.logical_area;
         let r = &mut self.render_area;
         let p = &mut self.page_area;
-
-        match self.direction {
-            PrintDirection::TopLeft2Right => r.x = x,
-            PrintDirection::BottomRight2Left => r.y = x,
-            PrintDirection::TopRight2Bottom => r.x = x,
-            PrintDirection::BottomLeft2Top => r.y = x,
-            // PrintDirection::BottomLeft2Top => r.x = p.w.saturating_sub(x), //?
-            // PrintDirection::TopRight2Bottom => r.y = p.h.saturating_sub(x), //?
-        }
+        r.x = p.x + x;
     }
 
     pub fn set_y(&mut self, y: u32) {
-        let l = &self.logical_area;
         let r = &mut self.render_area;
         let p = &mut self.page_area;
+        r.y = p.y + y;
+    }
 
+    //Absolute x and y are always from the 0,0 top left position
+    pub fn set_x_absolute(&mut self, x: u32) {
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+        match self.direction {  
+            PrintDirection::TopLeft2Right => { r.x = x }
+            PrintDirection::BottomRight2Left => { r.x = p.w - x }
+            PrintDirection::TopRight2Bottom => { r.y = p.w - x }
+            PrintDirection::BottomLeft2Top => { r.y = x }
+        }
+    }
+
+    //Absolute x and y are always from the 0,0 top left position
+    pub fn set_y_absolute(&mut self, y: u32) {
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
         match self.direction {
-            PrintDirection::TopLeft2Right => r.y = y,
-            PrintDirection::BottomRight2Left => r.x = y,
-            PrintDirection::TopRight2Bottom => r.x = y,
-            PrintDirection::BottomLeft2Top => r.y = y,
-            // PrintDirection::TopRight2Bottom => r.x = p.w.saturating_sub(y), //?
-            // PrintDirection::BottomLeft2Top => r.x = p.w.saturating_sub(y),  //?
+            PrintDirection::TopLeft2Right => { r.y = y }
+            PrintDirection::BottomRight2Left => { r.y = p.h - y }
+            PrintDirection::TopRight2Bottom => { r.x = y }
+            PrintDirection::BottomLeft2Top => { r.x = p.w - y }
         }
     }
 
@@ -301,24 +307,6 @@ impl PageModeContext {
     }
 
     pub fn offset_x_relative(&mut self, x: i16) {
-        match self.direction {
-            PrintDirection::TopLeft2Right | PrintDirection::BottomRight2Left => {
-                self.offset_x_relative(x);
-            }
-            _ => self.offset_y_relative(x),
-        }
-    }
-
-    pub fn offset_y_relative(&mut self, y: i16) {
-        match self.direction {
-            PrintDirection::TopLeft2Right | PrintDirection::BottomRight2Left => {
-                self.offset_y_relative(y);
-            }
-            _ => self.offset_x_relative(y),
-        }
-    }
-
-    pub fn _offset_x_relative(&mut self, x: i16) {
         let mut new_x = self.render_area.x as i32 + x as i32;
         if new_x < 0 {
             new_x = 0;
@@ -326,7 +314,7 @@ impl PageModeContext {
         self.render_area.x = new_x as u32;
     }
 
-    pub fn _offset_y_relative(&mut self, y: i16) {
+    pub fn offset_y_relative(&mut self, y: i16) {
         let mut new_y = self.render_area.y as i32 + y as i32;
         if new_y < 0 {
             new_y = 0;
@@ -688,6 +676,22 @@ impl Context {
     pub fn set_y(&mut self, y: u32) {
         if self.page_mode.enabled {
             self.page_mode.set_y(y);
+        } else {
+            self.graphics.render_area.y = y;
+        }
+    }
+
+    pub fn set_x_absolute(&mut self, x: u32) {
+        if self.page_mode.enabled {
+            self.page_mode.set_x_absolute(x);
+        } else {
+            self.graphics.render_area.x = x;
+        }
+    }
+
+    pub fn set_y_absolute(&mut self, y: u32) {
+        if self.page_mode.enabled {
+            self.page_mode.set_y_absolute(y);
         } else {
             self.graphics.render_area.y = y;
         }

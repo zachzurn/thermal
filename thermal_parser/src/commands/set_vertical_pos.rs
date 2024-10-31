@@ -26,13 +26,7 @@ fn get_pos(data: &Vec<u8>) -> u32 {
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         if context.page_mode.enabled {
-            context.set_y(get_pos(&command.data));
-
-            println!("Set vert pos for page mode");
-            println!(
-                "New pos x{} y{}",
-                context.page_mode.render_area.x, context.page_mode.render_area.y
-            );
+            context.set_y_absolute(get_pos(&command.data));
         }
     }
 

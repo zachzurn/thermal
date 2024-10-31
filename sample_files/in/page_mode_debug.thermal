@@ -17,37 +17,117 @@
 '// Set print area in Page mode: Horizontal logical origin = 6, vertical logical
 '// origin = 0, horizontal dimension = 500, vertical dimension = 750
 '// ESC  W  xL xH yL yH dxL dxH dyL dyH
-    ESC "W"  0  0  0  0 244  1  238   2
+    ESC "W"  50  0  0  0 244  1  238   2
 
-    "-----------------------------------------"
+'// Center align
+    ESC "a" 1
+
+    " --------------------------------------- "
     "<-- TOP SIDE -->"
+
+'// Left align
+    ESC "a" 0
+
+'// Set x
+    ESC "$"  50 0
+'// Set y
+    GS "$"  50 0
+
+    " -~~~~~~~~"
+
+'// Set x --> 330
+    ESC "$"  74 1
+'// Set y
+    GS "$"  50 0
+
+    " ~~~~~~~~-"
 
 
 '// Select print direction in Page mode:
 '// Starting position = lower left, print direction = bottom to top
     ESC "T" 1
 
-    "--------------------------------------------------------------"
+'// Center align
+    ESC "a" 1
+
+    " ------------------------------------------------------------ "
     "<-- LEFT SIDE -->"
 
+'// Left align
+    ESC "a" 0
+
+'// Set x
+    ESC "$"  50 0
+'// Set y
+    GS "$"  50 0
+
+    " -~~~~~~~~"
+
+'// Set x --> 580
+    ESC "$"  68 2
+'// Set y
+    GS "$"  50 0
+
+    " ~~~~~~~~-"
 
 '// Select print direction in Page mode:
 '// Starting position = lower right, print direction = right to left
     ESC "T" 2
 
-    "-----------------------------------------"
+'// Center align
+    ESC "a" 1
+
+    " --------------------------------------- "
     "<-- BOTTOM SIDE -->"
 
+'// Left align
+    ESC "a" 0
+
+'// Set x
+    ESC "$"  50 0
+'// Set y
+    GS "$"  50 0
+
+    " -~~~~~~~~"
+
+'// Set x --> 330
+    ESC "$"  74 1
+'// Set y
+    GS "$"  50 0
+
+    " ~~~~~~~~-"
 
 '// Select print direction in Page mode:
 '// Starting position = upper right, print direction = top to bottom
     ESC "T" 3
 
-    "--------------------------------------------------------------"
+'// Center align
+    ESC "a" 1
+
+    " ------------------------------------------------------------ "
     "<-- RIGHT SIDE -->"
+
+'// Left align
+    ESC "a" 0
+
+'// Set x
+    ESC "$"  50 0
+'// Set y
+    GS "$"  50 0
+
+    " -~~~~~~~~"
+
+'// Set x --> 580
+    ESC "$"  68 2
+'// Set y
+    GS "$"  50 0
+
+    " ~~~~~~~~-"
 
 '// Print Page and Select Standard mode (return to Standard mode)
     FF ESC "S"
+
+LF LF LF LF LF
 
 '// Select cut mode and cut paper: [Function B] Feed paper to (cutting position
 '// + 10 mm (80/203 inches)) and executes a partial cut (one point left uncut).

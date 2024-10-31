@@ -94,6 +94,7 @@ impl<'a, Output> Renderer<'a, Output> {
     fn process_command(&mut self, command: &Command) {
         match command.kind {
             CommandType::Unknown => {
+                self.process_text();
                 self.error_buffer.push(RenderError {
                     kind: RenderErrorKind::UnknownCommand,
                     description: command.handler.debug(command, &self.context),
@@ -139,9 +140,11 @@ impl<'a, Output> Renderer<'a, Output> {
                 self.process_device_commands(device_commands);
             }
             CommandType::Context => {
+                self.process_text();
                 command.handler.apply_context(command, &mut self.context);
             }
             CommandType::ContextControl => {
+                self.process_text();
                 command.handler.apply_context(command, &mut self.context);
 
                 let device_commands = &command
@@ -150,6 +153,7 @@ impl<'a, Output> Renderer<'a, Output> {
                 self.process_device_commands(device_commands);
             }
             CommandType::Control => {
+                self.process_text();
                 let device_commands = &command
                     .handler
                     .get_device_command(command, &mut self.context);
@@ -172,7 +176,6 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.renderer.begin_render(&mut self.context)
                     }
                     DeviceCommand::EndPrint => {
-                        self.process_text();
                         let errors = self.renderer.get_render_errors();
 
                         for error in errors {
@@ -186,19 +189,15 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.output_buffer.push(output);
                     }
                     DeviceCommand::FeedLine(num_lines) => {
-                        self.process_text();
                         self.context.newline(*num_lines as u32);
                     }
                     DeviceCommand::Feed(num) => {
-                        self.process_text();
                         self.context.feed(*num as u32);
                     }
                     DeviceCommand::FullCut | DeviceCommand::PartialCut => {
-                        self.process_text();
                         self.context.newline(2);
                     }
                     DeviceCommand::BeginPageMode => {
-                        self.process_text();
                         self.context.page_mode.enabled = true;
                         self.renderer.page_begin(&mut self.context);
                     }
@@ -207,7 +206,6 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.context.page_mode.enabled = false
                     }
                     DeviceCommand::PrintPageMode => {
-                        self.process_text();
                         self.renderer.render_page(&mut self.context);
 
                         //Advance the y since a page is being rendered
@@ -215,7 +213,6 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.context.graphics.render_area.x = 0;
                     }
                     DeviceCommand::ChangePageArea => {
-                        self.process_text();
                         //This is important to make sure that we know the direction has already been altered previously
                         self.context.page_mode.previous_direction =
                             self.context.page_mode.direction.clone();
@@ -224,7 +221,6 @@ impl<'a, Output> Renderer<'a, Output> {
                             .page_area_changed(&mut self.context, rotation, width, height);
                     }
                     DeviceCommand::ChangePageModeDirection => {
-                        self.process_text();
                         let (rotation, width, height) = self.context.page_mode.apply_logical_area();
                         println!("Rotate {:?} deg at W={} H={}", rotation, width, height);
                         println!(
@@ -236,7 +232,6 @@ impl<'a, Output> Renderer<'a, Output> {
                             .page_area_changed(&mut self.context, rotation, width, height);
                     }
                     DeviceCommand::ChangeTabs(count, at) => {
-                        self.process_text();
                         self.context.set_tab_len(*count, *at);
                     }
                     DeviceCommand::ClearBufferGraphics => {
@@ -344,7 +339,9 @@ impl<'a, Output> Renderer<'a, Output> {
                 }
             }
             ImageFlow::Block => {
-                context.set_x(context.calculate_justification(image.w));
+                if !context.page_mode.enabled {
+                    context.set_x(context.calculate_justification(image.w));
+                }
             }
             ImageFlow::None => {}
         }
@@ -358,8 +355,10 @@ impl<'a, Output> Renderer<'a, Output> {
                 context.offset_x(image.w);
             }
             ImageFlow::Block => {
-                context.offset_y(image.h);
-                context.reset_x();
+                if !context.page_mode.enabled {
+                    context.offset_y(image.h);
+                    context.reset_x();
+                }
             }
             _ => {}
         }

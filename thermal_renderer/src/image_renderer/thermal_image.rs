@@ -461,15 +461,22 @@ impl ThermalImage {
     }
 
     pub fn put_render_img(&mut self, image: &Image) {
+        let mut pixels = image.as_grayscale().clone();
+        ThermalImage::draw_border(&mut pixels, image.w, image.h, 150);
         self.put_pixels(
             image.x,
             image.y,
             image.w,
             image.h,
-            image.as_grayscale(),
+            pixels,
             false,
             true,
         );
+
+        if self.debug {
+            
+        }
+
         if image.upside_down {
             self.flip_pixels(image.x, image.y, image.w, image.h);
         }
