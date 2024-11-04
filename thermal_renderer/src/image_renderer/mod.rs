@@ -28,6 +28,7 @@ pub struct ImageRenderer {
     pub paper_image: ThermalImage,
     pub page_image: ThermalImage,
     pub debug: bool,
+    pub debug_graphics: bool,
 }
 
 impl ImageRenderer {
@@ -36,6 +37,7 @@ impl ImageRenderer {
             paper_image: ThermalImage::new(0),
             page_image: ThermalImage::new(0),
             debug: false,
+            debug_graphics: false,
         }
     }
 
@@ -49,6 +51,7 @@ impl ImageRenderer {
     pub fn render_debug(bytes: &Vec<u8>) -> RenderOutput<ReceiptImage> {
         let mut img = ImageRenderer::new();
         img.debug = true;
+        //img.debug_graphics = true;
         let mut image_renderer: Box<dyn OutputRenderer<_>> = Box::new(img);
         let mut renderer = Renderer::new(&mut image_renderer);
         renderer.debug = true;
@@ -65,10 +68,10 @@ pub struct ReceiptImage {
 
 impl OutputRenderer<ReceiptImage> for ImageRenderer {
     fn begin_render(&mut self, context: &mut Context) {
-        // if self.debug {
-        //     self.paper_image.enable_debug();
-        //     self.page_image.enable_debug();
-        // }
+        if self.debug_graphics {
+            self.paper_image.enable_debug();
+            self.page_image.enable_debug();
+        }
 
         //Initialize the main image area
         self.paper_image.empty();
@@ -93,6 +96,15 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
 
     fn page_begin(&mut self, _context: &mut Context) {
         self.page_image.set_width(0);
+        if self.debug {
+            println!("Page Mode Started")
+        }
+    }
+
+    fn page_end(&mut self, _context: &mut Context) {
+        if self.debug {
+            println!("Page Mode Ended")
+        }
     }
 
     fn page_area_changed(
@@ -140,7 +152,11 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
             _ => {}
         }
 
-        let (w, h, pixels) = self.page_image.copy();
+        let (w, h, mut pixels) = self.page_image.copy();
+
+        if self.debug_graphics {
+            ThermalImage::draw_border(&mut pixels, w, h, 0);
+        }
 
         //Rotate back to how it was
         let rotation_to_previous = context.page_mode.calculate_directional_rotation(
@@ -239,6 +255,8 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         self.paper_image
             .expand_to_height(context.graphics.render_area.y);
 
+        //TODO implement a drain fn to drain thermal image without cloning pixels
+        //TODO or possibly a copy_as rgb that returns rgb pixels with multiple colors
         let rendered = self.paper_image.copy();
 
         ReceiptImage {

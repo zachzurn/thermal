@@ -1,8 +1,8 @@
-use crate::context::{Color, Context};
+use crate::context::Context;
 use crate::{command::*, constants::*};
 
 #[derive(Clone)]
-struct Handler{
+struct Handler {
     capacity: u32,
 }
 
@@ -30,7 +30,9 @@ impl CommandHandler for Handler {
     }
 
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        if command.data.len() < 3 { return; }
+        if command.data.len() < 3 {
+            return;
+        }
 
         let fnc = command.data.get(2).unwrap();
 
@@ -53,7 +55,7 @@ impl CommandHandler for Handler {
                 context.text.shadow_color = color_for(m);
                 context.text.shadow = match a {
                     0 | 48 => false,
-                    _ => true
+                    _ => true,
                 }
             }
             _ => {}
@@ -61,13 +63,13 @@ impl CommandHandler for Handler {
     }
 }
 
-fn color_for(param: &u8) -> Color {
+fn color_for(param: &u8) -> u8 {
     match param {
-        48 => Color::None,
-        49 => Color::Black,
-        50 => Color::Red,
-        51 => Color::Blue,
-        _ => Color::Black
+        48 => 0,
+        49 => 1,
+        50 => 2,
+        51 => 3,
+        _ => 1,
     }
 }
 

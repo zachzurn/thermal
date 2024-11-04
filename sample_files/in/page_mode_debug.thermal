@@ -22,25 +22,17 @@
 '// Center align
     ESC "a" 1
 
-    " --------------------------------------- "
-    "<-- TOP SIDE -->"
+    "+---------------------------------------+"
+               "<-- TOP SIDE -->"
 
 '// Left align
     ESC "a" 0
 
-'// Set x
-    ESC "$"  50 0
-'// Set y
-    GS "$"  50 0
+'// Set      x50            y50 (Top left corner)
+    ESC "$"  50 0   GS "$"  50 0    " =TTTTTTTT"
 
-    " -~~~~~~~~"
-
-'// Set x --> 330
-    ESC "$"  74 1
-'// Set y
-    GS "$"  50 0
-
-    " ~~~~~~~~-"
+'// Set      x330            y50 (Top right corner)
+    ESC "$"  74 1   GS "$"  50 0    "TTTTTTTT= "
 
 
 '// Select print direction in Page mode:
@@ -51,24 +43,17 @@
     ESC "a" 1
 
     " ------------------------------------------------------------ "
-    "<-- LEFT SIDE -->"
+                         "<-- LEFT SIDE -->"
 
 '// Left align
     ESC "a" 0
 
-'// Set x
-    ESC "$"  50 0
-'// Set y
-    GS "$"  50 0
+'// Set      x50            y700 (Bottom left corner)
+    ESC "$"  50 0   GS "$"  188 2    " =TTTTTTTT"
 
-    " -~~~~~~~~"
+'// Set      x50            y170 (Top left corner)
+    ESC "$"  50 0   GS "$"  170 0    "TTTTTTTT= "
 
-'// Set x --> 580
-    ESC "$"  68 2
-'// Set y
-    GS "$"  50 0
-
-    " ~~~~~~~~-"
 
 '// Select print direction in Page mode:
 '// Starting position = lower right, print direction = right to left
@@ -77,25 +62,18 @@
 '// Center align
     ESC "a" 1
 
-    " --------------------------------------- "
-    "<-- BOTTOM SIDE -->"
+    "+---------------------------------------+"
+              "<-- BOTTOM SIDE -->"
 
 '// Left align
     ESC "a" 0
 
-'// Set x
-    ESC "$"  50 0
-'// Set y
-    GS "$"  50 0
+'// Set      x450            y700 (Bottom left corner)
+    ESC "$"  194 1   GS "$"  188 2    " =TTTTTTTT"
 
-    " -~~~~~~~~"
+'// Set      x170            y700 (Bottom right corner)
+    ESC "$"  170 0   GS "$"  188 2    "TTTTTTTT= "
 
-'// Set x --> 330
-    ESC "$"  74 1
-'// Set y
-    GS "$"  50 0
-
-    " ~~~~~~~~-"
 
 '// Select print direction in Page mode:
 '// Starting position = upper right, print direction = top to bottom
@@ -105,29 +83,61 @@
     ESC "a" 1
 
     " ------------------------------------------------------------ "
-    "<-- RIGHT SIDE -->"
+                         "<-- RIGHT SIDE -->"
 
 '// Left align
     ESC "a" 0
 
-'// Set x
-    ESC "$"  50 0
-'// Set y
-    GS "$"  50 0
+'// Set      x450            y50 (Top right corner)
+    ESC "$"  194 1   GS "$"  50 0    " =TTTTTTTT"
 
-    " -~~~~~~~~"
+'// Set      x450            y580 (Bottom right corner)
+    ESC "$"  194 1   GS "$"  68 2    "TTTTTTTT= "
 
-'// Set x --> 580
-    ESC "$"  68 2
-'// Set y
-    GS "$"  50 0
 
-    " ~~~~~~~~-"
+
+'// Centered graphic right side up 15 chars 180 pixels wide
+
+'// Set print area in Page mode: Horizontal logical origin = 6, vertical logical
+'// origin = 0, horizontal dimension = 500, vertical dimension = 750
+'// ESC  W      x    y      w      h
+    ESC "W"  210 0  250 0   180 0  48 0
+
+'// Select print direction in Page mode:
+'// Starting position = default
+    ESC "T" 0
+
+'// x160 y200      w 180 h48
+
+       "    _~^~^~_    " LF
+       "\) /  o o  \ (/" LF
+       "  '_   -   _'  " LF
+       "  / '-----' \  " LF
+
+
+'// Centered graphic right side up 15 chars 180 pixels wide
+
+'// Set print area in Page mode: Horizontal logical origin = 6, vertical logical
+'// origin = 0, horizontal dimension = 500, vertical dimension = 750
+'// ESC  W      x    y      w      h
+    ESC "W"  210 0  250 0   180 0  48 0
+
+'// Select print direction in Page mode:
+'// Starting position = default
+    ESC "T" 2
+
+'// x160 y200      w 180 h48
+
+       "    _~^~^~_    " LF
+       "\) /  o o  \ (/" LF
+       "  '_   -   _'  " LF
+       "  / '-----' \  " LF
+
+
+
 
 '// Print Page and Select Standard mode (return to Standard mode)
     FF ESC "S"
-
-LF LF LF LF LF
 
 '// Select cut mode and cut paper: [Function B] Feed paper to (cutting position
 '// + 10 mm (80/203 inches)) and executes a partial cut (one point left uncut).

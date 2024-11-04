@@ -213,7 +213,7 @@ impl<'a, Output> Renderer<'a, Output> {
                         self.context.graphics.render_area.x = 0;
                     }
                     DeviceCommand::ChangePageArea => {
-                        //This is important to make sure that we know the direction has already been altered previously
+                        //This is important to make sure that we know the direction has already been altered
                         self.context.page_mode.previous_direction =
                             self.context.page_mode.direction.clone();
                         let (rotation, width, height) = self.context.page_mode.apply_logical_area();
@@ -222,12 +222,6 @@ impl<'a, Output> Renderer<'a, Output> {
                     }
                     DeviceCommand::ChangePageModeDirection => {
                         let (rotation, width, height) = self.context.page_mode.apply_logical_area();
-                        println!("Rotate {:?} deg at W={} H={}", rotation, width, height);
-                        println!(
-                            "X = {} and Y = {}",
-                            self.context.get_x(),
-                            self.context.get_y()
-                        );
                         self.renderer
                             .page_area_changed(&mut self.context, rotation, width, height);
                     }

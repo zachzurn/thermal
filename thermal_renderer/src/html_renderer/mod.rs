@@ -173,7 +173,6 @@ impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
             y: context.graphics.render_area.y,
             w,
             h,
-            pixel_type: PixelType::MonochromeByte,
             stretch: (0, 0),
             flow: ImageFlow::Block,
             upside_down: false,

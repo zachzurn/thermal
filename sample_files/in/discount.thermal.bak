@@ -1,11 +1,6 @@
 '// Initialize
 ESC "@" 
 
-'// We are setting v motion units to match the printer
-'// That this was printed from
-'// Note: This is the only line that was not in the original binary
-    GS "P" 203 101
-
 '// Set page mode on
 ESC "L"
 
@@ -27,14 +22,14 @@ GS "$"  144 0
 '// Set Text Justification
 ESC "a"  0
 
-'// Unknown command
+'// Unknown command maybe x = 2 and y = 336
     GS "(" "G" 2 0 80 1
 
-'// Set Relative Vertical Position --> -40
-'// New pos should be 104
+'// Set Relative Vertical Position --> -39
+'// New pos should be 105? which seems off
 GS "\\"  216 255
 
-'// [GRAPHIC] PART ONE OF TOP BAR
+'// BEGIN TOP BLACK BAR GRAPHIC (Black bar with nib, black bar)
 
 '// Store Print Buffer Graphics Raster Format
 GS "(" "L" 138 14 "0" "p"
@@ -281,11 +276,13 @@ GS "(" "L" 138 14 "0" "p"
 '// Print Buffer Graphics
 GS "(" "L" 2 0 "0" 2
 
+'// END TOP BLACK BAR GRAPHIC
+
 '// Offset Relative Vertical Print -> 40
-'// Y should be 144 now?
+'// Y should be 145 now?
 GS "\\"  40 0
 
-'// [GRAPHIC] PART TWO OF TOP BAR
+'// BEGIN BOTTOM BLACK BAR GRAPHIC (bar with text, black bar below)
 
 '// Store Print Buffer Graphics Raster Format
 GS "(" "L" 146 4 "0" "p"
@@ -372,7 +369,9 @@ GS "(" "L" 146 4 "0" "p"
 '// Print Buffer Graphics
 GS "(" "L" 2 0 "0" 2
 
-'// Set Print Mode bold double wide double tall
+'// END BOTTOM BLACK BAR GRAPHIC
+
+'// Set Print Mode
 ESC "!"  56
 
 '// Set text color to color 2
@@ -406,7 +405,7 @@ ESC "!"  0
 '// Set Absolute Print POS
 ESC "$"  24 0
 
-'// Set Absolute Vertical Print POS to 820
+'// Set Absolute Vertical Print POS
 GS "$"  52 3
 
 '// Set Text Justification
@@ -415,10 +414,10 @@ ESC "a"  0
 '// Unknown command
     GS "(" "G" 2 0 80 1
 
-'// [GRAPHIC] PART ONE OF BOTTOM BAR (EXPIRES...)
-
 '// Set Relative Vertical Print
 GS "\\"  216 255
+
+'// BEGIN MAN GRAPHIC (headx2, bodyx2, body colorx2, lower bodyx2, lower body colorx2)
 
 '// Store Print Buffer Graphics Raster Format
 GS "(" "L" 138 14 "0" "p"
@@ -665,8 +664,6 @@ GS "(" "L" 138 14 "0" "p"
 '// Print Buffer Graphics
 GS "(" "L" 2 0 "0" 2
 
-'// [GRAPHIC] PART TWO OF BOTTOM BAR (EXPIRES...)
-
 '// Set Relative Vertical Print
 GS "\\"  40 0
 
@@ -769,8 +766,6 @@ ESC "a"  0
 
 '// Unknown command
     GS "(" "G" 2 0 80 1
-
-'// [GRAPHIC] GUY IN SHIRT (4 x 2 Buffers)
 
 '// Set Relative Vertical Print
 GS "\\"  128 254
@@ -1137,7 +1132,7 @@ ESC "!"  0
 
 
 '// Left bar
-"-----------------------------------"
+" -----------------------------------"
 LF
 '// Set Print Mode
 ESC "!"  0

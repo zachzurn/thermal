@@ -34,7 +34,7 @@ pub fn new() -> CommandSet {
         set_double_strike::new(),
         set_emphasis::new(),
         set_font::new(),
-        set_graphics_x_y::new(),
+        set_motion_units::new(),
         set_barcode_font::new(),
         set_barcode_hri::new(),
         set_international_charset::new(),
@@ -56,7 +56,8 @@ pub fn new() -> CommandSet {
         page_mode_print_direction::new(),
         page_mode_print_data::new(),
         select_standard_mode::new(),
-        set_character_effects::new()
+        set_character_effects::new(),
+        unknown_gs_g::new(),
     ];
 
     CommandSet {

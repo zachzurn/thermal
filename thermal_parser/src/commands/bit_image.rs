@@ -21,8 +21,12 @@ impl CommandHandler for Handler {
                 self.height as u32,
             )
         } else {
+            let mut pixels = command.data.clone();
+
+            pack_color_levels(&mut pixels, 1);
+
             graphics::scale_pixels(
-                &command.data,
+                &pixels,
                 self.width as u32,
                 self.height as u32,
                 self.stretch.0,
@@ -36,7 +40,6 @@ impl CommandHandler for Handler {
             y: 0,
             w,
             h,
-            pixel_type: PixelType::MonochromeByte,
             stretch: self.stretch,
             flow: ImageFlow::Inline,
             upside_down: false,

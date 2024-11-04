@@ -1,10 +1,10 @@
+use crate::commands::unknown_gs_g::new;
 use crate::decoder::{get_codepage, Codepage};
 use crate::graphics;
-use std::collections::HashMap;
-use std::mem;
-
 use crate::graphics::{Image, ImageRef};
 use crate::text::TextSpan;
+use std::collections::HashMap;
+use std::mem;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum TextJustify {
@@ -51,6 +51,15 @@ impl Font {
             _ => Font::A,
         }
     }
+    //Currently the rest of the fonts default to font b
+    //We don't have enough information on C D E or the special fonts
+    pub fn to_size(&self) -> (u8, u8) {
+        if self == &Font::A {
+            (12, 24)
+        } else {
+            (9, 17)
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -59,14 +68,6 @@ pub enum HumanReadableInterface {
     Above,
     Below,
     Both,
-}
-
-#[derive(Clone)]
-pub enum Color {
-    Black, //1
-    Red,   //2
-    Blue,  //3
-    None,  //0
 }
 
 #[derive(Clone)]
@@ -98,9 +99,9 @@ pub struct TextContext {
     pub height_mult: u8,
     pub upside_down: bool,
     pub line_spacing: u8,
-    pub color: Color,
-    pub background_color: Color,
-    pub shadow_color: Color,
+    pub color: u8,
+    pub background_color: u8,
+    pub shadow_color: u8,
     pub shadow: bool,
     pub smoothing: bool,
     pub tabs: Vec<u8>,
@@ -278,11 +279,11 @@ impl PageModeContext {
     pub fn set_x_absolute(&mut self, x: u32) {
         let r = &mut self.render_area;
         let p = &mut self.page_area;
-        match self.direction {  
-            PrintDirection::TopLeft2Right => { r.x = x }
-            PrintDirection::BottomRight2Left => { r.x = p.w - x }
-            PrintDirection::TopRight2Bottom => { r.y = p.w - x }
-            PrintDirection::BottomLeft2Top => { r.y = x }
+        match self.direction {
+            PrintDirection::TopLeft2Right => r.x = p.x + x, //g
+            PrintDirection::BottomRight2Left => r.x = (p.x + r.w).saturating_sub(x), //g
+            PrintDirection::TopRight2Bottom => r.y = r.h.saturating_sub(x), //?
+            PrintDirection::BottomLeft2Top => r.y = p.y + x, //g
         }
     }
 
@@ -291,10 +292,10 @@ impl PageModeContext {
         let r = &mut self.render_area;
         let p = &mut self.page_area;
         match self.direction {
-            PrintDirection::TopLeft2Right => { r.y = y }
-            PrintDirection::BottomRight2Left => { r.y = p.h - y }
-            PrintDirection::TopRight2Bottom => { r.x = y }
-            PrintDirection::BottomLeft2Top => { r.x = p.w - y }
+            PrintDirection::TopLeft2Right => r.y = p.y + y, //g
+            PrintDirection::BottomRight2Left => r.y = p.y + r.h.saturating_sub(y), //g
+            PrintDirection::TopRight2Bottom => r.x = p.x + y, //g
+            PrintDirection::BottomLeft2Top => r.x = p.x + r.w.saturating_sub(y), //g
         }
     }
 
@@ -433,10 +434,10 @@ impl Context {
                 height_mult: 1,
                 upside_down: false,
                 line_spacing: 24, //pixels
-                color: Color::Black,
-                background_color: Color::None,
+                color: 1,
+                background_color: 0,
                 shadow: false,
-                shadow_color: Color::Black,
+                shadow_color: 1,
                 smoothing: false,
                 tabs: vec![8; 32], //Every 8 character widths is a tab stop
             },
@@ -486,8 +487,11 @@ impl Context {
                     h: 0,
                 },
                 dots_per_inch,
-                v_motion_unit: 1, //Pixels
-                h_motion_unit: 1, //Pixels
+                //Both of these motion units are used for
+                //Various positioning commands in standard mode
+                //and in page mode.
+                v_motion_unit: 1, //Pixels per unit
+                h_motion_unit: 1, //Pixels per unit
                 graphics_count: 0,
                 stored_graphics: HashMap::<ImageRef, Image>::new(),
                 buffer_graphics: vec![],
@@ -619,11 +623,14 @@ impl Context {
         }
     }
 
+    //Uses motion units
     pub fn offset_x_relative(&mut self, x: i16) {
+        let adj_x = x.saturating_div(self.graphics.h_motion_unit as i16);
+
         if self.page_mode.enabled {
-            self.page_mode.offset_x_relative(x);
+            self.page_mode.offset_x_relative(adj_x);
         } else {
-            let mut new_x = self.graphics.render_area.x as i32 + x as i32;
+            let mut new_x = self.graphics.render_area.x as i32 + adj_x as i32;
             if new_x < 0 {
                 new_x = 0;
             }
@@ -631,11 +638,16 @@ impl Context {
         }
     }
 
+    //Uses motion units
     pub fn offset_y_relative(&mut self, y: i16) {
+        let adj_y = y.saturating_div(self.graphics.v_motion_unit as i16);
+
+        println!("Offset y {}", adj_y);
+
         if self.page_mode.enabled {
-            self.page_mode.offset_y_relative(y);
+            self.page_mode.offset_y_relative(adj_y);
         } else {
-            let mut new_y = self.graphics.render_area.y as i32 + y as i32;
+            let mut new_y = self.graphics.render_area.y as i32 + adj_y as i32;
             if new_y < 0 {
                 new_y = 0;
             }
@@ -649,13 +661,13 @@ impl Context {
     }
 
     pub fn newline(&mut self, count: u32) {
-        let line_height = self.text.line_spacing as u32 * self.graphics.v_motion_unit as u32;
+        let line_height = self.text.line_spacing as u32;
         self.reset_x();
         self.offset_y(line_height * count);
     }
 
     pub fn newline_for_spans(&mut self, spans: &Vec<TextSpan>) {
-        let mut line_height = self.text.line_spacing as u32 * self.graphics.v_motion_unit as u32;
+        let mut line_height = self.text.line_spacing as u32;
 
         for span in spans {
             line_height = line_height.max(span.character_height);
@@ -663,6 +675,13 @@ impl Context {
 
         self.reset_x();
         self.offset_y(line_height);
+    }
+
+    pub fn set_font(&mut self, font: Font) {
+        let size = font.to_size();
+        self.text.font = font;
+        self.text.character_width = size.0;
+        self.text.character_height = size.1;
     }
 
     pub fn set_x(&mut self, x: u32) {
@@ -681,20 +700,49 @@ impl Context {
         }
     }
 
+    //Uses motion units
     pub fn set_x_absolute(&mut self, x: u32) {
+        let adj_x = x.saturating_div(self.graphics.h_motion_unit as u32);
         if self.page_mode.enabled {
-            self.page_mode.set_x_absolute(x);
+            self.page_mode.set_x_absolute(adj_x);
         } else {
-            self.graphics.render_area.x = x;
+            self.graphics.render_area.x = adj_x;
         }
     }
 
+    //Uses motion units
     pub fn set_y_absolute(&mut self, y: u32) {
+        let adj_y = y.saturating_div(self.graphics.v_motion_unit as u32);
         if self.page_mode.enabled {
-            self.page_mode.set_y_absolute(y);
+            self.page_mode.set_y_absolute(adj_y);
         } else {
-            self.graphics.render_area.y = y;
+            self.graphics.render_area.y = adj_y;
         }
+    }
+
+    pub fn set_page_area(&mut self, area: RenderArea) {
+        let mut adj_area = area.clone();
+
+        //Area needs to be adjusted based on motion units
+        adj_area.x = adj_area
+            .x
+            .saturating_div(self.graphics.h_motion_unit as u32);
+        adj_area.y = adj_area
+            .y
+            .saturating_div(self.graphics.v_motion_unit as u32);
+        adj_area.w = adj_area
+            .w
+            .saturating_div(self.graphics.h_motion_unit as u32);
+        adj_area.h = adj_area
+            .h
+            .saturating_div(self.graphics.v_motion_unit as u32);
+
+        println!(
+            "Setting adjusted page area to {:?}  Motion Units: h{} v{}",
+            adj_area, self.graphics.h_motion_unit, self.graphics.v_motion_unit
+        );
+
+        self.page_mode.logical_area = adj_area;
     }
 
     pub fn get_width(&self) -> u32 {
@@ -758,16 +806,8 @@ impl Context {
         }
     }
 
-    pub fn motion_unit_y_pixels(&self) -> u32 {
-        self.graphics.v_motion_unit as u32
-    }
-
-    pub fn motion_unit_x_pixels(&self) -> u32 {
-        self.graphics.h_motion_unit as u32
-    }
-
     pub fn line_height_pixels(&self) -> u32 {
-        self.text.line_spacing as u32 * self.motion_unit_y_pixels()
+        self.text.line_spacing as u32
     }
 
     pub fn update_decoder(&mut self) {

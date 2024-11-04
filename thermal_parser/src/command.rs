@@ -67,6 +67,7 @@ pub enum DataType {
     Single,
     Double,
     Triple,
+    Quad,
     Octet,
     Text,
     Custom,
@@ -125,6 +126,11 @@ impl Command {
             }
             DataType::Triple => {
                 if data_len >= 3 {
+                    return false;
+                }
+            }
+            DataType::Quad => {
+                if data_len >= 4 {
                     return false;
                 }
             }

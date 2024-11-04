@@ -1,5 +1,6 @@
 use crate::context::HumanReadableInterface;
 use crate::text::TextSpan;
+use crate::util::parse_u16;
 
 #[derive(Clone)]
 pub struct Barcode {
@@ -64,33 +65,18 @@ pub struct Image {
     pub y: u32,
     pub w: u32,
     pub h: u32,
-    pub pixel_type: PixelType,
     pub stretch: (u8, u8),
     pub flow: ImageFlow,
     pub upside_down: bool,
 }
 
 impl Image {
-    /// Used for debugging only
-    pub fn as_pbm(&self) -> Vec<u8> {
-        let dim = format!("{} {}", self.w, self.h);
-        let dimbytes = dim.as_bytes();
-
-        let mut data: Vec<u8> = vec![0x50, 0x34, 0x0A];
-
-        for b in dimbytes {
-            data.push(*b)
-        }
-
-        data.extend(self.pixels.clone());
-        data
+    //TODO get rid of this
+    pub fn as_grayscale(&self) -> Vec<u8> {
+        return self.pixels.clone();
     }
 
-    /// Always returns 1 pixel per byte.
-    pub fn as_grayscale(&self) -> Vec<u8> {
-        if self.pixel_type == PixelType::MonochromeByte {
-            return self.pixels.clone();
-        }
+    pub fn unpack_bit_encoding(&mut self) {
         let mut bytes = Vec::<u8>::new();
 
         //number of bytes we need to use for the last column of each row of data
@@ -119,7 +105,7 @@ impl Image {
             }
         }
 
-        bytes
+        self.pixels = bytes
     }
 
     pub fn from_raster_data(data: &Vec<u8>) -> Option<Image> {
@@ -131,41 +117,40 @@ impl Image {
         let bx = *data.get(1).unwrap();
         let by = *data.get(2).unwrap();
         let c = *data.get(3).unwrap();
-        let x1 = *data.get(4).unwrap();
-        let x2 = *data.get(5).unwrap();
-        let y1 = *data.get(6).unwrap();
-        let y2 = *data.get(7).unwrap();
-        let mut width = x1 as u32 + x2 as u32 * 256;
-        let mut height = y1 as u32 + y2 as u32 * 256;
 
-        let pixel_type = match a {
-            48 => PixelType::Monochrome(c),
-            52 => PixelType::MultipleTone(c, 1),
-            _ => PixelType::Unknown,
-        };
+        let mut width = parse_u16(data, 4) as u32;
+        let mut height = parse_u16(data, 6) as u32;
 
         let stretch = (bx, by);
 
         let pixels = if bx > 1 || by > 1 {
-            let (w, h, px) = scale_pixels(&data[8..], width as u32, height as u32, bx, by);
+            let (w, h, mut px) = scale_pixels(&data[8..], width as u32, height as u32, bx, by);
             width = w;
             height = h;
+
+            pack_color_levels(&mut px, 1);
+
             px
         } else {
-            data[8..].to_vec()
+            let mut pixels = data[8..].to_vec();
+            pack_color_levels(&mut pixels, c);
+            pixels
         };
 
-        Some(Image {
+        let mut img = Image {
             pixels,
             x: 0,
             y: 0,
             w: width as u32,
             h: height as u32,
-            pixel_type,
             stretch,
-            flow: ImageFlow::None,
+            flow: ImageFlow::Block,
             upside_down: false,
-        })
+        };
+
+        img.unpack_bit_encoding();
+
+        Some(img)
     }
 
     pub fn from_raster_data_with_ref(
@@ -179,42 +164,37 @@ impl Image {
         let a = *data.get(0).unwrap();
         let kc1 = *data.get(1).unwrap();
         let kc2 = *data.get(2).unwrap();
-        let b = *data.get(3).unwrap();
-        let x1 = *data.get(4).unwrap();
-        let x2 = *data.get(5).unwrap();
-        let y1 = *data.get(6).unwrap();
-        let y2 = *data.get(7).unwrap();
-        let _c = *data.get(8).unwrap();
-        let width = x1 as u32 + x2 as u32 * 256;
-        let height = y1 as u32 + y2 as u32 * 256;
+        let b = *data.get(3).unwrap(); //Number of colors
+        let c = *data.get(8).unwrap();
+
+        let width = parse_u16(data, 4) as u32;
+        let height = parse_u16(data, 6) as u32;
 
         //b (above) specifies number of color data stored,
         // we are ignoring this for now if b > 1
         // [byte(color) bytes(capacity)] [byte(color) bytes(capacity)]
-        let pixel_type = match a {
-            48 => PixelType::Monochrome(1),
-            52 => PixelType::MultipleTone(1, b),
-            _ => PixelType::Unknown,
-        };
+        //TODO implement with a test
 
         let stretch = (1, 1);
 
-        let pixels = data[9..].to_vec();
+        let mut pixels = data[9..].to_vec();
 
-        Some((
-            ImageRef { kc1, kc2, storage },
-            Image {
-                pixels,
-                x: 0,
-                y: 0,
-                w: width,
-                h: height,
-                pixel_type,
-                stretch,
-                flow: ImageFlow::None,
-                upside_down: false,
-            },
-        ))
+        pack_color_levels(&mut pixels, c);
+
+        let mut img = Image {
+            pixels,
+            x: 0,
+            y: 0,
+            w: width,
+            h: height,
+            stretch,
+            flow: ImageFlow::None,
+            upside_down: false,
+        };
+
+        img.unpack_bit_encoding();
+
+        Some((ImageRef { kc1, kc2, storage }, img))
     }
 
     pub fn from_column_data(data: &Vec<u8>) -> Option<Image> {
@@ -225,42 +205,42 @@ impl Image {
         let a = *data.get(0).unwrap();
         let bx = *data.get(1).unwrap();
         let by = *data.get(2).unwrap();
-        let c = *data.get(3).unwrap();
-        let x1 = *data.get(4).unwrap();
-        let x2 = *data.get(5).unwrap();
-        let y1 = *data.get(6).unwrap();
-        let y2 = *data.get(7).unwrap();
-        let mut width = x1 as u32 + x2 as u32 * 256;
-        let mut height = y1 as u32 + y2 as u32 * 256;
 
-        let pixel_type = match a {
-            48 => PixelType::Monochrome(c),
-            52 => PixelType::MultipleTone(c, 1),
-            _ => PixelType::Unknown,
-        };
+        let c = *data.get(3).unwrap();
+
+        let mut width = parse_u16(data, 4) as u32;
+        let mut height = parse_u16(data, 6) as u32;
 
         let stretch = (bx, by);
 
         let pixels = if bx > 1 || by > 1 {
-            let (w, h, px) = scale_pixels(&data[8..], width as u32, height as u32, bx, by);
+            let (w, h, mut px) = scale_pixels(&data[8..], width as u32, height as u32, bx, by);
             width = w;
             height = h;
+
+            pack_color_levels(&mut px, c);
+
             px
         } else {
-            data[8..].to_vec()
+            let mut pixels = data[8..].to_vec();
+            pack_color_levels(&mut pixels, c);
+            pixels
         };
 
-        Some(Image {
+        let mut img = Image {
             pixels,
             x: 0,
             y: 0,
             w: width,
             h: height,
-            pixel_type,
             stretch,
             flow: ImageFlow::None,
             upside_down: false,
-        })
+        };
+
+        img.unpack_bit_encoding();
+
+        Some(img)
     }
 
     pub fn from_column_data_with_ref(
@@ -274,41 +254,31 @@ impl Image {
         let a = *data.get(0).unwrap();
         let kc1 = *data.get(1).unwrap();
         let kc2 = *data.get(2).unwrap();
-        let b = *data.get(3).unwrap();
-        let x1 = *data.get(4).unwrap();
-        let x2 = *data.get(5).unwrap();
-        let y1 = *data.get(6).unwrap();
-        let y2 = *data.get(7).unwrap();
-        let width = x1 as u32 + x2 as u32 * 256;
-        let height = y1 as u32 + y2 as u32 * 256;
+        let b = *data.get(3).unwrap(); //Number of color data
 
-        //b (above) specifies number of color data stored,
-        // we are ignoring this for now if b > 1
-        // [byte(color) bytes(capacity)] [byte(color) bytes(capacity)]
-        let pixel_type = match a {
-            48 => PixelType::Monochrome(1),
-            52 => PixelType::MultipleTone(1, b),
-            _ => PixelType::Unknown,
-        };
+        let width = parse_u16(data, 4) as u32;
+        let height = parse_u16(data, 6) as u32;
 
         let stretch = (1, 1);
 
-        let pixels = data[8..].to_vec();
+        let mut pixels = data[8..].to_vec();
 
-        Some((
-            ImageRef { kc1, kc2, storage },
-            Image {
-                pixels,
-                x: 0,
-                y: 0,
-                w: width,
-                h: height,
-                pixel_type,
-                stretch,
-                flow: ImageFlow::None,
-                upside_down: false,
-            },
-        ))
+        pack_color_levels(&mut pixels, 1);
+
+        let mut img = Image {
+            pixels,
+            x: 0,
+            y: 0,
+            w: width,
+            h: height,
+            stretch,
+            flow: ImageFlow::None,
+            upside_down: false,
+        };
+
+        img.unpack_bit_encoding();
+
+        Some((ImageRef { kc1, kc2, storage }, img))
     }
 }
 
@@ -356,8 +326,9 @@ pub fn column_to_raster(
         }
     }
 
+    pack_color_levels(&mut bytes, 1);
     let rot = rotate_90_clockwise(bytes, final_height, final_width);
-    let flip = flip_right_to_left(rot, final_width, final_height);
+    let mut flip = flip_right_to_left(rot, final_width, final_height);
 
     if stretch.0 > 1 || stretch.1 > 1 {
         scale_pixels(&flip, final_width, final_height, stretch.0, stretch.1)
@@ -395,6 +366,73 @@ fn flip_right_to_left(data: Vec<u8>, width: u32, height: u32) -> Vec<u8> {
     }
 
     result
+}
+
+// Colors are stored in greyscale (84 levels)
+// 3 colors
+// 0 is white
+// 1 - 85 is color 1
+// 86 - 169 is color 2
+// 170 - 253 is color 3
+// 254, 255 are unused
+pub fn pack_color_levels(pixels: &mut Vec<u8>, color: u8) {
+    // Calculate the starting value based on the color
+    let pack_start = match color {
+        1 | 49 => 1,
+        2 | 50 => 86,
+        3 | 51 => 170,
+        _ => 1,
+    };
+
+    // convert 255 levels to 84 levels
+    for p in pixels.iter_mut() {
+        *p = pack_start + (*p as u16 * 84 / 255) as u8;
+    }
+}
+
+pub fn unpack_color_levels(
+    pixels: &mut Vec<u8>,
+    base_color: (u8, u8, u8),
+    color1: (u8, u8, u8),
+    color2: (u8, u8, u8),
+    color3: (u8, u8, u8),
+    debug1: (u8, u8, u8),
+    debug2: (u8, u8, u8),
+) -> Vec<u8> {
+    let mut unpacked_pixels = Vec::with_capacity(pixels.len() * 4);
+
+    for &p in pixels.iter() {
+        let (r, g, b) = if p == 0 {
+            base_color
+        } else {
+            let (target_color, level) = match p {
+                1..=85 => (color1, p - 1),
+                86..=169 => (color2, p - 86),
+                170..=253 => (color3, p - 170),
+                254 => (debug1, 0),
+                255 => (debug2, 0),
+                _ => (base_color, 0), // should never be hit
+            };
+
+            let blend_factor = level as f32 / 84.0;
+
+            (
+                blend_channel(base_color.0, target_color.0, blend_factor),
+                blend_channel(base_color.1, target_color.1, blend_factor),
+                blend_channel(base_color.2, target_color.2, blend_factor),
+            )
+        };
+
+        // Assuming full opacity for alpha
+        unpacked_pixels.extend_from_slice(&[r, g, b, 255]);
+    }
+
+    unpacked_pixels
+}
+
+fn blend_channel(base: u8, target: u8, factor: f32) -> u8 {
+    let blended = (base as f32 * (1.0 - factor)) + (target as f32 * factor);
+    blended.round() as u8
 }
 
 pub fn scale_pixels(

@@ -1,4 +1,4 @@
-use crate::{command::*, constants::*, context::*, graphics::*};
+use crate::{command::*, constants::*, context::*, graphics, graphics::*};
 
 #[derive(Clone)]
 struct Handler {
@@ -19,18 +19,49 @@ impl CommandHandler for Handler {
             _ => (1, 1),
         };
 
-        //possibly implement scaling here
-        Some(GraphicsCommand::Image(Image {
-            pixels: command.data.clone(),
-            x: 0,
-            y: 0,
-            w: self.width,
-            h: self.height,
-            pixel_type: PixelType::Monochrome(1),
-            stretch,
-            flow: ImageFlow::None,
-            upside_down: false,
-        }))
+        let mut pixels = command.data.clone();
+
+        pack_color_levels(&mut pixels, 1);
+
+        if stretch.0 > 1 || stretch.1 > 1 {
+            let scaled = graphics::scale_pixels(
+                &pixels,
+                self.width as u32,
+                self.height as u32,
+                stretch.0,
+                stretch.1,
+            );
+
+            let mut img = Image {
+                pixels: scaled.2,
+                x: 0,
+                y: 0,
+                w: scaled.0,
+                h: scaled.1,
+                stretch,
+                flow: ImageFlow::None,
+                upside_down: false,
+            };
+
+            img.unpack_bit_encoding();
+
+            Some(GraphicsCommand::Image(img))
+        } else {
+            let mut img = Image {
+                pixels,
+                x: 0,
+                y: 0,
+                w: self.width,
+                h: self.height,
+                stretch,
+                flow: ImageFlow::None,
+                upside_down: false,
+            };
+
+            img.unpack_bit_encoding();
+
+            Some(GraphicsCommand::Image(img))
+        }
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
         let data_len = data.len();

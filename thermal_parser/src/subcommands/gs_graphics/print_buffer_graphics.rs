@@ -1,3 +1,8 @@
+/// This command prints everything that was added into the print buffer
+///
+/// There is some uncertainty around the actual behavior of this command.
+///
+/// Our best guess is to merge pixels by darkening the pixels.
 use crate::{command::*, context::*, graphics::*};
 
 #[derive(Clone)]
@@ -12,19 +17,19 @@ fn merge_images(images: &Vec<Image>) -> Option<Image> {
     }
 
     let mut image = images[0].clone();
-    let mut height = image.h;
 
-    //For the moment, we only merge if all images have the same width
+    //For the moment, we only merge if all images have the same width and height
     for merge_img in images.iter().skip(1) {
-        if merge_img.w > image.w {
+        if merge_img.w > image.w || merge_img.h > image.h {
+            println!("Ignored merge image");
             return None;
         }
 
-        height += merge_img.h;
-        image.pixels.append(&mut merge_img.pixels.clone());
+        //Copy any pixels that are 255 into the image in place
+        for (i, b) in merge_img.pixels.iter().enumerate() {
+            image.pixels[i] = image.pixels[i].saturating_add(*b);
+        }
     }
-
-    image.h = height;
 
     Some(image)
 }
@@ -32,6 +37,8 @@ fn merge_images(images: &Vec<Image>) -> Option<Image> {
 impl CommandHandler for Handler {
     fn get_graphics(&self, _command: &Command, context: &Context) -> Option<GraphicsCommand> {
         if context.graphics.buffer_graphics.len() > 0 {
+            for buffer_graphic in context.graphics.buffer_graphics.iter() {}
+
             if let Some(merged) = merge_images(&context.graphics.buffer_graphics) {
                 return Some(GraphicsCommand::Image(merged));
             }
