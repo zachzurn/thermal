@@ -40,17 +40,6 @@ pub struct Code2D {
     pub point_height: u32,
 }
 
-#[derive(Clone, PartialEq, Debug)]
-pub enum PixelType {
-    //1 byte per pixel
-    MonochromeByte,
-    //1 bit per pixel one color, the u8 selects the color (1 - 4)
-    Monochrome(u8),
-    //the first u8 selects the color (1 - 4), second how many colors are in the data
-    MultipleTone(u8, u8),
-    Unknown,
-}
-
 #[derive(Clone, Debug)]
 pub enum ImageFlow {
     Inline, //Image acts somewhat like text, advances x until line is full
@@ -68,6 +57,17 @@ pub struct Image {
     pub stretch: (u8, u8),
     pub flow: ImageFlow,
     pub upside_down: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct RenderColors {
+    pub(crate) paper_color: (u8, u8, u8),
+    pub(crate) color_1: (u8, u8, u8),
+    pub(crate) color_2: (u8, u8, u8),
+    pub(crate) color_3: (u8, u8, u8),
+    pub(crate) debug_color_1: (u8, u8, u8),
+    pub(crate) debug_color_2: (u8, u8, u8),
+    pub(crate) debug_color_3: (u8, u8, u8),
 }
 
 impl Image {
@@ -369,69 +369,81 @@ fn flip_right_to_left(data: Vec<u8>, width: u32, height: u32) -> Vec<u8> {
 }
 
 // Colors are stored in greyscale (84 levels)
-// 3 colors
-// 0 is white
-// 1 - 85 is color 1
-// 86 - 169 is color 2
-// 170 - 253 is color 3
-// 254, 255 are unused
+// 0 is a debug color
+// 1 - 84 is color 1
+// 85 - 168 is color 2
+// 170 - 252 is color 3
+// 0, 253 and 254 are used for debug colors
 pub fn pack_color_levels(pixels: &mut Vec<u8>, color: u8) {
     // Calculate the starting value based on the color
     let pack_start = match color {
-        1 | 49 => 1,
-        2 | 50 => 86,
-        3 | 51 => 170,
+        // 0  253 254 and 255 are reserved
+        1 | 49 => 1,    // Range: 1-84
+        2 | 50 => 85,   // Range: 85-168
+        3 | 51 => 169,  // Range: 169-252
         _ => 1,
     };
 
-    // convert 255 levels to 84 levels
     for p in pixels.iter_mut() {
-        *p = pack_start + (*p as u16 * 84 / 255) as u8;
+        *p = if *p > 252 {
+            pack_start + 83 // Map 255 to the max of the range (84, 168, or 252)
+        } else {
+            pack_start + (*p as u16 * 83 / 255) as u8
+        };
     }
 }
 
+/// Converts packed bytes into full ru8 gu8 bu8 bytes.
+/// This whole library uses packed bytes for color data.
+///
+/// All Image graphics are encoded with the packed byte format.
+///
+/// Use this function to convert back to rgb pixels for
+/// encoding png and other image formats.
 pub fn unpack_color_levels(
     pixels: &mut Vec<u8>,
-    base_color: (u8, u8, u8),
-    color1: (u8, u8, u8),
-    color2: (u8, u8, u8),
-    color3: (u8, u8, u8),
-    debug1: (u8, u8, u8),
-    debug2: (u8, u8, u8),
+    render_colors: &RenderColors
 ) -> Vec<u8> {
-    let mut unpacked_pixels = Vec::with_capacity(pixels.len() * 4);
+    let mut unpacked_pixels = Vec::with_capacity(pixels.len() * 3);
 
     for &p in pixels.iter() {
-        let (r, g, b) = if p == 0 {
-            base_color
-        } else {
+        let (r, g, b) = {
             let (target_color, level) = match p {
-                1..=85 => (color1, p - 1),
-                86..=169 => (color2, p - 86),
-                170..=253 => (color3, p - 170),
-                254 => (debug1, 0),
-                255 => (debug2, 0),
-                _ => (base_color, 0), // should never be hit
+                0 => (render_colors.debug_color_1, 0),
+                1..=84 => (render_colors.color_1, p - 1), // 0 - 84
+                85..=168 => (render_colors.color_2, p - 84),
+                169..=252 => (render_colors.color_3, p - 168),
+                253 => (render_colors.debug_color_2, 0),
+                254 => (render_colors.debug_color_3, 0),
+                _ => (render_colors.paper_color, 0), //255 is paper color
             };
 
-            let blend_factor = level as f32 / 84.0;
+            // How much is the key color used 0 = 100%
+            // 84 = 0 which is fully transparent 
+            // 0 = 1 which is fully visible
+            let opacity = 1.0 - (level as f32 / 84.0);
 
             (
-                blend_channel(base_color.0, target_color.0, blend_factor),
-                blend_channel(base_color.1, target_color.1, blend_factor),
-                blend_channel(base_color.2, target_color.2, blend_factor),
+                blend_channel(render_colors.paper_color.0, target_color.0, opacity),
+                blend_channel(render_colors.paper_color.1, target_color.1, opacity),
+                blend_channel(render_colors.paper_color.2, target_color.2, opacity),
             )
         };
 
-        // Assuming full opacity for alpha
-        unpacked_pixels.extend_from_slice(&[r, g, b, 255]);
+        unpacked_pixels.extend_from_slice(&[r, g, b]);
     }
 
     unpacked_pixels
 }
 
-fn blend_channel(base: u8, target: u8, factor: f32) -> u8 {
-    let blended = (base as f32 * (1.0 - factor)) + (target as f32 * factor);
+// opacity 0 = full base
+// opacity 1 = full target
+// paper = 255
+// color = 0
+// opacity = 1
+// blended should = 0
+fn blend_channel(base: u8, target: u8, opacity: f32) -> u8 {
+    let blended = (target as f32 * opacity) + (base as f32 * (1.0 - opacity));
     blended.round() as u8
 }
 
@@ -502,4 +514,27 @@ pub enum GraphicsCommand {
     Image(Image),
     Rectangle(Rectangle),
     Line(Line),
+}
+
+
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_pack_color_levels() {
+        let mut sample: Vec<u8> = vec![0,122,255];
+        pack_color_levels(&mut sample, 1);
+
+        let mut sample_2: Vec<u8> = vec![0,122,255];
+        pack_color_levels(&mut sample_2, 2);
+
+        let mut sample_3: Vec<u8> = vec![0,122,255];
+        pack_color_levels(&mut sample_3, 3);
+
+        println!("Packed color 1 {:?}", sample);
+        println!("Packed color 2 {:?}", sample_2);
+        println!("Packed color 3 {:?}", sample_3);
+    }
 }

@@ -1,7 +1,7 @@
 use crate::commands::unknown_gs_g::new;
 use crate::decoder::{get_codepage, Codepage};
 use crate::graphics;
-use crate::graphics::{Image, ImageRef};
+use crate::graphics::{Image, ImageRef, RenderColors};
 use crate::text::TextSpan;
 use std::collections::HashMap;
 use std::mem;
@@ -109,6 +109,9 @@ pub struct TextContext {
 
 #[derive(Clone)]
 pub struct GraphicsContext {
+    //Rendering output colors
+    pub render_colors: RenderColors,
+    
     //Main rendering area
     pub render_area: RenderArea,
 
@@ -474,6 +477,16 @@ impl Context {
                 datamatrix_width: 0,
             },
             graphics: GraphicsContext {
+                render_colors: RenderColors{
+                    paper_color: (255,255,255), //White
+                    color_1: (0,0,0), //Black
+                    color_2: (158,22,22), //Red
+                    color_3: (27,57,169), //Blue
+                    debug_color_1: (159,249,149), //Green
+                    debug_color_2: (210,149,249), //Purple
+                    debug_color_3: (249,220,149) //Orange
+                },
+                
                 render_area: RenderArea {
                     x: 0,
                     y: paper_left_margin * 3,

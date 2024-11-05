@@ -1,10 +1,11 @@
 extern crate fontdue;
 extern crate png;
 
+use std::mem;
 use fontdue::layout::CharacterData;
 use std::rc::Rc;
 use thermal_parser::context::Font;
-use thermal_parser::graphics::{Image, Rectangle};
+use thermal_parser::graphics::{pack_color_levels, unpack_color_levels, Image, Rectangle, RenderColors};
 use thermal_parser::text::TextSpan;
 
 const THRESHOLD: u8 = 120;
@@ -31,6 +32,7 @@ pub struct ThermalImage {
     pub character_width: u32,
     pub character_height: u32,
     pub font_size: f32,
+    pub text_color: u8,
     pub errors: Vec<String>,
 }
 
@@ -74,7 +76,17 @@ impl ThermalImage {
             debug: false,
             character_width: 12,
             character_height: 24,
+            text_color: 1,
             font_size: 12 as f32 * SIZE_TO_FONT_RATIO,
+        }
+    }
+
+    pub fn get_text_color(&self) -> u8 {
+        match self.text_color {
+            1 => 1,
+            2 => 85,
+            3 => 169,
+            _ => 1
         }
     }
 
@@ -171,7 +183,11 @@ impl ThermalImage {
     }
 
     pub fn draw_rect(&mut self, x: u32, y: u32, w: u32, h: u32) {
-        self.put_pixels(x, y, w, h, vec![0u8; (w * h) as usize], false, true);
+        self.put_pixels(x, y, w, h, vec![self.get_text_color(); (w * h) as usize], false, true);
+    }
+
+    pub fn draw_rect_color(&mut self, x: u32, y: u32, w: u32, h: u32, color: u8) {
+        self.put_pixels(x, y, w, h, vec![color; (w * h) as usize], false, true);
     }
 
     pub fn draw_border(bytes: &mut Vec<u8>, width: u32, height: u32, border_value: u8) {
@@ -304,8 +320,11 @@ impl ThermalImage {
                     continue;
                 }
 
+                pack_color_levels(&mut bitmap.0, self.text_color);
+
                 if self.debug {
-                    ThermalImage::draw_border(&mut bitmap.0, bitmap.1, bitmap.2, 40);
+                    //Use debug color 1
+                    ThermalImage::draw_border(&mut bitmap.0, bitmap.1, bitmap.2, 0);
                 }
 
                 self.put_pixels(
@@ -324,11 +343,12 @@ impl ThermalImage {
 
         //Draw baseline
         if self.debug {
-            self.draw_rect(
+            self.draw_rect_color(
                 dimensions.x + x_offset,
                 (dimensions.y + y_offset) + (span.character_height as f32 * baseline_ratio) as u32,
                 dimensions.w,
                 1,
+                0 //Debug color 1
             )
         }
 
@@ -461,11 +481,14 @@ impl ThermalImage {
     }
 
     pub fn put_render_img(&mut self, image: &Image) {
-        let mut pixels = image.as_grayscale().clone();
-        ThermalImage::draw_border(&mut pixels, image.w, image.h, 150);
-        self.put_pixels(image.x, image.y, image.w, image.h, pixels, false, true);
+        let mut pixels = image.pixels.clone();
 
-        if self.debug {}
+        if self.debug {
+            //Use debug color 3
+            ThermalImage::draw_border(&mut pixels, image.w, image.h, 254);
+        }
+
+        self.put_pixels(image.x, image.y, image.w, image.h, pixels, false, true);
 
         if image.upside_down {
             self.flip_pixels(image.x, image.y, image.w, image.h);
@@ -672,6 +695,18 @@ impl ThermalImage {
         }
 
         self.width = new_width;
+    }
+
+    pub fn render_and_consume(&mut self, render_colors: &RenderColors) -> (u32, u32, Vec<u8>) {
+        let w = self.width;
+        let h = self.get_height();
+
+        let mut pixels = vec![];
+        mem::swap(&mut self.bytes, &mut pixels);
+
+        self.set_width(0);
+
+        (w, h, unpack_color_levels(&mut pixels, render_colors))
     }
 
     pub fn copy(&mut self) -> (u32, u32, Vec<u8>) {

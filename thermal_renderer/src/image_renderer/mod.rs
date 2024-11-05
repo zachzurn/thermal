@@ -51,7 +51,7 @@ impl ImageRenderer {
     pub fn render_debug(bytes: &Vec<u8>) -> RenderOutput<ReceiptImage> {
         let mut img = ImageRenderer::new();
         img.debug = true;
-        //img.debug_graphics = true;
+        img.debug_graphics = true;
         let mut image_renderer: Box<dyn OutputRenderer<_>> = Box::new(img);
         let mut renderer = Renderer::new(&mut image_renderer);
         renderer.debug = true;
@@ -155,7 +155,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         let (w, h, mut pixels) = self.page_image.copy();
 
         if self.debug_graphics {
-            ThermalImage::draw_border(&mut pixels, w, h, 0);
+            ThermalImage::draw_border(&mut pixels, w, h, 255);
         }
 
         //Rotate back to how it was
@@ -255,9 +255,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         self.paper_image
             .expand_to_height(context.graphics.render_area.y);
 
-        //TODO implement a drain fn to drain thermal image without cloning pixels
-        //TODO or possibly a copy_as rgb that returns rgb pixels with multiple colors
-        let rendered = self.paper_image.copy();
+        let rendered = self.paper_image.render_and_consume(&context.graphics.render_colors);
 
         ReceiptImage {
             width: rendered.0,
