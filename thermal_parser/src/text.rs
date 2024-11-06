@@ -1,4 +1,5 @@
 use crate::context::{Context, Font, TextJustify, TextStrikethrough, TextUnderline};
+use crate::graphics::RGBA;
 use std::fmt;
 
 #[derive(Clone)]
@@ -19,6 +20,8 @@ pub struct TextSpan {
     pub upside_down: bool,
     pub justify: TextJustify,
     pub dimensions: Option<Dimensions>,
+    pub background_color: RGBA,
+    pub text_color: RGBA,
 }
 
 #[derive(Clone, Debug)]

@@ -23,6 +23,12 @@ use thermal_parser::graphics::{
 };
 use thermal_parser::text::TextSpan;
 
+pub struct DebugProfile {
+    pub text: bool,
+    pub image: bool,
+    pub page: bool,
+}
+
 pub struct RenderOutput<Output> {
     pub output: Vec<Output>,
     pub errors: Vec<RenderError>,

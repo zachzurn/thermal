@@ -10,7 +10,7 @@ struct Handler {
 }
 
 impl CommandHandler for Handler {
-    fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
+    fn get_graphics(&self, command: &Command, context: &Context) -> Option<GraphicsCommand> {
         let stretch = match self.scaling {
             0 | 48 => (1, 1),
             1 | 49 => (2, 1),
@@ -19,49 +19,14 @@ impl CommandHandler for Handler {
             _ => (1, 1),
         };
 
-        let mut pixels = command.data.clone();
-
-        pack_color_levels(&mut pixels, 1);
-
-        if stretch.0 > 1 || stretch.1 > 1 {
-            let scaled = graphics::scale_pixels(
-                &pixels,
-                self.width as u32,
-                self.height as u32,
-                stretch.0,
-                stretch.1,
-            );
-
-            let mut img = Image {
-                pixels: scaled.2,
-                x: 0,
-                y: 0,
-                w: scaled.0,
-                h: scaled.1,
-                stretch,
-                flow: ImageFlow::None,
-                upside_down: false,
-            };
-
-            img.unpack_bit_encoding();
-
-            Some(GraphicsCommand::Image(img))
-        } else {
-            let mut img = Image {
-                pixels,
-                x: 0,
-                y: 0,
-                w: self.width,
-                h: self.height,
-                stretch,
-                flow: ImageFlow::None,
-                upside_down: false,
-            };
-
-            img.unpack_bit_encoding();
-
-            Some(GraphicsCommand::Image(img))
-        }
+        let img = graphics::Image::from_raster_bytes(
+            context.graphics.render_colors.color_for_number(1),
+            self.width,
+            self.height,
+            stretch,
+            &command.data,
+        );
+        Some(GraphicsCommand::Image(img))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
         let data_len = data.len();

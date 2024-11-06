@@ -5,18 +5,18 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        if let Some(mut img) = Image::from_raster_data(&command.data) {
+        if let Some(mut img) =
+            Image::from_raster_data(&command.data, &context.graphics.render_colors)
+        {
             img.flow = ImageFlow::Block;
             context.graphics.buffer_graphics.push(img)
         }
     }
 
-    fn debug(&self, command: &Command, _context: &Context) -> String {
-        if let Some(img) = Image::from_raster_data(&command.data) {
+    fn debug(&self, command: &Command, context: &Context) -> String {
+        if let Some(img) = Image::from_raster_data(&command.data, &context.graphics.render_colors) {
             format!(
-                "Graphics Raster format {{ x: {} y: {} w: {} h: {} pixels: {} }}",
-                img.x,
-                img.y,
+                "Graphics Raster format {{ {} w: {} h: {} pixels: {} }}",
                 img.w,
                 img.h,
                 img.pixels.len()

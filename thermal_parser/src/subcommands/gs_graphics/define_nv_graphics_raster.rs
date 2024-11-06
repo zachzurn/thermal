@@ -5,9 +5,11 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        if let Some((img_ref, mut img)) =
-            Image::from_raster_data_with_ref(&command.data, ImageRefStorage::Disc)
-        {
+        if let Some((img_ref, mut img)) = Image::from_raster_data_with_ref(
+            &command.data,
+            ImageRefStorage::Disc,
+            &context.graphics.render_colors,
+        ) {
             img.flow = ImageFlow::Block;
             context.graphics.stored_graphics.insert(img_ref, img);
         }

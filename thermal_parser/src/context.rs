@@ -1,7 +1,7 @@
 use crate::commands::unknown_gs_g::new;
 use crate::decoder::{get_codepage, Codepage};
 use crate::graphics;
-use crate::graphics::{Image, ImageRef, RenderColors};
+use crate::graphics::{Image, ImageRef, RGBA};
 use crate::text::TextSpan;
 use std::collections::HashMap;
 use std::mem;
@@ -99,21 +99,40 @@ pub struct TextContext {
     pub height_mult: u8,
     pub upside_down: bool,
     pub line_spacing: u8,
-    pub color: u8,
-    pub background_color: u8,
-    pub shadow_color: u8,
+    pub color: RGBA,
+    pub background_color: RGBA,
+    pub shadow_color: RGBA,
     pub shadow: bool,
     pub smoothing: bool,
     pub tabs: Vec<u8>,
 }
 
+#[derive(Clone, Debug)]
+pub struct RenderColors {
+    pub(crate) paper_color: RGBA,
+    pub(crate) color_1: RGBA,
+    pub(crate) color_2: RGBA,
+    pub(crate) color_3: RGBA,
+}
+
+impl RenderColors {
+    pub fn color_for_number(&self, number: u8) -> &RGBA {
+        match number {
+            0 => &self.paper_color,
+            1 | 48 => &self.color_1,
+            2 | 49 => &self.color_2,
+            3 | 50 => &self.color_3,
+            _ => &self.color_1,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct GraphicsContext {
-    //Rendering output colors
-    pub render_colors: RenderColors,
-    
     //Main rendering area
     pub render_area: RenderArea,
+
+    pub render_colors: RenderColors,
 
     //Paper area (unprintable paper margins)
     //x and y represent left and right margins
@@ -416,6 +435,32 @@ impl Context {
         let paper_right_margin = (dots_per_inch as f32 * 0.1f32) as u32;
         let paper_width = (dots_per_inch as f32 * 3.2f32) as u32;
         let render_width = paper_width - (paper_left_margin + paper_right_margin);
+        let render_colors = RenderColors {
+            paper_color: RGBA {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: 255,
+            }, //White
+            color_1: RGBA {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 255,
+            }, //Black
+            color_2: RGBA {
+                r: 158,
+                g: 22,
+                b: 22,
+                a: 255,
+            }, //Red
+            color_3: RGBA {
+                r: 27,
+                g: 57,
+                b: 169,
+                a: 255,
+            }, //Blue
+        };
 
         Context {
             default: None,
@@ -437,10 +482,10 @@ impl Context {
                 height_mult: 1,
                 upside_down: false,
                 line_spacing: 24, //pixels
-                color: 1,
-                background_color: 0,
+                color: render_colors.color_1,
+                background_color: render_colors.paper_color,
                 shadow: false,
-                shadow_color: 1,
+                shadow_color: render_colors.color_1,
                 smoothing: false,
                 tabs: vec![8; 32], //Every 8 character widths is a tab stop
             },
@@ -477,16 +522,8 @@ impl Context {
                 datamatrix_width: 0,
             },
             graphics: GraphicsContext {
-                render_colors: RenderColors{
-                    paper_color: (255,255,255), //White
-                    color_1: (0,0,0), //Black
-                    color_2: (158,22,22), //Red
-                    color_3: (27,57,169), //Blue
-                    debug_color_1: (159,249,149), //Green
-                    debug_color_2: (210,149,249), //Purple
-                    debug_color_3: (249,220,149) //Orange
-                },
-                
+                render_colors,
+
                 render_area: RenderArea {
                     x: 0,
                     y: paper_left_margin * 3,

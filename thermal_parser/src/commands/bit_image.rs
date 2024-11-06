@@ -1,3 +1,4 @@
+use crate::graphics::GraphicsCommand::Image;
 use crate::{command::*, constants::*, context::*, graphics, graphics::*};
 
 #[derive(Clone)]
@@ -12,38 +13,21 @@ struct Handler {
 }
 
 impl CommandHandler for Handler {
-    fn get_graphics(&self, command: &Command, _context: &Context) -> Option<GraphicsCommand> {
+    fn get_graphics(&self, command: &Command, context: &Context) -> Option<GraphicsCommand> {
         let (w, h, bytes) = if self.col_encoded {
-            graphics::column_to_raster(
-                &command.data.clone(),
-                self.stretch,
-                self.width as u32,
-                self.height as u32,
-            )
+            graphics::column_to_raster(&command.data.clone(), self.width as u32, self.height as u32)
         } else {
-            let mut pixels = command.data.clone();
-
-            pack_color_levels(&mut pixels, 1);
-
-            graphics::scale_pixels(
-                &pixels,
-                self.width as u32,
-                self.height as u32,
-                self.stretch.0,
-                self.stretch.1,
-            )
+            (self.width, self.height, command.data.clone())
         };
 
-        Some(GraphicsCommand::Image(Image {
-            pixels: bytes,
-            x: 0,
-            y: 0,
+        let img = graphics::Image::from_raster_bytes(
+            &context.graphics.render_colors.color_1,
             w,
             h,
-            stretch: self.stretch,
-            flow: ImageFlow::Inline,
-            upside_down: false,
-        }))
+            self.stretch,
+            &bytes,
+        );
+        Some(GraphicsCommand::Image(img))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
         let data_len = data.len();
