@@ -10,11 +10,11 @@ pub fn encode_html_image(image: &Image) -> HtmlRow {
     let mut png_data: Vec<u8> = Vec::new();
 
     let mut encoder = Encoder::new(&mut png_data, image.w, image.h);
-    encoder.set_color(ColorType::Grayscale);
+    encoder.set_color(ColorType::Rgb);
     encoder.set_depth(png::BitDepth::Eight);
     let mut writer = encoder.write_header().expect("Failed to write PNG header");
     writer
-        .write_image_data(&image.as_grayscale())
+        .write_image_data(&image.as_rgb_u8())
         .expect("Failed to write PNG image data");
 
     writer.finish().expect("Error encoding png");

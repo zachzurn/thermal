@@ -1,4 +1,4 @@
-use crate::{command::*, constants::*, context::*, graphics, graphics::*};
+use crate::{command::*, constants::*, context::*, graphics::*};
 
 #[derive(Clone)]
 struct Handler {
@@ -19,14 +19,15 @@ impl CommandHandler for Handler {
             _ => (1, 1),
         };
 
-        let img = graphics::Image::from_raster_bytes(
-            context.graphics.render_colors.color_for_number(1),
+        Some(GraphicsCommand::image_from_raster_bytes_single_color(
             self.width,
             self.height,
             stretch,
+            context.graphics.render_colors.color_for_number(1),
+            ImageFlow::Block,
             &command.data,
-        );
-        Some(GraphicsCommand::Image(img))
+            true,
+        ))
     }
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
         let data_len = data.len();

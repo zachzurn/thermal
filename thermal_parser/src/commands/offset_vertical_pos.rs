@@ -3,7 +3,7 @@
 ///
 /// When Page mode is selected, the horizontal or vertical
 /// motion unit is used for the print direction set by ESC T.
-use crate::context::{Context, PrintDirection};
+use crate::context::Context;
 use crate::{command::*, constants::*};
 
 #[derive(Clone)]

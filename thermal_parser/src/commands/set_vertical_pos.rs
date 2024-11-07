@@ -11,7 +11,7 @@
 ///
 use crate::command::{Command, CommandHandler, CommandType, DataType};
 use crate::constants::GS;
-use crate::context::{Context, PrintDirection};
+use crate::context::Context;
 
 #[derive(Clone)]
 struct Handler;

@@ -65,6 +65,8 @@ impl TextSpan {
             upside_down: style.upside_down,
             justify: context.text.justify.clone(),
             dimensions: None,
+            background_color: context.text.background_color,
+            text_color: context.text.color,
         }
     }
 
@@ -109,6 +111,8 @@ impl TextSpan {
             upside_down: self.upside_down,
             justify: self.justify.clone(),
             dimensions: None,
+            background_color: self.background_color,
+            text_color: self.text_color,
         };
         clone.text = string;
         clone

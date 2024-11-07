@@ -40,19 +40,20 @@ impl CommandHandler for Handler {
             // Select character color, one param {m}
             48 => {
                 let m = command.data.get(3).unwrap_or(&48u8);
-                context.text.color = color_for(m);
+                context.text.color = *context.graphics.render_colors.color_for_number(*m);
             }
             //Selects background color by {m}
             49 => {
                 let m = command.data.get(3).unwrap_or(&48u8);
-                context.text.background_color = color_for(m);
+                context.text.background_color =
+                    *context.graphics.render_colors.color_for_number(*m);
             }
             //shadow color {m} shadow effect {a}
             50 => {
                 let m = command.data.get(3).unwrap_or(&48u8);
                 let a = command.data.get(4).unwrap_or(&0u8);
 
-                context.text.shadow_color = color_for(m);
+                context.text.shadow_color = *context.graphics.render_colors.color_for_number(*m);
                 context.text.shadow = match a {
                     0 | 48 => false,
                     _ => true,
@@ -60,16 +61,6 @@ impl CommandHandler for Handler {
             }
             _ => {}
         }
-    }
-}
-
-fn color_for(param: &u8) -> u8 {
-    match param {
-        48 => 0,
-        49 => 1,
-        50 => 2,
-        51 => 3,
-        _ => 1,
     }
 }
 

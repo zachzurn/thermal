@@ -23,6 +23,7 @@ use thermal_parser::graphics::{
 };
 use thermal_parser::text::TextSpan;
 
+#[derive(Debug, Clone, Copy)]
 pub struct DebugProfile {
     pub text: bool,
     pub image: bool,

@@ -17,9 +17,9 @@
 //!
 
 use crate::image_renderer::thermal_image::ThermalImage;
-use crate::renderer::{OutputRenderer, RenderOutput, Renderer};
+use crate::renderer::{DebugProfile, OutputRenderer, RenderOutput, Renderer};
 use thermal_parser::context::{Context, PrintDirection, Rotation, TextJustify};
-use thermal_parser::graphics::{Image, VectorGraphic};
+use thermal_parser::graphics::{Image, VectorGraphic, RGBA};
 use thermal_parser::text::TextSpan;
 
 pub mod thermal_image;
@@ -27,8 +27,7 @@ pub mod thermal_image;
 pub struct ImageRenderer {
     pub paper_image: ThermalImage,
     pub page_image: ThermalImage,
-    pub debug: bool,
-    pub debug_graphics: bool,
+    pub debug_profile: DebugProfile,
 }
 
 impl ImageRenderer {
@@ -36,8 +35,11 @@ impl ImageRenderer {
         Self {
             paper_image: ThermalImage::new(0),
             page_image: ThermalImage::new(0),
-            debug: false,
-            debug_graphics: false,
+            debug_profile: DebugProfile {
+                text: false,
+                image: false,
+                page: false,
+            },
         }
     }
 
@@ -50,8 +52,11 @@ impl ImageRenderer {
 
     pub fn render_debug(bytes: &Vec<u8>) -> RenderOutput<ReceiptImage> {
         let mut img = ImageRenderer::new();
-        img.debug = true;
-        img.debug_graphics = true;
+        img.debug_profile = DebugProfile {
+            text: true,
+            image: true,
+            page: true,
+        };
         let mut image_renderer: Box<dyn OutputRenderer<_>> = Box::new(img);
         let mut renderer = Renderer::new(&mut image_renderer);
         renderer.debug = true;
@@ -68,25 +73,17 @@ pub struct ReceiptImage {
 
 impl OutputRenderer<ReceiptImage> for ImageRenderer {
     fn begin_render(&mut self, context: &mut Context) {
-        if self.debug_graphics {
-            self.paper_image.enable_debug();
-            self.page_image.enable_debug();
-        }
+        self.paper_image.debug_profile = self.debug_profile;
+        self.page_image.debug_profile = self.debug_profile;
+        self.paper_image.paper_color = context.graphics.render_colors.paper_color;
+        self.page_image.paper_color = context.graphics.render_colors.paper_color;
 
         //Initialize the main image area
         self.paper_image.empty();
         self.paper_image.set_width(context.graphics.render_area.w);
-        self.paper_image.set_character_size(
-            context.text.character_width as u32,
-            context.text.character_height as u32,
-        );
 
         //Initialize image area for page mode
         self.page_image.set_width(0);
-        self.page_image.set_character_size(
-            context.text.character_width as u32,
-            context.text.character_height as u32,
-        );
 
         //Page images should not auto grow in either direction
         //Normally only the width is locked down, but for page mode
@@ -96,13 +93,13 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
 
     fn page_begin(&mut self, _context: &mut Context) {
         self.page_image.set_width(0);
-        if self.debug {
+        if self.debug_profile.page {
             println!("Page Mode Started")
         }
     }
 
     fn page_end(&mut self, _context: &mut Context) {
-        if self.debug {
+        if self.debug_profile.page {
             println!("Page Mode Ended")
         }
     }
@@ -154,8 +151,18 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
 
         let (w, h, mut pixels) = self.page_image.copy();
 
-        if self.debug_graphics {
-            ThermalImage::draw_border(&mut pixels, w, h, 255);
+        if self.debug_profile.page {
+            ThermalImage::draw_border(
+                &mut pixels,
+                w,
+                h,
+                &RGBA {
+                    r: 247,
+                    g: 180,
+                    b: 75,
+                    a: 255,
+                },
+            );
         }
 
         //Rotate back to how it was
@@ -189,9 +196,9 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
             match graphic {
                 VectorGraphic::Rectangle(rectangle) => {
                     if page {
-                        self.page_image.put_rect(rectangle);
+                        self.page_image.put_rect(rectangle, &context.text.color);
                     } else {
-                        self.paper_image.put_rect(rectangle);
+                        self.paper_image.put_rect(rectangle, &context.text.color);
                     }
                 }
             }
@@ -244,7 +251,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
     }
 
     fn end_render(&mut self, context: &mut Context) -> ReceiptImage {
-        if self.debug {
+        if self.debug_profile.text {
             println!("End Render")
         }
         //Add in the left and right margin;
@@ -255,7 +262,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
         self.paper_image
             .expand_to_height(context.graphics.render_area.y);
 
-        let rendered = self.paper_image.render_and_consume(&context.graphics.render_colors);
+        let rendered = self.paper_image.consume_rgb_u8();
 
         ReceiptImage {
             width: rendered.0,

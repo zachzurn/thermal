@@ -70,7 +70,7 @@ impl CommandHandler for Handler {
         Some(vec![DeviceCommand::ChangePageArea])
     }
 
-    fn debug(&self, command: &Command, context: &Context) -> String {
+    fn debug(&self, command: &Command, _context: &Context) -> String {
         format!("Set Print Area --> {:?}", calculate_page_area(command))
     }
 }

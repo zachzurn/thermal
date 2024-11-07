@@ -1,4 +1,3 @@
-use crate::util::bitflags_msb;
 use crate::{command::*, constants::*, context::*, util::bitflags_lsb};
 
 #[derive(Clone)]

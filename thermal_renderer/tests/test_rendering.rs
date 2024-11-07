@@ -170,7 +170,7 @@ fn save_image(bytes: &Vec<u8>, width: u32, height: u32, out_path: String) {
     let file = File::create(path).unwrap();
     let ref mut writer = BufWriter::new(file);
     let mut encoder = png::Encoder::new(writer, width, height);
-    encoder.set_color(png::ColorType::Grayscale);
+    encoder.set_color(png::ColorType::Rgb);
     encoder.set_depth(BitDepth::Eight);
 
     let mut writer = encoder.write_header().unwrap();

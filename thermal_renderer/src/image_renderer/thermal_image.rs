@@ -6,7 +6,7 @@ use fontdue::layout::CharacterData;
 use std::mem;
 use std::rc::Rc;
 use thermal_parser::context::Font;
-use thermal_parser::graphics::{Image, Rectangle, RenderColors, RGBA};
+use thermal_parser::graphics::{Image, Rectangle, RGBA};
 use thermal_parser::text::TextSpan;
 
 const SIZE_TO_FONT_RATIO: f32 = 1.68;
@@ -36,7 +36,7 @@ pub struct ThermalImage {
 }
 
 impl ThermalImage {
-    pub fn new(width: u32, paper_color: RGBA, debug_profile: DebugProfile) -> Self {
+    pub fn new(width: u32) -> Self {
         let regular = fontdue::Font::from_bytes(
             include_bytes!("../../resources/fonts/JetBrainsMonoNL-Medium.ttf") as &[u8],
             fontdue::FontSettings::default(),
@@ -71,20 +71,29 @@ impl ThermalImage {
             font,
             width,
             auto_grow: true,
-            debug_profile,
+            debug_profile: DebugProfile {
+                text: false,
+                image: false,
+                page: false,
+            },
             text_debug_color: RGBA {
-                r: 0,
-                g: 0,
-                b: 0,
+                r: 74,
+                g: 252,
+                b: 133,
                 a: 255,
             },
             image_debug_color: RGBA {
-                r: 0,
-                g: 0,
-                b: 0,
+                r: 216,
+                g: 74,
+                b: 252,
                 a: 255,
             },
-            paper_color,
+            paper_color: RGBA {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: 255,
+            },
             font_size: 12f32 * SIZE_TO_FONT_RATIO,
         }
     }
@@ -171,30 +180,29 @@ impl ThermalImage {
         self.bytes.shrink_to(0);
     }
 
-    pub fn draw_rect(&mut self, x: u32, y: u32, w: u32, h: u32, color: RGBA) {
-        self.put_pixels(x, y, w, h, vec![color; (w * h) as usize], false, true);
+    pub fn draw_rect(&mut self, x: u32, y: u32, w: u32, h: u32, color: &RGBA) {
+        self.put_pixels(x, y, w, h, vec![*color; (w * h) as usize], false, true);
     }
 
-    pub fn draw_border(bytes: &mut Vec<RGBA>, width: u32, height: u32, color: RGBA) {
-        // Top row (y = 0)
-        for x in 0..width {
-            let idx = x as usize; // Top row index
-            bytes[idx].blend_foreground(&color);
+    pub fn draw_border(bytes: &mut Vec<RGBA>, width: u32, height: u32, color: &RGBA) {
+        let bot_left = ((height - 1) * width) as usize;
+
+        // Top and bottom border
+        for x in 0..width as usize {
+            let top_idx = x;
+            let bot_idx = bot_left + x;
+
+            bytes[top_idx].blend_foreground(color);
+            bytes[bot_idx].blend_foreground(color);
         }
 
-        // Bottom row (y = height - 1)
-        for x in 0..width {
-            let idx = ((height - 1) * width + x) as usize; // Bottom row index
-            bytes[idx].blend_foreground(&color);
-        }
-
-        // Left column and right column
+        // Left and right border
         for y in 0..height {
             let left_idx = (y * width) as usize; // Left column index
             let right_idx = (y * width + (width - 1)) as usize; // Right column index
 
-            bytes[left_idx].blend_foreground(&color); // Left border pixel
-            bytes[right_idx].blend_foreground(&color); // Right border pixel
+            bytes[left_idx].blend_foreground(color); // Left border pixel
+            bytes[right_idx].blend_foreground(color); // Right border pixel
         }
     }
 
@@ -267,14 +275,7 @@ impl ThermalImage {
         Some((bytes, final_width, final_height))
     }
 
-    pub fn render_span(
-        &mut self,
-        x_offset: u32,
-        max_height: u32,
-        span: &TextSpan,
-        background_color: &RGBA,
-        text_color: &RGBA,
-    ) {
+    pub fn render_span(&mut self, x_offset: u32, max_height: u32, span: &TextSpan) {
         if span.dimensions.is_none() {
             return;
         }
@@ -300,8 +301,8 @@ impl ThermalImage {
                 span.character_height,
                 font.clone(),
                 font_size,
-                background_color,
-                text_color,
+                &span.background_color,
+                &span.text_color,
             );
 
             if let Some(mut bitmap) = char_bitmap {
@@ -315,7 +316,7 @@ impl ThermalImage {
                         &mut bitmap.0,
                         bitmap.1,
                         bitmap.2,
-                        self.text_debug_color,
+                        &self.text_debug_color.with_alpha(30),
                     );
                 }
 
@@ -340,7 +341,7 @@ impl ThermalImage {
                 (dimensions.y + y_offset) + (span.character_height as f32 * baseline_ratio) as u32,
                 dimensions.w,
                 1,
-                self.text_debug_color,
+                &self.text_debug_color.with_alpha(200),
             )
         }
 
@@ -351,12 +352,7 @@ impl ThermalImage {
                     + (span.character_height as f32 * baseline_ratio) as u32,
                 dimensions.w,
                 1,
-                RGBA {
-                    r: text_color.r,
-                    g: text_color.g,
-                    b: text_color.b,
-                    a: 255,
-                },
+                &span.text_color,
             )
         }
 
@@ -366,12 +362,7 @@ impl ThermalImage {
                 (dimensions.y + y_offset) + (span.character_height as f32 / 2.5) as u32,
                 dimensions.w,
                 span.strikethrough,
-                RGBA {
-                    r: text_color.r,
-                    g: text_color.g,
-                    b: text_color.b,
-                    a: 255,
-                },
+                &span.text_color,
             )
         }
 
@@ -457,7 +448,7 @@ impl ThermalImage {
         self.put_pixels(x, y, width, height, sub_image, false, false);
     }
 
-    pub fn put_rect(&mut self, rectangle: &Rectangle, color: RGBA) {
+    pub fn put_rect(&mut self, rectangle: &Rectangle, color: &RGBA) {
         self.draw_rect(rectangle.x, rectangle.y, rectangle.w, rectangle.h, color);
     }
 
@@ -465,8 +456,7 @@ impl ThermalImage {
         let mut pixels = image.pixels.clone();
 
         if self.debug_profile.image {
-            //Use debug color 3
-            ThermalImage::draw_border(&mut pixels, image.w, image.h, self.image_debug_color);
+            ThermalImage::draw_border(&mut pixels, image.w, image.h, &self.image_debug_color);
         }
 
         self.put_pixels(image.x, image.y, image.w, image.h, pixels, false, true);
@@ -666,12 +656,17 @@ impl ThermalImage {
         self.width = new_width;
     }
 
-    pub fn consume(&mut self) -> (u32, u32, Vec<RGBA>) {
+    pub fn consume_rgb_u8(&mut self) -> (u32, u32, Vec<u8>) {
         let w = self.width;
         let h = self.get_height();
 
-        let mut pixels = vec![];
-        mem::swap(&mut self.bytes, &mut pixels);
+        let mut pixels = Vec::with_capacity((w * h) as usize * 3);
+
+        for byte in self.bytes.iter() {
+            pixels.push(byte.r);
+            pixels.push(byte.g);
+            pixels.push(byte.b);
+        }
 
         self.set_width(0);
 

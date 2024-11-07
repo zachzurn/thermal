@@ -1,3 +1,4 @@
+use crate::util::parse_u16;
 use crate::{command::*, context::*, graphics::*};
 
 #[derive(Clone)]
@@ -5,24 +6,35 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        if let Some(mut img) =
-            Image::from_raster_data(&command.data, &context.graphics.render_colors)
-        {
-            img.flow = ImageFlow::Block;
-            context.graphics.buffer_graphics.push(img)
-        }
-    }
+        let _a = command.data.get(0).unwrap();
+        let bx = command.data.get(1).unwrap();
+        let by = command.data.get(2).unwrap();
+        let c = command.data.get(3).unwrap();
+        let width = parse_u16(&command.data, 4) as u32;
+        let height = parse_u16(&command.data, 6) as u32;
+        let stretch = (*bx, *by);
 
-    fn debug(&self, command: &Command, context: &Context) -> String {
-        if let Some(img) = Image::from_raster_data(&command.data, &context.graphics.render_colors) {
-            format!(
-                "Graphics Raster format {{ {} w: {} h: {} pixels: {} }}",
-                img.w,
-                img.h,
-                img.pixels.len()
-            )
-        } else {
-            "Graphics raster format failed to create image".to_string()
+        let graphics = GraphicsCommand::image_from_raster_bytes_single_color(
+            width,
+            height,
+            stretch,
+            context.graphics.render_colors.color_for_number(*c),
+            ImageFlow::Block,
+            &command.data[8..],
+            true,
+        );
+
+        match graphics {
+            GraphicsCommand::Image(mut image) => {
+                image.flow = ImageFlow::Block;
+                context.graphics.buffer_graphics.push(image);
+            }
+            GraphicsCommand::Error(error) => {
+                println!("{:?}", error);
+            }
+            _ => {
+                println!("Unexpected graphics command for image");
+            }
         }
     }
 }

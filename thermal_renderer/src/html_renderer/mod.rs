@@ -18,7 +18,7 @@ mod thermal_html;
 
 use crate::html_renderer::thermal_html::{encode_html_image, graphics_to_svg, spans_to_html};
 use crate::image_renderer::thermal_image::ThermalImage;
-use crate::renderer::{OutputRenderer, RenderOutput, Renderer};
+use crate::renderer::{DebugProfile, OutputRenderer, RenderOutput, Renderer};
 use thermal_parser::context::{Context, PrintDirection, Rotation, TextJustify};
 use thermal_parser::graphics::{Image, ImageFlow, VectorGraphic};
 use thermal_parser::text::TextSpan;
@@ -37,6 +37,7 @@ pub struct HtmlRenderer {
     pub content: Vec<String>,
     pub template: String,
     pub page_image: ThermalImage,
+    pub debug_profile: DebugProfile,
 }
 
 pub struct HtmlRow {
@@ -62,6 +63,11 @@ impl HtmlRenderer {
             content: vec![],
             template: TEMPLATE.to_string(),
             page_image: ThermalImage::new(0),
+            debug_profile: DebugProfile {
+                text: false,
+                image: false,
+                page: false,
+            },
         }
     }
 
@@ -85,12 +91,11 @@ impl HtmlRenderer {
 
 impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
     fn begin_render(&mut self, context: &mut Context) {
+        self.page_image.debug_profile = self.debug_profile;
+        self.page_image.paper_color = context.graphics.render_colors.paper_color;
+
         //Initialize image area for page mode
         self.page_image.set_width(0);
-        self.page_image.set_character_size(
-            context.text.character_width as u32,
-            context.text.character_height as u32,
-        );
 
         //Page images should not auto grow in either direction
         //Normally only the width is locked down, but for page mode
@@ -173,7 +178,6 @@ impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
             y: context.graphics.render_area.y,
             w,
             h,
-            stretch: (0, 0),
             flow: ImageFlow::Block,
             upside_down: false,
         };
@@ -186,7 +190,7 @@ impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
             for graphic in graphics {
                 match graphic {
                     VectorGraphic::Rectangle(rectangle) => {
-                        self.page_image.put_rect(rectangle);
+                        self.page_image.put_rect(rectangle, &context.text.color);
                     }
                 }
             }

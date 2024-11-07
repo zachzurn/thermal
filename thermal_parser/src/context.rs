@@ -1,4 +1,3 @@
-use crate::commands::unknown_gs_g::new;
 use crate::decoder::{get_codepage, Codepage};
 use crate::graphics;
 use crate::graphics::{Image, ImageRef, RGBA};
@@ -109,19 +108,19 @@ pub struct TextContext {
 
 #[derive(Clone, Debug)]
 pub struct RenderColors {
-    pub(crate) paper_color: RGBA,
-    pub(crate) color_1: RGBA,
-    pub(crate) color_2: RGBA,
-    pub(crate) color_3: RGBA,
+    pub paper_color: RGBA,
+    pub color_1: RGBA,
+    pub color_2: RGBA,
+    pub color_3: RGBA,
 }
 
 impl RenderColors {
     pub fn color_for_number(&self, number: u8) -> &RGBA {
         match number {
             0 => &self.paper_color,
-            1 | 48 => &self.color_1,
-            2 | 49 => &self.color_2,
-            3 | 50 => &self.color_3,
+            1 | 49 => &self.color_1,
+            2 | 50 => &self.color_2,
+            3 | 51 => &self.color_3,
             _ => &self.color_1,
         }
     }

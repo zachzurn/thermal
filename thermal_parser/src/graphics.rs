@@ -1,6 +1,6 @@
 use crate::context::{HumanReadableInterface, RenderColors};
 use crate::text::TextSpan;
-use crate::util::{bitflags_lsb, bitflags_msb, parse_u16};
+use crate::util::bitflags_lsb;
 
 #[derive(Clone, Copy, Debug)]
 pub struct RGBA {
@@ -20,6 +20,7 @@ impl RGBA {
         }
     }
 
+    /// Get a copy of this color with a new alpha
     pub fn with_alpha(mut self, a: u8) -> Self {
         RGBA {
             r: self.r,
@@ -29,10 +30,14 @@ impl RGBA {
         }
     }
 
+    /// Blends a foreground color onto this color
     pub fn blend_foreground(&mut self, color: &Self) {
         self.blend_foreground_with_alpha(&color, &color.a);
     }
 
+    /// Blends a foreground color onto this color.
+    /// Uses the provided alpha instead of the one in
+    /// the color.
     pub fn blend_foreground_with_alpha(&mut self, color: &Self, alpha: &u8) {
         //Fully opaque, no calculations needed
         if alpha == &255 {
@@ -92,7 +97,7 @@ pub struct Code2D {
     pub point_height: u32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub enum ImageFlow {
     Inline, //Image acts somewhat like text, advances x until line is full
     Block,  //Image advances y by height and resets x to 0
@@ -111,197 +116,254 @@ pub struct Image {
 }
 
 impl Image {
-    pub fn from_raster_bytes(
-        color: &RGBA,
+    /// Creates a vec with rgb data encoded as a contiguous
+    /// vec of bytes. Useful for external libraries like png.
+    pub fn as_rgb_u8(&self) -> Vec<u8> {
+        let mut rgb_bytes = Vec::with_capacity(self.pixels.len() * 3);
+
+        for pixel in self.pixels.iter() {
+            rgb_bytes.push(pixel.r);
+            rgb_bytes.push(pixel.g);
+            rgb_bytes.push(pixel.b);
+        }
+
+        rgb_bytes
+    }
+}
+
+impl GraphicsCommand {
+    /// Parses column format into a single GraphicsCommand(Image).
+    ///
+    /// GraphicsCommand(Error) can also be returned from this function
+    /// in order to provide meaningful error messages for corrupt data
+    pub fn image_from_column_bytes_single_color(
         width: u32,
         height: u32,
         stretch: (u8, u8),
+        color: &RGBA,
+        flow: ImageFlow,
         data: &[u8],
-    ) -> Image {
-        let (w, h, raw_pixels) = if stretch.0 > 1 || stretch.1 > 1 {
-            scale_pixels(
-                &data[8..],
-                width as u32,
-                height as u32,
-                stretch.0,
-                stretch.1,
-            )
-        } else {
-            (width, height, data.to_vec())
-        };
+    ) -> GraphicsCommand {
+        let raster = column_to_bytes(data, width, height);
+        Self::image_from_raster_bytes_single_color(
+            width, height, stretch, color, flow, &raster, false,
+        )
+    }
 
-        let mut pixels = Vec::with_capacity(data.len());
+    /// Parses column format that has multiple color layers into
+    /// a single GraphicsCommand(Image).
+    ///
+    /// First decodes the column format into the common raster format.
+    ///
+    /// Color layer data has one byte to indicate the color and the
+    /// rest of the bytes are bit encoded pixel data.
+    ///
+    /// GraphicsCommand(Error) can also be returned from this function
+    /// in order to provide meaningful error messages for corrupt data
+    pub fn image_from_column_bytes_multi_color(
+        width: u32,
+        height: u32,
+        stretch: (u8, u8),
+        num_colors: u8,
+        render_colors: &RenderColors,
+        flow: ImageFlow,
+        data: &[u8],
+    ) -> GraphicsCommand {
+        let bytes_per_layer = ((width as usize / 8) * height as usize) + 1;
 
-        for i in 0..data.len() {
-            pixels[i] = color.with_alpha(raw_pixels[i]);
+        //Ensure there are enough bytes to construct the final image
+        if data.len() != (bytes_per_layer + 1) * num_colors as usize {
+            return GraphicsCommand::Error("Not enough data to parse raster image".into());
         }
 
-        Image {
+        let mut image_layers = vec![];
+
+        for layer in 0..=num_colors as usize {
+            let layer_start = layer * bytes_per_layer;
+            let color_number = data[layer_start];
+            let color = render_colors.color_for_number(color_number);
+            let image_data = &data[layer_start..bytes_per_layer - 1];
+            let raster = column_to_bytes(image_data, width, height);
+            let layer = Self::image_from_raster_bytes_single_color(
+                width, height, stretch, color, flow, &raster, false,
+            );
+
+            match layer {
+                GraphicsCommand::Image(image) => image_layers.push(image),
+                GraphicsCommand::Error(message) => return GraphicsCommand::Error(message),
+                _ => {}
+            }
+        }
+
+        let merge = merge_image_layers(&mut image_layers);
+
+        match merge {
+            Ok(merge) => GraphicsCommand::Image(merge),
+            Err(e) => GraphicsCommand::Error(e.to_string()),
+        }
+    }
+
+    /// Parses column format that has a single color layer into
+    /// a single GraphicsCommand(Image).
+    ///
+    /// GraphicsCommand(Error) can also be returned from this function
+    /// in order to provide meaningful error messages for corrupt data
+    pub fn image_from_raster_bytes_single_color(
+        width: u32,
+        height: u32,
+        stretch: (u8, u8),
+        color: &RGBA,
+        flow: ImageFlow,
+        data: &[u8],
+        process_as_bits: bool,
+    ) -> GraphicsCommand {
+        let unpacked = if process_as_bits {
+            unpack_bytes(data, width, height)
+        } else {
+            data.to_vec()
+        };
+
+        //Ensure there are enough bytes to construct the final image
+        if unpacked.len() != (width * height) as usize {
+            return GraphicsCommand::Error(format!(
+                "Not enough data to parse single color raster image expected: {} got: {}",
+                unpacked.len(),
+                data.len()
+            ));
+        }
+
+        let (w, h, raw_pixels) = if stretch.0 > 1 || stretch.1 > 1 {
+            scale_pixels(&unpacked, width as u32, height as u32, stretch.0, stretch.1)
+        } else {
+            (width, height, unpacked)
+        };
+
+        println!(
+            "raster after scale, was w{} h{} len{} now w{} h{} len{}",
+            width,
+            height,
+            data.len(),
+            w,
+            h,
+            raw_pixels.len(),
+        );
+
+        let mut pixels = Vec::with_capacity(w as usize * h as usize);
+
+        for i in 0..raw_pixels.len() {
+            pixels.push(color.with_alpha(raw_pixels[i]));
+        }
+
+        GraphicsCommand::Image(Image {
             pixels,
             x: 0,
             y: 0,
             w,
             h,
-            flow: ImageFlow::Block,
+            flow,
             upside_down: false,
-        }
+        })
     }
 
-    pub fn from_column_bytes(color: &RGBA, width: u32, height: u32, data: &Vec<u8>) -> Vec<RGBA> {
-        let mut pixels = Vec::<RGBA>::new();
-        let on = color.with_alpha(255);
-        let off = RGBA::blank();
+    /// Parses column format that has multiple color layers into
+    /// a single GraphicsCommand(Image).
+    ///
+    /// Color layer data has one byte to indicate the color and the
+    /// rest of the bytes are bit encoded pixel data.
+    ///
+    /// GraphicsCommand(Error) can also be returned from this function
+    /// in order to provide meaningful error messages for corrupt data
+    pub fn image_from_raster_bytes_multi_color(
+        width: u32,
+        height: u32,
+        stretch: (u8, u8),
+        num_colors: u8,
+        render_colors: &RenderColors,
+        flow: ImageFlow,
+        data: &[u8],
+        process_as_bits: bool,
+    ) -> GraphicsCommand {
+        let bytes_per_layer = if process_as_bits {
+            ((width / 8) as usize * height as usize) + 1
+        } else {
+            (width as usize * height as usize) + 1
+        };
 
-        //number of bytes we need to use for the last column of each row of data
-        let mut padding = width % 8;
-        if padding == 0 {
-            padding = 8;
+        //Ensure there are enough bytes to construct the final image
+        if data.len() != bytes_per_layer * num_colors as usize {
+            return GraphicsCommand::Error(
+                "Not enough data to parse raster image multi color".into(),
+            );
         }
-        let mut col = 0;
 
-        for byte in data {
-            col += 8;
-            if col >= width {
-                for n in 0..padding {
-                    pixels.push(if *byte & 1 << (7 - n) != 0 { off } else { on });
-                }
-                col = 0;
-            } else {
-                let values = bitflags_msb(byte);
+        let mut image_layers = vec![];
 
-                pixels.push(if values.0 { off } else { on });
-                pixels.push(if values.1 { off } else { on });
-                pixels.push(if values.2 { off } else { on });
-                pixels.push(if values.3 { off } else { on });
-                pixels.push(if values.4 { off } else { on });
-                pixels.push(if values.5 { off } else { on });
-                pixels.push(if values.6 { off } else { on });
-                pixels.push(if values.7 { off } else { on });
+        for layer in 0..=num_colors as usize {
+            let layer_start = layer * bytes_per_layer;
+            let layer_end = layer_start + bytes_per_layer - 1;
+            let color_number = data[layer_start];
+            let color = render_colors.color_for_number(color_number);
+            let image_data = &data[layer_start + 1..layer_end];
+
+            let layer = Self::image_from_raster_bytes_single_color(
+                width,
+                height,
+                stretch,
+                color,
+                flow,
+                &image_data,
+                true,
+            );
+
+            match layer {
+                GraphicsCommand::Image(image) => image_layers.push(image),
+                GraphicsCommand::Error(message) => return GraphicsCommand::Error(message),
+                _ => {}
             }
         }
 
-        pixels
-    }
+        let merge = merge_image_layers(&mut image_layers);
 
-    pub fn from_raster_data(data: &Vec<u8>, render_colors: &RenderColors) -> Option<Image> {
-        if data.len() < 8 {
-            return None;
-        };
-
-        let a = *data.get(0).unwrap();
-        let bx = *data.get(1).unwrap();
-        let by = *data.get(2).unwrap();
-
-        //TODO parse into a color
-        let c = *data.get(3).unwrap();
-
-        let mut width = parse_u16(data, 4) as u32;
-        let mut height = parse_u16(data, 6) as u32;
-        let stretch = (bx, by);
-
-        let img = Self::from_raster_bytes(
-            render_colors.color_for_number(c),
-            width,
-            height,
-            stretch,
-            &data[8..],
-        );
-        Some(img)
-    }
-
-    pub fn from_raster_data_with_ref(
-        data: &Vec<u8>,
-        storage: ImageRefStorage,
-        render_colors: &RenderColors,
-    ) -> Option<(ImageRef, Image)> {
-        if data.len() < 8 {
-            return None;
-        };
-
-        let a = *data.get(0).unwrap();
-        let kc1 = *data.get(1).unwrap();
-        let kc2 = *data.get(2).unwrap();
-        let b = *data.get(3).unwrap(); //Number of colors
-        let c = *data.get(8).unwrap();
-
-        let width = parse_u16(data, 4) as u32;
-        let height = parse_u16(data, 6) as u32;
-        let stretch = (1, 1);
-
-        let img = Self::from_raster_bytes(
-            render_colors.color_for_number(c),
-            width,
-            height,
-            stretch,
-            &data[9..],
-        );
-        Some((ImageRef { kc1, kc2, storage }, img))
-    }
-
-    pub fn from_column_data(data: &Vec<u8>, render_colors: &RenderColors) -> Option<Image> {
-        if data.len() < 8 {
-            return None;
-        };
-
-        let a = *data.get(0).unwrap();
-        let bx = *data.get(1).unwrap();
-        let by = *data.get(2).unwrap();
-
-        let c = *data.get(3).unwrap();
-
-        let mut width = parse_u16(data, 4) as u32;
-        let mut height = parse_u16(data, 6) as u32;
-
-        let stretch = (bx, by);
-
-        let decoded = column_to_raster(&data[8..], width, height);
-
-        let img = Self::from_raster_bytes(
-            render_colors.color_for_number(c),
-            decoded.0,
-            decoded.1,
-            stretch,
-            &decoded.2,
-        );
-
-        Some(img)
-    }
-
-    pub fn from_column_data_with_ref(
-        data: &Vec<u8>,
-        storage: ImageRefStorage,
-        render_colors: &RenderColors,
-    ) -> Option<(ImageRef, Image)> {
-        if data.len() < 8 {
-            return None;
-        };
-
-        let a = *data.get(0).unwrap();
-        let kc1 = *data.get(1).unwrap();
-        let kc2 = *data.get(2).unwrap();
-        let b = *data.get(3).unwrap(); //Number of color data
-
-        let width = parse_u16(data, 4) as u32;
-        let height = parse_u16(data, 6) as u32;
-        let stretch = (1, 1);
-
-        let decoded = column_to_raster(&data[8..], width, height);
-
-        let img = Self::from_raster_bytes(
-            render_colors.color_for_number(1),
-            decoded.0,
-            decoded.1,
-            stretch,
-            &decoded.2,
-        );
-
-        Some((ImageRef { kc1, kc2, storage }, img))
+        match merge {
+            Ok(merge) => GraphicsCommand::Image(merge),
+            Err(e) => GraphicsCommand::Error(e.to_string()),
+        }
     }
 }
 
-//TODO see if we can combine bit decoding functionality in here instead of duplicating
-pub fn column_to_raster(pixels: &[u8], final_width: u32, final_height: u32) -> (u32, u32, Vec<u8>) {
-    let width = final_height;
+/// This function is used to combine multiple colors into one image.
+/// Merges a Vec of images into one using the first image as the base.
+///
+/// ESC/POS Images are always encoded with on/off bits and need to have
+/// color introduced.
+///
+pub fn merge_image_layers(layers: &Vec<Image>) -> Result<Image, &'static str> {
+    if layers.is_empty() {
+        return Err("No layers to merge".into());
+    }
+    if layers.len() == 1 {
+        return Ok(layers[0].clone());
+    }
+
+    let mut image = layers[0].clone();
+
+    //For the moment, we only merge if all images have the same width and height
+    for merge_img in layers.iter().skip(1) {
+        if merge_img.w > image.w || merge_img.h > image.h {
+            return Err("Can't merge image layers with different w and h".into());
+        }
+
+        for i in 0..merge_img.pixels.len() {
+            image.pixels[i].blend_foreground(&merge_img.pixels[i]);
+        }
+    }
+
+    Ok(image)
+}
+
+/// Unpacks bits into bytes and makes sure that extra padding
+/// is added for widths that are not divisible by eight.
+fn unpack_bytes(pixels: &[u8], width: u32, height: u32) -> Vec<u8> {
     let mut bytes = Vec::<u8>::new();
 
     //number of bytes we need to use for the last column of each row of data
@@ -315,25 +377,30 @@ pub fn column_to_raster(pixels: &[u8], final_width: u32, final_height: u32) -> (
         col += 8;
         if col >= width {
             for n in 0..padding {
-                bytes.push(if *byte & 1 << (7 - n) != 0 { 0 } else { 255 });
+                bytes.push(if *byte & 1 << (7 - n) != 0 { 255 } else { 0 });
             }
             col = 0;
         } else {
-            bytes.push(if *byte & 1 << 7 != 0 { 0 } else { 255 });
-            bytes.push(if *byte & 1 << 6 != 0 { 0 } else { 255 });
-            bytes.push(if *byte & 1 << 5 != 0 { 0 } else { 255 });
-            bytes.push(if *byte & 1 << 4 != 0 { 0 } else { 255 });
-            bytes.push(if *byte & 1 << 3 != 0 { 0 } else { 255 });
-            bytes.push(if *byte & 1 << 2 != 0 { 0 } else { 255 });
-            bytes.push(if *byte & 1 << 1 != 0 { 0 } else { 255 });
-            bytes.push(if *byte & 1 << 0 != 0 { 0 } else { 255 });
+            bytes.push(if *byte & 1 << 7 != 0 { 255 } else { 0 });
+            bytes.push(if *byte & 1 << 6 != 0 { 255 } else { 0 });
+            bytes.push(if *byte & 1 << 5 != 0 { 255 } else { 0 });
+            bytes.push(if *byte & 1 << 4 != 0 { 255 } else { 0 });
+            bytes.push(if *byte & 1 << 3 != 0 { 255 } else { 0 });
+            bytes.push(if *byte & 1 << 2 != 0 { 255 } else { 0 });
+            bytes.push(if *byte & 1 << 1 != 0 { 255 } else { 0 });
+            bytes.push(if *byte & 1 << 0 != 0 { 255 } else { 0 });
         }
     }
 
-    let rot = rotate_90_clockwise(bytes, final_height, final_width);
-    let mut flip = flip_right_to_left(rot, final_width, final_height);
+    bytes
+}
 
-    (final_width, final_height, flip)
+/// Column format is weird and needs to have some special operations
+/// done on the unpacked bytes to get the image in the correct orientation.
+fn column_to_bytes(pixels: &[u8], width: u32, height: u32) -> Vec<u8> {
+    let unpacked = unpack_bytes(pixels, height, width);
+    let rot = rotate_90_clockwise(unpacked, height, width);
+    flip_right_to_left(rot, width, height)
 }
 
 fn rotate_90_clockwise(data: Vec<u8>, width: u32, height: u32) -> Vec<u8> {
@@ -367,6 +434,9 @@ fn flip_right_to_left(data: Vec<u8>, width: u32, height: u32) -> Vec<u8> {
     result
 }
 
+/// Images can often have a scale width and height factor
+/// This is a dirty scaling that just copies bytes in the
+/// x and y direction
 pub fn scale_pixels(
     bytes: &[u8],
     original_width: u32,
@@ -399,8 +469,8 @@ pub fn scale_pixels(
     (new_width, new_height, scaled_bytes)
 }
 
-//Images that were added to storage can be
-//referenced with an ImageRef
+/// Images that were added to storage can be
+/// referenced with an ImageRef
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct ImageRef {
     pub kc1: u8,
