@@ -31,6 +31,7 @@ pub struct ThermalImage {
     pub font_size: f32,
     pub paper_color: RGBA,
     pub text_debug_color: RGBA,
+    pub baseline_debug_color: RGBA,
     pub image_debug_color: RGBA,
     pub errors: Vec<String>,
 }
@@ -77,9 +78,15 @@ impl ThermalImage {
                 page: false,
             },
             text_debug_color: RGBA {
-                r: 74,
-                g: 252,
-                b: 133,
+                r: 98,
+                g: 224,
+                b: 89,
+                a: 255,
+            },
+            baseline_debug_color: RGBA {
+                r: 110,
+                g: 255,
+                b: 185,
                 a: 255,
             },
             image_debug_color: RGBA {
@@ -316,7 +323,7 @@ impl ThermalImage {
                         &mut bitmap.0,
                         bitmap.1,
                         bitmap.2,
-                        &self.text_debug_color.with_alpha(30),
+                        &self.text_debug_color.with_alpha(60),
                     );
                 }
 
@@ -341,7 +348,7 @@ impl ThermalImage {
                 (dimensions.y + y_offset) + (span.character_height as f32 * baseline_ratio) as u32,
                 dimensions.w,
                 1,
-                &self.text_debug_color.with_alpha(200),
+                &self.baseline_debug_color.clone(),
             )
         }
 

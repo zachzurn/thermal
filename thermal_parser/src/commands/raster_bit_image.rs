@@ -7,6 +7,7 @@ struct Handler {
     capacity: u32,
     scaling: u8,
     accept_data: bool,
+    params: Vec<u8>,
 }
 
 impl CommandHandler for Handler {
@@ -48,6 +49,8 @@ impl CommandHandler for Handler {
             self.capacity = self.width * self.height;
             self.width = self.width * 8;
 
+            self.params = vec![self.scaling, xl as u8, xh as u8, yl as u8, yh as u8];
+
             data.clear();
 
             self.accept_data = true;
@@ -59,6 +62,14 @@ impl CommandHandler for Handler {
         }
         data.push(byte);
         true
+    }
+
+    //Used when converting commands back into other formats i.e. Thermal format
+    fn get_command_bytes(&self, command: &Command) -> (Vec<u8>, Vec<u8>) {
+        let mut data = self.params.clone();
+        let commands = command.commands.to_vec();
+        data.extend(command.data.clone());
+        (commands, data)
     }
 }
 
@@ -74,6 +85,7 @@ pub fn new() -> Command {
             capacity: 0,
             scaling: 0,
             accept_data: false,
+            params: vec![],
         }),
     )
 }

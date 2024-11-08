@@ -39,12 +39,12 @@ fn receipt_with_barcode() {
 
 #[test]
 fn gs_images_column() {
-    test_sample("gs_images_column", "bin")
+    test_sample("gs_images_column", "thermal")
 }
 
 #[test]
 fn gs_images_raster() {
-    test_sample("gs_images_raster", "bin")
+    test_sample("gs_images_raster", "thermal")
 }
 
 #[test]

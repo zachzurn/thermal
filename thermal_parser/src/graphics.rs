@@ -227,26 +227,18 @@ impl GraphicsCommand {
         if unpacked.len() != (width * height) as usize {
             return GraphicsCommand::Error(format!(
                 "Not enough data to parse single color raster image expected: {} got: {}",
-                unpacked.len(),
-                data.len()
+                (width * height),
+                unpacked.len()
             ));
         }
+
+        let unpacked_len = unpacked.len();
 
         let (w, h, raw_pixels) = if stretch.0 > 1 || stretch.1 > 1 {
             scale_pixels(&unpacked, width as u32, height as u32, stretch.0, stretch.1)
         } else {
             (width, height, unpacked)
         };
-
-        println!(
-            "raster after scale, was w{} h{} len{} now w{} h{} len{}",
-            width,
-            height,
-            data.len(),
-            w,
-            h,
-            raw_pixels.len(),
-        );
 
         let mut pixels = Vec::with_capacity(w as usize * h as usize);
 
@@ -298,12 +290,12 @@ impl GraphicsCommand {
 
         let mut image_layers = vec![];
 
-        for layer in 0..=num_colors as usize {
-            let layer_start = layer * bytes_per_layer;
+        for layer_no in 0..num_colors as usize {
+            let layer_start = layer_no * bytes_per_layer;
             let layer_end = layer_start + bytes_per_layer - 1;
             let color_number = data[layer_start];
             let color = render_colors.color_for_number(color_number);
-            let image_data = &data[layer_start + 1..layer_end];
+            let image_data = &data[layer_start + 1..=layer_end];
 
             let layer = Self::image_from_raster_bytes_single_color(
                 width,
@@ -312,7 +304,7 @@ impl GraphicsCommand {
                 color,
                 flow,
                 &image_data,
-                true,
+                process_as_bits,
             );
 
             match layer {
@@ -364,7 +356,7 @@ pub fn merge_image_layers(layers: &Vec<Image>) -> Result<Image, &'static str> {
 /// Unpacks bits into bytes and makes sure that extra padding
 /// is added for widths that are not divisible by eight.
 fn unpack_bytes(pixels: &[u8], width: u32, height: u32) -> Vec<u8> {
-    let mut bytes = Vec::<u8>::new();
+    let mut bytes = Vec::with_capacity(width as usize * height as usize);
 
     //number of bytes we need to use for the last column of each row of data
     let mut padding = width % 8;

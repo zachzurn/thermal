@@ -40,10 +40,9 @@ fn it_parses_lines() {
     assert_eq!(bytes[10], 92); // \
 }
 
-
 #[test]
 fn it_decompiles_binary() {
-    convert_binary_to_thermal("discount")
+    convert_binary_to_thermal("test_receipt_1")
 }
 
 // Utility function for converting bin files
@@ -98,4 +97,3 @@ fn convert_binary_to_thermal(name: &str) {
     file.write_all(thermal_file.as_bytes())
         .expect("Can't write output to thermal file");
 }
-
