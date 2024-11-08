@@ -1,4 +1,4 @@
-use crate::context::Context;
+use crate::context::{Context, TextJustify};
 use crate::graphics::GraphicsCommand;
 use crate::text::TextSpan;
 use std::rc::Rc;
@@ -19,6 +19,9 @@ pub enum DeviceCommand {
     PrintPageMode,
     ChangePageModeDirection,
     ChangePageArea,
+    Justify(TextJustify),
+    SetTextWidth(u8),
+    SetTextHeight(u8),
     ChangeTabs(u8, u8),
     Transmit(Vec<u8>),
     MoveX(u16),
@@ -46,6 +49,9 @@ impl DeviceCommand {
             Self::Transmit(_b) => "Transmit Data Back".to_string(),
             Self::MoveX(_n) => "Move Horizontally".to_string(),
             Self::ClearBufferGraphics => "Clear Buffer Graphics".to_string(),
+            Self::Justify(n) => format!("Justify {:?}", n),
+            Self::SetTextWidth(_) => "Scale Text Width".to_string(),
+            Self::SetTextHeight(_) => "Scale Text Height".to_string(),
         }
     }
 }

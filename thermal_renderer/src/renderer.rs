@@ -160,7 +160,6 @@ impl<'a, Output> Renderer<'a, Output> {
                 self.process_device_commands(device_commands);
             }
             CommandType::Control => {
-                self.process_text();
                 let device_commands = &command
                     .handler
                     .get_device_command(command, &mut self.context);
@@ -177,6 +176,21 @@ impl<'a, Output> Renderer<'a, Output> {
                     .device_command(&mut self.context, device_command);
 
                 match device_command {
+                    //Some commands should not attempt to collect text
+                    DeviceCommand::SetTextHeight(_) | DeviceCommand::SetTextWidth(_) => {}
+                    _ => self.process_text()
+                }
+                
+                match device_command {
+                    DeviceCommand::SetTextWidth(w) => {
+                        self.context.text.width_mult = *w;
+                    }
+                    DeviceCommand::SetTextHeight(h) => {
+                        self.context.text.height_mult = *h;
+                    }
+                    DeviceCommand::Justify(j) => {
+                        self.context.text.justify = j.clone();
+                    }
                     DeviceCommand::BeginPrint => {
                         //Start the render at two newlines worth of height
                         self.context.newline(2);
