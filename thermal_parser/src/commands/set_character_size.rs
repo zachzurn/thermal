@@ -26,7 +26,7 @@ impl CommandHandler for Handler {
 fn parse_stretch(value: u8) -> (u8, u8) {
     //last 4,5,6 bits masked
     //11110101 -> 00000101
-    let h = 0b00000111 & value + 1;
+    let h = (0b00000111 & value) + 1;
 
     //bit 1,2,3 masked and shifted all the way to the right // ***
     //01010101 -> 01010000 -> 00000101

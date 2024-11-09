@@ -3,7 +3,6 @@ extern crate png;
 
 use crate::renderer::DebugProfile;
 use fontdue::layout::CharacterData;
-use std::mem;
 use std::rc::Rc;
 use thermal_parser::context::Font;
 use thermal_parser::graphics::{Image, Rectangle, RGBA};
@@ -187,8 +186,8 @@ impl ThermalImage {
         self.bytes.shrink_to(0);
     }
 
-    pub fn draw_rect(&mut self, x: u32, y: u32, w: u32, h: u32, color: &RGBA) {
-        self.put_pixels(x, y, w, h, vec![*color; (w * h) as usize], false, true);
+    pub fn draw_rect(&mut self, x: u32, y: u32, w: u32, h: u32, color: &RGBA, multiply: bool) {
+        self.put_pixels(x, y, w, h, vec![*color; (w * h) as usize], false, multiply);
     }
 
     pub fn draw_border(bytes: &mut Vec<RGBA>, width: u32, height: u32, color: &RGBA) {
@@ -345,10 +344,11 @@ impl ThermalImage {
         if self.debug_profile.text {
             self.draw_rect(
                 dimensions.x + x_offset,
-                (dimensions.y + y_offset) + (span.character_height as f32 * baseline_ratio) as u32,
+                (dimensions.y + y_offset + 1) + (span.character_height as f32 * baseline_ratio) as u32,
                 dimensions.w,
                 1,
                 &self.baseline_debug_color.clone(),
+                false
             )
         }
 
@@ -360,6 +360,7 @@ impl ThermalImage {
                 dimensions.w,
                 1,
                 &span.text_color,
+                true
             )
         }
 
@@ -370,6 +371,7 @@ impl ThermalImage {
                 dimensions.w,
                 span.strikethrough,
                 &span.text_color,
+                true
             )
         }
 
@@ -456,7 +458,7 @@ impl ThermalImage {
     }
 
     pub fn put_rect(&mut self, rectangle: &Rectangle, color: &RGBA) {
-        self.draw_rect(rectangle.x, rectangle.y, rectangle.w, rectangle.h, color);
+        self.draw_rect(rectangle.x, rectangle.y, rectangle.w, rectangle.h, color, true);
     }
 
     pub fn put_render_img(&mut self, image: &Image) {
@@ -487,7 +489,7 @@ impl ThermalImage {
         width: u32,
         height: u32,
         pixels: Vec<RGBA>,
-        invert: bool,
+        _invert: bool,
         multiply: bool,
     ) -> bool {
         let mut cur_x = x;
@@ -548,8 +550,7 @@ impl ThermalImage {
             for pixel in &final_pixels {
                 let idx = cur_y * self.width + cur_x;
 
-                //TODO maybe use a multiply blend
-                self.bytes[idx as usize].blend_foreground(pixel);
+                self.bytes[idx as usize].multiply_foreground(pixel);
 
                 if cur_x == x + final_width - 1 {
                     cur_x = x;

@@ -11,8 +11,6 @@ pub struct Handler;
 impl CommandHandler for Handler {
     fn get_graphics(&self, _command: &Command, context: &Context) -> Option<GraphicsCommand> {
         if context.graphics.buffer_graphics.len() > 0 {
-            for buffer_graphic in context.graphics.buffer_graphics.iter() {}
-
             if let Ok(merged) = merge_image_layers(&context.graphics.buffer_graphics) {
                 return Some(GraphicsCommand::Image(merged));
             } else {

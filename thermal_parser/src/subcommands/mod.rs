@@ -52,6 +52,7 @@ impl SubCommandHandler {
             self.capacity -= 2;
             self.m = *data.get(2).unwrap();
             self.subcommand_id = *data.get(3).unwrap();
+            println!("small subcommand capacity: {} m {} subcommand {}", self.capacity, self.m, self.subcommand_id);
         }
 
         if data_len == 6 {
@@ -60,6 +61,7 @@ impl SubCommandHandler {
             self.capacity -= 2;
             self.m = *data.get(4).unwrap();
             self.subcommand_id = *data.get(5).unwrap();
+            println!("large subcommand capacity: {} m {} subcommand {}", self.capacity, self.m, self.subcommand_id);
         }
 
         if self.use_m {
@@ -111,6 +113,7 @@ impl CommandHandler for SubCommandHandler {
         let mut data_len = data.len();
 
         if !self.accept_data {
+            // Large subcommands use two extra bytes to determine data size
             if self.is_large {
                 if data_len < 6 {
                     data.push(byte);

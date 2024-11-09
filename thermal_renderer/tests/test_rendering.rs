@@ -13,6 +13,11 @@ fn typography() {
 }
 
 #[test]
+fn retail() {
+    test_sample("retail", "bin")
+}
+
+#[test]
 fn issuing_receipts() {
     test_sample("issuing_receipts", "thermal")
 }

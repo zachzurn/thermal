@@ -1,6 +1,5 @@
 use crate::context::{HumanReadableInterface, RenderColors};
 use crate::text::TextSpan;
-use crate::util::bitflags_lsb;
 
 #[derive(Clone, Copy, Debug)]
 pub struct RGBA {
@@ -21,7 +20,7 @@ impl RGBA {
     }
 
     /// Get a copy of this color with a new alpha
-    pub fn with_alpha(mut self, a: u8) -> Self {
+    pub fn with_alpha(self, a: u8) -> Self {
         RGBA {
             r: self.r,
             g: self.g,
@@ -33,6 +32,18 @@ impl RGBA {
     /// Blends a foreground color onto this color
     pub fn blend_foreground(&mut self, color: &Self) {
         self.blend_foreground_with_alpha(&color, &color.a);
+    }
+
+    pub fn multiply_foreground(&mut self, color: &Self) {
+        // Fully transparent, no change
+        if color.a == 0 {
+            return;
+        }
+
+        let alpha = color.a as f32 / 255.0;
+        self.r = ((self.r as f32 / 255.0 * color.r as f32 / 255.0 * alpha) * 255.0).round() as u8;
+        self.g = ((self.g as f32 / 255.0 * color.g as f32 / 255.0 * alpha) * 255.0).round() as u8;
+        self.b = ((self.b as f32 / 255.0 * color.b as f32 / 255.0 * alpha) * 255.0).round() as u8;
     }
 
     /// Blends a foreground color onto this color.
@@ -231,8 +242,6 @@ impl GraphicsCommand {
                 unpacked.len()
             ));
         }
-
-        let unpacked_len = unpacked.len();
 
         let (w, h, raw_pixels) = if stretch.0 > 1 || stretch.1 > 1 {
             scale_pixels(&unpacked, width as u32, height as u32, stretch.0, stretch.1)

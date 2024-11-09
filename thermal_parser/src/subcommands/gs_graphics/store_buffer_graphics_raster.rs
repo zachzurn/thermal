@@ -6,6 +6,11 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
+        if command.data.len() < 4 {
+            println!("Not enough parameters for buffer graphics");
+            return;
+        }
+        
         let _a = command.data.get(0).unwrap();
         let bx = command.data.get(1).unwrap();
         let by = command.data.get(2).unwrap();
