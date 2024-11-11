@@ -71,11 +71,7 @@ impl ThermalImage {
             font,
             width,
             auto_grow: true,
-            debug_profile: DebugProfile {
-                text: false,
-                image: false,
-                page: false,
-            },
+            debug_profile: DebugProfile::default(),
             text_debug_color: RGBA {
                 r: 98,
                 g: 224,

@@ -10,11 +10,26 @@ pub struct Handler;
 
 impl CommandHandler for Handler {
     fn get_graphics(&self, _command: &Command, context: &Context) -> Option<GraphicsCommand> {
+        let mut layers = vec![];
+
         if context.graphics.buffer_graphics.len() > 0 {
-            if let Ok(merged) = merge_image_layers(&context.graphics.buffer_graphics) {
+            for g in context.graphics.buffer_graphics.iter() {
+                match g {
+                    GraphicsCommand::Error(_) => { return Some(g.clone()) }
+                    GraphicsCommand::Image(img) => { layers.push(img.clone()) }
+                    _ => {}
+                }
+            }
+
+            if layers.is_empty() {
+                return None
+            }
+
+            if let Ok(merged) = merge_image_layers(&layers) {
+                println!("Merged Images");
                 return Some(GraphicsCommand::Image(merged));
             } else {
-                println!("Failed to merge image layers");
+                return Some(GraphicsCommand::Error("Could not merge image layers".to_string()));
             }
         }
         None

@@ -32,18 +32,7 @@ impl CommandHandler for Handler {
             true,
         );
 
-        match graphics {
-            GraphicsCommand::Image(mut image) => {
-                image.flow = ImageFlow::Block;
-                context.graphics.stored_graphics.insert(image_ref, image);
-            }
-            GraphicsCommand::Error(error) => {
-                println!("{:?}", error);
-            }
-            _ => {
-                println!("Unexpected graphics command for image");
-            }
-        }
+        context.graphics.stored_graphics.insert(image_ref, graphics);
     }
 }
 

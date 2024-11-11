@@ -70,7 +70,7 @@ impl RGBA {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Barcode {
     pub points: Vec<u8>,
     pub point_width: u8,
@@ -92,7 +92,7 @@ pub struct Rectangle {
     pub h: u32,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Line {
     _ax: u32,
     _ay: u32,
@@ -100,7 +100,7 @@ pub struct Line {
     _by: u32,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Code2D {
     pub points: Vec<u8>,
     pub width: u32,
@@ -498,6 +498,7 @@ pub enum ImageRefStorage {
     Ram,
 }
 
+#[derive(Clone, Debug)]
 pub enum GraphicsCommand {
     Error(String),
     Code2D(Code2D),

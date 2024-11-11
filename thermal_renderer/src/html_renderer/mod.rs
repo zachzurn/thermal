@@ -63,18 +63,14 @@ impl HtmlRenderer {
             content: vec![],
             template: TEMPLATE.to_string(),
             page_image: ThermalImage::new(0),
-            debug_profile: DebugProfile {
-                text: false,
-                image: false,
-                page: false,
-            },
+            debug_profile: DebugProfile::default(),
         }
     }
 
     /// This is the normal way to render bytes to an html
-    pub fn render(bytes: &Vec<u8>) -> RenderOutput<ReceiptHtml> {
-        let mut html_renderer: Box<dyn OutputRenderer<_>> = Box::new(HtmlRenderer::new());
-        let mut renderer = Renderer::new(&mut html_renderer);
+    pub fn render(bytes: &Vec<u8>, debug_profile: Option<DebugProfile>) -> RenderOutput<ReceiptHtml> {
+        let mut child_renderer: Box<dyn OutputRenderer<_>> = Box::new(HtmlRenderer::new());
+        let mut renderer = Renderer::new(&mut child_renderer, debug_profile.unwrap_or(DebugProfile::default()));
         renderer.render(bytes)
     }
 
@@ -90,6 +86,10 @@ impl HtmlRenderer {
 }
 
 impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
+    fn set_debug_profile(&mut self, profile: DebugProfile) {
+        self.debug_profile = profile;
+    }
+    
     fn begin_render(&mut self, context: &mut Context) {
         self.page_image.debug_profile = self.debug_profile;
         self.page_image.paper_color = context.graphics.render_colors.paper_color;
