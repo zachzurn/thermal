@@ -188,9 +188,11 @@ impl TextSpan {
 
 impl fmt::Debug for TextSpan {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Span")
-            .field("text", &self.text.replace("\n", "{LF}"))
-            .field("dim", &self.dimensions.clone())
-            .finish()
+        let txt = &self.text.replace("\n", "{LF}");
+        if let Some(dim) = &self.dimensions {
+            write!(f, "{:?} at x: {} y: {} w: {} h: {}", txt, dim.x, dim.y, dim.w, dim.h)
+        } else {
+            write!(f, "{:?}", txt)
+        }
     }
 }

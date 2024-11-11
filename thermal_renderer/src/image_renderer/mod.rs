@@ -35,31 +35,14 @@ impl ImageRenderer {
         Self {
             paper_image: ThermalImage::new(0),
             page_image: ThermalImage::new(0),
-            debug_profile: DebugProfile {
-                text: false,
-                image: false,
-                page: false,
-            },
+            debug_profile: DebugProfile::default(),
         }
     }
 
     /// This is the normal way to render bytes to an image
-    pub fn render(bytes: &Vec<u8>) -> RenderOutput<ReceiptImage> {
-        let mut image_renderer: Box<dyn OutputRenderer<_>> = Box::new(ImageRenderer::new());
-        let mut renderer = Renderer::new(&mut image_renderer);
-        renderer.render(bytes)
-    }
-
-    pub fn render_debug(bytes: &Vec<u8>) -> RenderOutput<ReceiptImage> {
-        let mut img = ImageRenderer::new();
-        img.debug_profile = DebugProfile {
-            text: true,
-            image: true,
-            page: true,
-        };
-        let mut image_renderer: Box<dyn OutputRenderer<_>> = Box::new(img);
-        let mut renderer = Renderer::new(&mut image_renderer);
-        renderer.debug = true;
+    pub fn render(bytes: &Vec<u8>, debug_profile: Option<DebugProfile>) -> RenderOutput<ReceiptImage> {
+        let mut child_renderer: Box<dyn OutputRenderer<_>> = Box::new(ImageRenderer::new());
+        let mut renderer = Renderer::new(&mut child_renderer, debug_profile.unwrap_or(DebugProfile::default()));
         renderer.render(bytes)
     }
 }
@@ -72,6 +55,10 @@ pub struct ReceiptImage {
 }
 
 impl OutputRenderer<ReceiptImage> for ImageRenderer {
+    fn set_debug_profile(&mut self, profile: DebugProfile) {
+        self.debug_profile = profile;
+    }
+    
     fn begin_render(&mut self, context: &mut Context) {
         self.paper_image.debug_profile = self.debug_profile;
         self.page_image.debug_profile = self.debug_profile;
@@ -93,15 +80,6 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
 
     fn page_begin(&mut self, _context: &mut Context) {
         self.page_image.set_width(0);
-        if self.debug_profile.page {
-            println!("Page Mode Started")
-        }
-    }
-
-    fn page_end(&mut self, _context: &mut Context) {
-        if self.debug_profile.page {
-            println!("Page Mode Ended")
-        }
     }
 
     fn page_area_changed(
@@ -118,13 +96,6 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
             Rotation::R180 => img.rotate_180(),
             Rotation::R270 => img.rotate_270(),
             _ => {}
-        }
-
-        match rotation {
-            Rotation::R0 => {}
-            _ => {
-                println!("Rotating image {:?} degrees", rotation);
-            }
         }
 
         if width > self.page_image.width {
@@ -251,9 +222,6 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
     }
 
     fn end_render(&mut self, context: &mut Context) -> ReceiptImage {
-        if self.debug_profile.text {
-            println!("End Render")
-        }
         //Add in the left and right margin;
         self.paper_image
             .expand_to_width(context.graphics.paper_area.w);

@@ -7,7 +7,7 @@ pub struct Handler;
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
         if command.data.len() < 4 {
-            println!("Not enough parameters for buffer graphics");
+            context.graphics.buffer_graphics.push(GraphicsCommand::Error("Not enough parameters for buffer graphics".to_owned()));
             return;
         }
         
@@ -29,18 +29,7 @@ impl CommandHandler for Handler {
             true,
         );
 
-        match graphics {
-            GraphicsCommand::Image(mut image) => {
-                image.flow = ImageFlow::Block;
-                context.graphics.buffer_graphics.push(image);
-            }
-            GraphicsCommand::Error(error) => {
-                println!("{:?}", error);
-            }
-            _ => {
-                println!("Unexpected graphics command for image");
-            }
-        }
+        context.graphics.buffer_graphics.push(graphics);
     }
 }
 

@@ -6,9 +6,7 @@ pub struct Handler;
 impl CommandHandler for Handler {
     fn get_graphics(&self, command: &Command, context: &Context) -> Option<GraphicsCommand> {
         if let Some(img_ref) = ImageRef::from_data(&command.data, ImageRefStorage::Disc) {
-            if let Some(img) = context.graphics.stored_graphics.get(&img_ref) {
-                return Some(GraphicsCommand::Image(img.clone()));
-            }
+            return context.graphics.stored_graphics.get(&img_ref).cloned();
         }
         None
     }

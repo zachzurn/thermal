@@ -1,6 +1,6 @@
 use crate::decoder::{get_codepage, Codepage};
 use crate::graphics;
-use crate::graphics::{Image, ImageRef, RGBA};
+use crate::graphics::{GraphicsCommand, ImageRef, RGBA};
 use crate::text::TextSpan;
 use std::collections::HashMap;
 use std::mem;
@@ -61,7 +61,7 @@ impl Font {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum HumanReadableInterface {
     None,
     Above,
@@ -141,8 +141,8 @@ pub struct GraphicsContext {
     pub v_motion_unit: u8,
     pub h_motion_unit: u8,
     pub graphics_count: u16,
-    pub stored_graphics: HashMap<ImageRef, Image>,
-    pub buffer_graphics: Vec<Image>,
+    pub stored_graphics: HashMap<ImageRef, GraphicsCommand>,
+    pub buffer_graphics: Vec<GraphicsCommand>,
 }
 
 #[derive(Clone)]
@@ -542,7 +542,7 @@ impl Context {
                 v_motion_unit: 1, //Pixels per unit
                 h_motion_unit: 1, //Pixels per unit
                 graphics_count: 0,
-                stored_graphics: HashMap::<ImageRef, Image>::new(),
+                stored_graphics: HashMap::<ImageRef, GraphicsCommand>::new(),
                 buffer_graphics: vec![],
             },
             page_mode: PageModeContext {
@@ -785,11 +785,6 @@ impl Context {
         adj_area.h = adj_area
             .h
             .saturating_div(self.graphics.v_motion_unit as u32);
-
-        println!(
-            "Setting adjusted page area to {:?}  Motion Units: h{} v{}",
-            adj_area, self.graphics.h_motion_unit, self.graphics.v_motion_unit
-        );
 
         self.page_mode.logical_area = adj_area;
     }

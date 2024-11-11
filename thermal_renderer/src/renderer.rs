@@ -28,6 +28,18 @@ pub struct DebugProfile {
     pub text: bool,
     pub image: bool,
     pub page: bool,
+    pub info: bool,
+}
+
+impl Default for DebugProfile {
+    fn default() -> Self {
+        DebugProfile {
+            text: false,
+            image: false,
+            page: false,
+            info: false,
+        }
+    }
 }
 
 pub struct RenderOutput<Output> {
@@ -59,32 +71,41 @@ pub struct Renderer<'a, Output> {
     error_buffer: Vec<RenderError>,
     span_buffer: Vec<TextSpan>,
     context: Context,
-    pub debug: bool,
+    debug_profile: DebugProfile,
 }
 
 impl<'a, Output> Renderer<'a, Output> {
-    pub fn new(renderer: &'a mut Box<(dyn OutputRenderer<Output> + 'static)>) -> Self {
+    pub fn new(renderer: &'a mut Box<(dyn OutputRenderer<Output> + 'static)>, debug_profile: DebugProfile) -> Self {
         Renderer {
             renderer,
             context: Context::new(),
             span_buffer: vec![],
             error_buffer: vec![],
             output_buffer: vec![],
-            debug: false,
+            debug_profile,
         }
     }
 
-    pub fn render(&mut self, bytes: &Vec<u8>) -> RenderOutput<Output> {
-        if self.debug {
-            println!("[Renderer] Parse Commands")
+    fn log_debug(&self, description: &str) {
+        if self.debug_profile.info {
+            println!("📃 {}", description);
         }
+    }
+
+    fn log_error(&mut self, kind: RenderErrorKind, description: String) {
+        self.error_buffer.push(RenderError {
+            kind,
+            description,
+        });
+    }
+
+    pub fn render(&mut self, bytes: &Vec<u8>) -> RenderOutput<Output> {
+        self.renderer.set_debug_profile(self.debug_profile);
+        self.log_debug("Parse Commands");
         let commands = thermal_parser::parse_esc_pos(bytes);
 
         for command in commands {
-            println!(
-                "[Renderer] Command {}",
-                command.handler.debug(&command, &self.context)
-            );
+            self.log_debug(&format!("Command {}", command.handler.debug(&command, &self.context)));
             self.process_command(&command);
         }
 
@@ -102,10 +123,7 @@ impl<'a, Output> Renderer<'a, Output> {
         match command.kind {
             CommandType::Unknown => {
                 self.process_text();
-                self.error_buffer.push(RenderError {
-                    kind: RenderErrorKind::UnknownCommand,
-                    description: command.handler.debug(command, &self.context),
-                });
+                self.log_error(RenderErrorKind::UnknownCommand, command.handler.debug(command, &self.context));
             }
             CommandType::Text => {
                 let maybe_text = command.handler.get_text(command, &self.context);
@@ -121,10 +139,7 @@ impl<'a, Output> Renderer<'a, Output> {
                 if let Some(gfx) = maybe_gfx {
                     match gfx {
                         GraphicsCommand::Error(error) => {
-                            self.error_buffer.push(RenderError {
-                                kind: RenderErrorKind::GraphicsError,
-                                description: error,
-                            });
+                            self.log_error(RenderErrorKind::GraphicsError, error);
                         }
                         GraphicsCommand::Code2D(code_2d) => {
                             self.process_code_2d(&code_2d);
@@ -200,10 +215,7 @@ impl<'a, Output> Renderer<'a, Output> {
                         let errors = self.renderer.get_render_errors();
 
                         for error in errors {
-                            self.error_buffer.push(RenderError {
-                                kind: ChildRenderError,
-                                description: error,
-                            })
+                            self.log_error(ChildRenderError, error);
                         }
 
                         let output = self.renderer.end_render(&mut self.context);
@@ -520,7 +532,7 @@ impl<'a, Output> Renderer<'a, Output> {
                 _ => {}
             }
 
-            println!("Render Text {:?} at x offset = {}", line, line_offset);
+            self.log_debug(&format!("Render Text {:?} at x offset = {}", line, line_offset));
 
             self.renderer.render_text(
                 &mut self.context,
@@ -539,6 +551,9 @@ impl<'a, Output> Renderer<'a, Output> {
 ///
 /// You just need to render the elements at the provided xy and width height.
 pub trait OutputRenderer<Output> {
+    /// Possibly use the debug profile
+    fn set_debug_profile(&mut self, profile: DebugProfile);
+    
     /// Do setup steps here for each page output
     /// This can get called multiple times
     fn begin_render(&mut self, context: &mut Context);
