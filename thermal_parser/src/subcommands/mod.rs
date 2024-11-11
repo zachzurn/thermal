@@ -2,6 +2,7 @@ use std::mem;
 use std::rc::Rc;
 
 use crate::text::TextSpan;
+use crate::util::{parse_u16, parse_u32};
 use crate::{command::*, context::*, graphics::*};
 
 pub mod gs_code2d;
@@ -16,10 +17,11 @@ pub struct SubCommandHandler {
     subcommand_id: u8,
     capacity: u32,
     accept_data: bool,
-    use_m: bool
+    use_m: bool,
 }
 
 impl SubCommandHandler {
+    // Just uses the subcommand_id to find commands
     fn detect_kind(&mut self) {
         for c in self.commands.iter() {
             if c.commands.contains(&self.subcommand_id) {
@@ -28,6 +30,7 @@ impl SubCommandHandler {
             }
         }
     }
+    //Uses m and subcommand id to find command
     fn detect_kind_use_m(&mut self) {
         for c in self.commands.iter() {
             if let Some(first_char) = c.commands.get(0) {
@@ -44,24 +47,32 @@ impl SubCommandHandler {
             }
         }
     }
+
+    //Parse out the capacity for the subcommand data
     fn parse_meta(&mut self, data: &[u8]) {
         let data_len = data.len();
 
         if data_len == 4 {
-            self.capacity = data[0] as u32 + data[1] as u32 * 256;
+            self.capacity = parse_u16(&data.to_vec(), 0) as u32;
             self.capacity -= 2;
             self.m = *data.get(2).unwrap();
             self.subcommand_id = *data.get(3).unwrap();
-            println!("small subcommand capacity: {} m {} subcommand {}", self.capacity, self.m, self.subcommand_id);
+            println!(
+                "small subcommand capacity: {} m {} subcommand {}",
+                self.capacity, self.m, self.subcommand_id
+            );
         }
 
         if data_len == 6 {
-            self.capacity =
-                data[0] as u32 + data[1] as u32 * 256 + data[2] as u32 * 65536 + data[3] as u32;
+            //TODO why is this number too big
+            self.capacity = parse_u32(&data.to_vec(), 0);
             self.capacity -= 2;
             self.m = *data.get(4).unwrap();
             self.subcommand_id = *data.get(5).unwrap();
-            println!("large subcommand capacity: {} m {} subcommand {}", self.capacity, self.m, self.subcommand_id);
+            println!(
+                "large subcommand capacity: {} m {} subcommand {}",
+                self.capacity, self.m, self.subcommand_id
+            );
         }
 
         if self.use_m {
@@ -139,7 +150,10 @@ impl CommandHandler for SubCommandHandler {
 
         //Move the data into the subcommand
         if let Some(sub) = &mut self.subcommand {
+            println!("Adding data to subcommand {}", data.len());
             mem::swap(&mut sub.data, data);
+        } else {
+            println!("Missing subcommand");
         }
 
         //Stop accepting bytes
