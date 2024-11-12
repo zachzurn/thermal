@@ -1,14 +1,13 @@
 extern crate fontdue;
 extern crate png;
-extern crate textwrap;
 
+use crate::renderer::DebugProfile;
 use fontdue::layout::CharacterData;
 use std::rc::Rc;
 use thermal_parser::context::Font;
-use thermal_parser::graphics::{Image, Rectangle};
+use thermal_parser::graphics::{Image, Rectangle, RGBA};
 use thermal_parser::text::TextSpan;
 
-const THRESHOLD: u8 = 120;
 const SIZE_TO_FONT_RATIO: f32 = 1.68;
 const SIZE_TO_BASELINE_RATIO: f32 = 0.0315;
 
@@ -23,15 +22,16 @@ pub struct FontFamily {
 /// This allows for an image with a fixed width that can grow in height
 /// to accommodate sets of pixels being pushed at arbitrary x and y values
 pub struct ThermalImage {
-    bytes: Vec<u8>,
+    bytes: Vec<RGBA>,
     pub width: u32,
     pub font: FontFamily,
     pub auto_grow: bool,
-    pub allow_greyscale: bool,
-    pub debug: bool,
-    pub character_width: u32,
-    pub character_height: u32,
+    pub debug_profile: DebugProfile,
     pub font_size: f32,
+    pub paper_color: RGBA,
+    pub text_debug_color: RGBA,
+    pub baseline_debug_color: RGBA,
+    pub image_debug_color: RGBA,
     pub errors: Vec<String>,
 }
 
@@ -67,29 +67,40 @@ impl ThermalImage {
 
         Self {
             errors: vec![],
-            bytes: Vec::<u8>::new(),
+            bytes: Vec::<RGBA>::new(),
             font,
             width,
-            allow_greyscale: true,
             auto_grow: true,
-            debug: false,
-            character_width: 12,
-            character_height: 24,
-            font_size: 12 as f32 * SIZE_TO_FONT_RATIO,
+            debug_profile: DebugProfile::default(),
+            text_debug_color: RGBA {
+                r: 98,
+                g: 224,
+                b: 89,
+                a: 255,
+            },
+            baseline_debug_color: RGBA {
+                r: 110,
+                g: 255,
+                b: 185,
+                a: 255,
+            },
+            image_debug_color: RGBA {
+                r: 216,
+                g: 74,
+                b: 252,
+                a: 255,
+            },
+            paper_color: RGBA {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: 255,
+            },
+            font_size: 12f32 * SIZE_TO_FONT_RATIO,
         }
     }
 
-    pub fn enable_debug(&mut self) {
-        self.debug = true;
-    }
-
-    pub fn set_character_size(&mut self, character_width: u32, character_height: u32) {
-        self.character_width = character_width;
-        self.character_height = character_height;
-        self.font_size = character_width as f32 * SIZE_TO_FONT_RATIO;
-    }
-
-    pub fn get_font(&self, span: &TextSpan) -> Rc<fontdue::Font> {
+    fn get_font(&self, span: &TextSpan) -> Rc<fontdue::Font> {
         if span.bold && span.italic {
             return self.font.bold_italic.clone();
         }
@@ -102,7 +113,7 @@ impl ThermalImage {
         self.font.regular.clone()
     }
 
-    pub fn get_font_size(&self, font: &Font) -> (f32, f32) {
+    fn get_font_size(&self, font: &Font) -> (f32, f32) {
         match font {
             Font::B => (
                 self.font_size * 0.8,
@@ -119,7 +130,7 @@ impl ThermalImage {
     pub fn rotate_90(&mut self) {
         let w = self.width as usize;
         let h = self.get_height() as usize;
-        let mut rotated_image = vec![0; (w * h) as usize];
+        let mut rotated_image = vec![RGBA::blank(); (w * h) as usize];
 
         for y in 0..h {
             for x in 0..w {
@@ -134,7 +145,7 @@ impl ThermalImage {
     pub fn rotate_180(&mut self) {
         let w = self.width as usize;
         let h = self.get_height() as usize;
-        let mut rotated_image = vec![0; (w * h) as usize];
+        let mut rotated_image = vec![RGBA::blank(); (w * h) as usize];
 
         for y in 0..h {
             for x in 0..w {
@@ -148,7 +159,7 @@ impl ThermalImage {
     pub fn rotate_270(&mut self) {
         let w = self.width as usize;
         let h = self.get_height() as usize;
-        let mut rotated_image = vec![0; (w * h) as usize];
+        let mut rotated_image = vec![RGBA::blank(); (w * h) as usize];
 
         for y in 0..h {
             for x in 0..w {
@@ -163,7 +174,7 @@ impl ThermalImage {
     //Setting the width clears any bytes
     pub fn set_width(&mut self, width: u32) {
         self.width = width;
-        self.bytes = Vec::<u8>::new();
+        self.bytes = Vec::<RGBA>::new();
     }
 
     pub fn reset(&mut self) {
@@ -171,30 +182,29 @@ impl ThermalImage {
         self.bytes.shrink_to(0);
     }
 
-    pub fn draw_rect(&mut self, x: u32, y: u32, w: u32, h: u32) {
-        self.put_pixels(x, y, w, h, vec![0u8; (w * h) as usize], false, true);
+    pub fn draw_rect(&mut self, x: u32, y: u32, w: u32, h: u32, color: &RGBA, multiply: bool) {
+        self.put_pixels(x, y, w, h, vec![*color; (w * h) as usize], false, multiply);
     }
 
-    pub fn draw_border(bytes: &mut Vec<u8>, width: u32, height: u32, border_value: u8) {
-        // Top row (y = 0)
-        for x in 0..width {
-            let idx = x as usize; // Top row index
-            bytes[idx] = border_value;
+    pub fn draw_border(bytes: &mut Vec<RGBA>, width: u32, height: u32, color: &RGBA) {
+        let bot_left = ((height - 1) * width) as usize;
+
+        // Top and bottom border
+        for x in 0..width as usize {
+            let top_idx = x;
+            let bot_idx = bot_left + x;
+
+            bytes[top_idx].blend_foreground(color);
+            bytes[bot_idx].blend_foreground(color);
         }
 
-        // Bottom row (y = height - 1)
-        for x in 0..width {
-            let idx = ((height - 1) * width + x) as usize; // Bottom row index
-            bytes[idx] = border_value;
-        }
-
-        // Left column and right column
+        // Left and right border
         for y in 0..height {
             let left_idx = (y * width) as usize; // Left column index
             let right_idx = (y * width + (width - 1)) as usize; // Right column index
 
-            bytes[left_idx] = border_value; // Left border pixel
-            bytes[right_idx] = border_value; // Right border pixel
+            bytes[left_idx].blend_foreground(color); // Left border pixel
+            bytes[right_idx].blend_foreground(color); // Right border pixel
         }
     }
 
@@ -206,7 +216,9 @@ impl ThermalImage {
         final_height: u32,
         font: Rc<fontdue::Font>,
         font_size: f32,
-    ) -> Option<(Vec<u8>, u32, u32)> {
+        background_color: &RGBA,
+        text_color: &RGBA,
+    ) -> Option<(Vec<RGBA>, u32, u32)> {
         let w_scale = final_width / width;
         let h_scale = final_height / height;
         let scale = h_scale.max(w_scale);
@@ -216,7 +228,7 @@ impl ThermalImage {
         let rendered_w = width * scale;
         let rendered_h = height * scale;
 
-        let mut bytes = vec![0u8; rendered_w as usize * rendered_h as usize];
+        let mut bytes = vec![*background_color; rendered_w as usize * rendered_h as usize];
 
         let (metrics, char_bitmap) = font.rasterize(char, scaled_font_size);
         let font_metrics = font.horizontal_line_metrics(scaled_font_size).unwrap();
@@ -232,23 +244,16 @@ impl ThermalImage {
         let x_offset = metrics.bounds.xmin.round().abs() as u32;
         //^ This can cut some chars off. We prefer to have thw whole char
         //show vs changing the font size ratio
-        // let x_offset = 0;
 
-        // Add text to empty char bitmap
         if metrics.width > 0 {
             for (y, row) in char_bitmap.chunks(metrics.width).enumerate() {
                 for (x, &pixel) in row.iter().enumerate() {
-                    // Calculate target x and y in the final bitmap
-                    let target_x = (x as u32).saturating_add(x_offset); // Ensure x_offset is positive
-                    let target_y = (y as u32).saturating_add(y_offset); // Ensure y_offset is positive
+                    let target_x = (x as u32).saturating_add(x_offset);
+                    let target_y = (y as u32).saturating_add(y_offset);
 
-                    // Check if the target position is within the bounds of the larger bitmap
                     if target_x < rendered_w && target_y < rendered_h {
-                        // Calculate the index in the larger bitmap
                         let idx = (target_y * rendered_w + target_x) as usize;
-
-                        // Safely place the pixel into the larger bitmap
-                        bytes[idx] = pixel;
+                        bytes[idx].blend_foreground_with_alpha(&text_color, &pixel);
                     }
                 }
             }
@@ -298,6 +303,8 @@ impl ThermalImage {
                 span.character_height,
                 font.clone(),
                 font_size,
+                &span.background_color,
+                &span.text_color,
             );
 
             if let Some(mut bitmap) = char_bitmap {
@@ -305,8 +312,14 @@ impl ThermalImage {
                     continue;
                 }
 
-                if self.debug {
-                    ThermalImage::draw_border(&mut bitmap.0, bitmap.1, bitmap.2, 40);
+                if self.debug_profile.text {
+                    //Use debug color 1
+                    ThermalImage::draw_border(
+                        &mut bitmap.0,
+                        bitmap.1,
+                        bitmap.2,
+                        &self.text_debug_color.with_alpha(60),
+                    );
                 }
 
                 self.put_pixels(
@@ -324,12 +337,15 @@ impl ThermalImage {
         }
 
         //Draw baseline
-        if self.debug {
+        if self.debug_profile.text {
             self.draw_rect(
                 dimensions.x + x_offset,
-                (dimensions.y + y_offset) + (span.character_height as f32 * baseline_ratio) as u32,
+                (dimensions.y + y_offset + 1)
+                    + (span.character_height as f32 * baseline_ratio) as u32,
                 dimensions.w,
                 1,
+                &self.baseline_debug_color.clone(),
+                false,
             )
         }
 
@@ -340,6 +356,8 @@ impl ThermalImage {
                     + (span.character_height as f32 * baseline_ratio) as u32,
                 dimensions.w,
                 1,
+                &span.text_color,
+                true,
             )
         }
 
@@ -349,16 +367,9 @@ impl ThermalImage {
                 (dimensions.y + y_offset) + (span.character_height as f32 / 2.5) as u32,
                 dimensions.w,
                 span.strikethrough,
+                &span.text_color,
+                true,
             )
-        }
-
-        if span.inverted {
-            self.invert_pixels(
-                dimensions.x + x_offset,
-                dimensions.y + y_offset,
-                dimensions.w,
-                dimensions.h,
-            );
         }
 
         if span.upside_down {
@@ -371,9 +382,15 @@ impl ThermalImage {
         }
     }
 
-    pub fn scale_bitmap(bitmap: &Vec<u8>, width: u32, height: u32, sw: u32, sh: u32) -> Vec<u8> {
+    pub fn scale_bitmap(
+        bitmap: &Vec<RGBA>,
+        width: u32,
+        height: u32,
+        sw: u32,
+        sh: u32,
+    ) -> Vec<RGBA> {
         // Create a new scaled bitmap
-        let mut scaled_bitmap = vec![0u8; (sw * sh) as usize];
+        let mut scaled_bitmap = vec![RGBA::blank(); (sw * sh) as usize];
 
         // Calculate scaling factors for width and height
         let x_ratio = width as f32 / sw as f32;
@@ -402,26 +419,6 @@ impl ThermalImage {
         scaled_bitmap
     }
 
-    pub fn invert_pixels(&mut self, x: u32, y: u32, width: u32, height: u32) {
-        if x + width > self.width {
-            return;
-        };
-        self.expand_to_height(y + height);
-
-        let mut cur_y = y;
-        let mut cur_x = x;
-
-        for _ in y..y + height {
-            let idx = cur_y * self.width + cur_x;
-            for i in 0..width {
-                self.bytes[idx as usize + i as usize] = 255 - self.bytes[idx as usize + i as usize];
-                cur_x += 1;
-            }
-            cur_x = x;
-            cur_y += 1;
-        }
-    }
-
     pub fn flip_pixels(&mut self, x: u32, y: u32, width: u32, height: u32) {
         if x + width > self.width {
             return;
@@ -430,7 +427,7 @@ impl ThermalImage {
         self.expand_to_height(y + height);
 
         // Vector to store rows
-        let mut sub_image = Vec::<u8>::with_capacity((width * height) as usize);
+        let mut sub_image = Vec::<RGBA>::with_capacity((width * height) as usize);
 
         // Collect the sub-image row by row
         for cur_y in y..y + height {
@@ -457,20 +454,26 @@ impl ThermalImage {
         self.put_pixels(x, y, width, height, sub_image, false, false);
     }
 
-    pub fn put_rect(&mut self, rectangle: &Rectangle) {
-        self.draw_rect(rectangle.x, rectangle.y, rectangle.w, rectangle.h);
+    pub fn put_rect(&mut self, rectangle: &Rectangle, color: &RGBA) {
+        self.draw_rect(
+            rectangle.x,
+            rectangle.y,
+            rectangle.w,
+            rectangle.h,
+            color,
+            true,
+        );
     }
 
     pub fn put_render_img(&mut self, image: &Image) {
-        self.put_pixels(
-            image.x,
-            image.y,
-            image.w,
-            image.h,
-            image.as_grayscale(),
-            false,
-            true,
-        );
+        let mut pixels = image.pixels.clone();
+
+        if self.debug_profile.image {
+            ThermalImage::draw_border(&mut pixels, image.w, image.h, &self.image_debug_color);
+        }
+
+        self.put_pixels(image.x, image.y, image.w, image.h, pixels, false, true);
+
         if image.upside_down {
             self.flip_pixels(image.x, image.y, image.w, image.h);
         }
@@ -489,8 +492,8 @@ impl ThermalImage {
         y: u32,
         width: u32,
         height: u32,
-        pixels: Vec<u8>,
-        invert: bool,
+        pixels: Vec<RGBA>,
+        _invert: bool,
         multiply: bool,
     ) -> bool {
         let mut cur_x = x;
@@ -510,13 +513,13 @@ impl ThermalImage {
         //Completely out of bounds, unrenderable
         if exceeds_w || (exceeds_h && !self.auto_grow) {
             self.errors.push(format!(
-                "Image exceeded paper x{} y{} w{} h{} paper[w{} h{}]",
+                "Image exceeded paper x{} y{} w{} h{} : exceeded: width? {} height? {}",
                 x,
                 y,
+                self.width,
+                self.get_height(),
                 exceeds_w,
                 exceeds_h,
-                self.width,
-                self.get_height()
             ));
             return false;
         }
@@ -548,25 +551,11 @@ impl ThermalImage {
         self.expand_to_height(y + final_height);
 
         if multiply {
-            for pixel in final_pixels {
+            for pixel in &final_pixels {
                 let idx = cur_y * self.width + cur_x;
 
-                //ensure black or white only
-                let pixel = if !self.allow_greyscale {
-                    if pixel < THRESHOLD {
-                        0
-                    } else {
-                        255
-                    }
-                } else {
-                    pixel
-                };
+                self.bytes[idx as usize].multiply_foreground(pixel);
 
-                self.bytes[idx as usize] = if invert {
-                    u8::min(255 - pixel, self.bytes[idx as usize])
-                } else {
-                    u8::min(pixel, self.bytes[idx as usize])
-                };
                 if cur_x == x + final_width - 1 {
                     cur_x = x;
                     cur_y += 1;
@@ -575,9 +564,9 @@ impl ThermalImage {
                 }
             }
         } else {
-            for pixel in final_pixels {
+            for pixel in &final_pixels {
                 let idx = cur_y * self.width + cur_x;
-                self.bytes[idx as usize] = if invert { 255 - pixel } else { pixel };
+                self.bytes[idx as usize].blend_foreground(pixel);
                 if cur_x == x + final_width - 1 {
                     cur_x = x;
                     cur_y += 1;
@@ -591,13 +580,13 @@ impl ThermalImage {
     }
 
     pub fn crop_pixels(
-        pixels: &Vec<u8>,
+        pixels: &Vec<RGBA>,
         width: u32,
         height: u32,
         max_width: u32,
         max_height: u32,
         crop_height: bool,
-    ) -> (u32, u32, Vec<u8>) {
+    ) -> (u32, u32, Vec<RGBA>) {
         let new_width = if width > max_width { max_width } else { width };
         let new_height = if crop_height {
             if height > max_height {
@@ -638,13 +627,14 @@ impl ThermalImage {
         let to_add = len - cur_len;
 
         for _ in 0..to_add {
-            self.bytes.push(255u8);
+            self.bytes.push(self.paper_color);
         }
     }
 
     pub fn add_top_margin(&mut self, height: u32) {
+        //TODO maybe add debug line for margin
         self.bytes
-            .splice(0..0, vec![255u8; (self.width * height) as usize]);
+            .splice(0..0, vec![self.paper_color; (self.width * height) as usize]);
     }
 
     pub fn expand_to_width(&mut self, new_width: u32) {
@@ -662,8 +652,8 @@ impl ThermalImage {
 
         let mut insert_idx = 0;
 
-        let left_bytes = vec![255u8; left as usize];
-        let right_bytes = vec![255u8; right as usize];
+        let left_bytes = vec![self.paper_color; left as usize];
+        let right_bytes = vec![self.paper_color; right as usize];
 
         for _ in 0..height {
             self.bytes
@@ -678,7 +668,24 @@ impl ThermalImage {
         self.width = new_width;
     }
 
-    pub fn copy(&mut self) -> (u32, u32, Vec<u8>) {
+    pub fn consume_rgb_u8(&mut self) -> (u32, u32, Vec<u8>) {
+        let w = self.width;
+        let h = self.get_height();
+
+        let mut pixels = Vec::with_capacity((w * h) as usize * 3);
+
+        for byte in self.bytes.iter() {
+            pixels.push(byte.r);
+            pixels.push(byte.g);
+            pixels.push(byte.b);
+        }
+
+        self.set_width(0);
+
+        (w, h, pixels)
+    }
+
+    pub fn copy(&mut self) -> (u32, u32, Vec<RGBA>) {
         let pixels = self.bytes.clone();
         let w = self.width;
         let h = self.get_height();

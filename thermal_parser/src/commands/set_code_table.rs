@@ -96,7 +96,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Code Table",
         vec![ESC, 't' as u8],
-        CommandType::Context,
+        CommandType::TextStyle,
         DataType::Single,
         Box::new(Handler {}),
     )

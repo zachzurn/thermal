@@ -1,6 +1,7 @@
 use crate::command::CommandType;
 use crate::{command::Command, command_sets::*};
 use std::mem;
+use std::rc::Rc;
 
 pub struct Parser {
     cmd_set: CommandSet,
@@ -9,7 +10,7 @@ pub struct Parser {
     current_command: Option<Command>,
     current_command_is_default: bool,
     command_buffer: Vec<u8>,
-    captured_commands: Vec<Command>
+    captured_commands: Vec<Command>,
 }
 
 impl Parser {
@@ -21,7 +22,7 @@ impl Parser {
             current_command_is_default: false,
             command_buffer: Vec::<u8>::new(),
             current_command: None,
-            captured_commands: vec![]
+            captured_commands: vec![],
         }
     }
 
@@ -46,7 +47,7 @@ impl Parser {
         self.command_buffer.clear();
         self.command_matches.clear();
         self.current_command_is_default = false;
-        
+
         let mut commands: Vec<Command> = Vec::new();
         mem::swap(&mut self.captured_commands, &mut commands);
         commands
@@ -56,7 +57,19 @@ impl Parser {
         if cmd.kind == CommandType::Subcommand {
             let command = &mut cmd;
 
-            if let Some(subcommand) = command.handler.get_subcommand() {
+            if let Some(mut subcommand) = command.handler.get_subcommand() {
+                let mut expanded_cmds = vec![];
+
+                for command in command.commands.iter() {
+                    expanded_cmds.push(*command);
+                }
+
+                for command in subcommand.commands.iter() {
+                    expanded_cmds.push(*command);
+                }
+
+                subcommand.commands = Rc::new(expanded_cmds);
+
                 self.captured_commands.push(subcommand);
             }
         } else {
@@ -133,7 +146,6 @@ impl Parser {
             {
                 let mut unknown_command = self.cmd_set.unknown.clone();
                 unknown_command.data = self.command_buffer.clone();
-                unknown_command.data.push(*byte);
                 new_cmd = Some(unknown_command);
             } else if self.current_command_is_default {
                 if let Some(cmd) = &mut self.current_command {

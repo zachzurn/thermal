@@ -5,34 +5,45 @@ struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        let n = *command.data.get(0).unwrap_or(&1u8);
+        let (font_b, _, _, bold, tall, wide, underline, _) =
+            bitflags_lsb(command.data.get(0).unwrap_or(&0u8));
 
-        //no bits, reset everything
-        if n == 0 {
-            context.text.font = Font::A;
-            context.text.bold = false;
-            context.text.height_mult = 1;
-            context.text.width_mult = 1;
-            context.text.underline = TextUnderline::Off;
-        }
+        context.set_font(if font_b { Font::B } else { Font::A });
+        context.text.bold = bold;
+        context.text.height_mult = if tall { 2 } else { 1 };
+        context.text.width_mult = if wide { 2 } else { 1 };
+        context.text.underline = if underline {
+            TextUnderline::On
+        } else {
+            TextUnderline::Off
+        };
+    }
 
-        //Bits only enable
-        let bits = bitflags_lsb(n);
+    fn debug(&self, command: &Command, _context: &Context) -> String {
+        let mut changes = vec![];
 
-        context.text.font = if bits[0] { Font::B } else { Font::A };
+        let (font_b, _, _, bold, tall, wide, underline, _) =
+            bitflags_lsb(command.data.get(0).unwrap_or(&0u8));
 
-        if bits[3] {
-            context.text.bold = true;
-        }
-        if bits[4] {
-            context.text.height_mult = 2;
-        }
-        if bits[5] {
-            context.text.width_mult = 2;
-        }
-        if bits[7] {
-            context.text.underline = TextUnderline::On;
-        }
+        changes.push(if font_b { "Font B" } else { "Font A" });
+        changes.push(if bold { "Bold" } else { "Not Bold" });
+        changes.push(if tall {
+            "Double Height"
+        } else {
+            "Standard Height"
+        });
+        changes.push(if wide {
+            "Double Width"
+        } else {
+            "Standard Width"
+        });
+        changes.push(if underline {
+            "Underline"
+        } else {
+            "No Underline"
+        });
+
+        format!("{}: {:?}", command.name, changes)
     }
 }
 
@@ -40,7 +51,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Print Mode",
         vec![ESC, '!' as u8],
-        CommandType::Context,
+        CommandType::TextStyle,
         DataType::Single,
         Box::new(Handler {}),
     )

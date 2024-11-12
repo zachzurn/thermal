@@ -1,7 +1,7 @@
-use crate::context::Context;
+use crate::context::{Context, TextJustify};
 use crate::graphics::GraphicsCommand;
-use std::rc::Rc;
 use crate::text::TextSpan;
+use std::rc::Rc;
 
 #[derive(Clone, PartialEq)]
 pub enum DeviceCommand {
@@ -19,9 +19,13 @@ pub enum DeviceCommand {
     PrintPageMode,
     ChangePageModeDirection,
     ChangePageArea,
-    ChangeTabs(u8,u8),
+    Justify(TextJustify),
+    SetTextWidth(u8),
+    SetTextHeight(u8),
+    ChangeTabs(u8, u8),
     Transmit(Vec<u8>),
     MoveX(u16),
+    ClearBufferGraphics,
 }
 
 impl DeviceCommand {
@@ -41,9 +45,13 @@ impl DeviceCommand {
             Self::PrintPageMode => "Print Page Mode".to_string(),
             Self::ChangePageModeDirection => "Change Page Mode Direction".to_string(),
             Self::ChangePageArea => "Change Page Area".to_string(),
-            Self::ChangeTabs(_num,_at) => "Tabs Changed".to_string(),
+            Self::ChangeTabs(_num, _at) => "Tabs Changed".to_string(),
             Self::Transmit(_b) => "Transmit Data Back".to_string(),
             Self::MoveX(_n) => "Move Horizontally".to_string(),
+            Self::ClearBufferGraphics => "Clear Buffer Graphics".to_string(),
+            Self::Justify(n) => format!("Justify {:?}", n),
+            Self::SetTextWidth(_) => "Scale Text Width".to_string(),
+            Self::SetTextHeight(_) => "Scale Text Height".to_string(),
         }
     }
 }
@@ -52,6 +60,7 @@ impl DeviceCommand {
 pub enum CommandType {
     Control,
     Text,
+    TextStyle,
     Graphics,
     Context,
     ContextControl,
@@ -65,6 +74,7 @@ pub enum DataType {
     Single,
     Double,
     Triple,
+    Quad,
     Octet,
     Text,
     Custom,
@@ -123,6 +133,11 @@ impl Command {
             }
             DataType::Triple => {
                 if data_len >= 3 {
+                    return false;
+                }
+            }
+            DataType::Quad => {
+                if data_len >= 4 {
                     return false;
                 }
             }
@@ -197,5 +212,14 @@ pub trait CommandHandler: CloneCommandHandler {
     //Returns the subcommand for a command, see subcommand module
     fn get_subcommand(&mut self) -> Option<Command> {
         None
+    }
+
+    //Returns bytes for the command
+    //First vec is the command, like ESC * and the second vec is the data
+    //This command is generally used for rebuilding commands in another format
+    fn get_command_bytes(&self, command: &Command) -> (Vec<u8>, Vec<u8>) {
+        let commands = command.commands.clone().to_vec();
+        let data = command.data.clone();
+        (commands, data)
     }
 }

@@ -1,4 +1,5 @@
 use crate::context::{Context, Font, TextJustify, TextStrikethrough, TextUnderline};
+use crate::graphics::RGBA;
 use std::fmt;
 
 #[derive(Clone)]
@@ -19,9 +20,11 @@ pub struct TextSpan {
     pub upside_down: bool,
     pub justify: TextJustify,
     pub dimensions: Option<Dimensions>,
+    pub background_color: RGBA,
+    pub text_color: RGBA,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Dimensions {
     pub x: u32,
     pub y: u32,
@@ -62,6 +65,8 @@ impl TextSpan {
             upside_down: style.upside_down,
             justify: context.text.justify.clone(),
             dimensions: None,
+            background_color: context.text.background_color,
+            text_color: context.text.color,
         }
     }
 
@@ -106,12 +111,18 @@ impl TextSpan {
             upside_down: self.upside_down,
             justify: self.justify.clone(),
             dimensions: None,
+            background_color: self.background_color,
+            text_color: self.text_color,
         };
         clone.text = string;
         clone
     }
 
     pub fn break_apart(&self, first_line_length: usize, line_length: usize) -> Vec<TextSpan> {
+        if line_length == 0 {
+            panic!("break_apart called with zero line length");
+        }
+
         let chars: Vec<char> = self.text.chars().collect();
         let mut result = Vec::new();
         let mut index = 0;
@@ -177,8 +188,11 @@ impl TextSpan {
 
 impl fmt::Debug for TextSpan {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Span")
-            .field("text", &self.text.replace("\n", "{LF}"))
-            .finish()
+        let txt = &self.text.replace("\n", "{LF}");
+        if let Some(dim) = &self.dimensions {
+            write!(f, "{:?} at x: {} y: {} w: {} h: {}", txt, dim.x, dim.y, dim.w, dim.h)
+        } else {
+            write!(f, "{:?}", txt)
+        }
     }
 }
