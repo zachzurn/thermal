@@ -68,7 +68,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Character Effects",
         vec![GS, '(' as u8, 'N' as u8],
-        CommandType::Context,
+        CommandType::TextStyle,
         DataType::Custom,
         Box::new(Handler { capacity: 2 }),
     )

@@ -1,19 +1,20 @@
-use crate::{command::*, constants::*, context::*};
 use crate::command::DeviceCommand::{SetTextHeight, SetTextWidth};
+use crate::{command::*, constants::*, context::*};
 
 #[derive(Clone)]
 struct Handler;
 
 //See https://reference.epson-biz.com/modules/ref_escpos/index.php?content_id=34
 impl CommandHandler for Handler {
-    fn get_device_command(&self, command: &Command, _context: &Context) -> Option<Vec<DeviceCommand>> {
+    fn get_device_command(
+        &self,
+        command: &Command,
+        _context: &Context,
+    ) -> Option<Vec<DeviceCommand>> {
         let n = *command.data.get(0).unwrap_or(&0u8);
         let stretch = parse_stretch(n);
 
-        Some(vec![
-            SetTextWidth(stretch.0),
-            SetTextHeight(stretch.1),
-        ])
+        Some(vec![SetTextWidth(stretch.0), SetTextHeight(stretch.1)])
     }
 
     fn debug(&self, command: &Command, _context: &Context) -> String {
@@ -32,14 +33,14 @@ fn parse_stretch(value: u8) -> (u8, u8) {
     //01010101 -> 01010000 -> 00000101
     let w = ((0b01110000 & value) >> 4) + 1;
 
-    (w,h)
+    (w, h)
 }
 
 pub fn new() -> Command {
     Command::new(
         "Set Character Size",
         vec![GS, '!' as u8],
-        CommandType::Control,
+        CommandType::TextStyle,
         DataType::Single,
         Box::new(Handler {}),
     )

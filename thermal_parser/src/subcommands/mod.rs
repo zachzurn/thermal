@@ -57,10 +57,6 @@ impl SubCommandHandler {
             self.capacity -= 2;
             self.m = *data.get(2).unwrap();
             self.subcommand_id = *data.get(3).unwrap();
-            println!(
-                "small subcommand capacity: {} m {} subcommand {}",
-                self.capacity, self.m, self.subcommand_id
-            );
         }
 
         if data_len == 6 {
@@ -69,10 +65,6 @@ impl SubCommandHandler {
             self.capacity -= 2;
             self.m = *data.get(4).unwrap();
             self.subcommand_id = *data.get(5).unwrap();
-            println!(
-                "large subcommand capacity: {} m {} subcommand {}",
-                self.capacity, self.m, self.subcommand_id
-            );
         }
 
         if self.use_m {
@@ -150,7 +142,6 @@ impl CommandHandler for SubCommandHandler {
 
         //Move the data into the subcommand
         if let Some(sub) = &mut self.subcommand {
-            println!("Adding data to subcommand {}", data.len());
             mem::swap(&mut sub.data, data);
         } else {
             println!("Missing subcommand");

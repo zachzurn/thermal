@@ -110,25 +110,25 @@ fn test_sample(name: &str, ext: &str) {
     } else {
         std::fs::read(sample_file.to_str().unwrap()).unwrap()
     };
-    
+
     let debug_profile = DebugProfile {
-        text: false, //Should debug lines be rendered on text?
+        text: false,  //Should debug lines be rendered on text?
         image: false, //Should debug borders be rendered around images?
-        page: false, //Should debug borders be rendered around page images?
-        info: true, //Should render info be output to the console?
+        page: false,  //Should debug borders be rendered around page images?
+        info: true,   //Should render info be output to the console?
     };
 
     render_image(
         &bytes,
         format!("{}.png", img_out.to_str().unwrap().to_string()),
         name.to_string(),
-        debug_profile
+        debug_profile,
     );
     render_html(
         &bytes,
         format!("{}.html", html_out.to_str().unwrap().to_string()),
         name.to_string(),
-        debug_profile
+        debug_profile,
     );
 }
 

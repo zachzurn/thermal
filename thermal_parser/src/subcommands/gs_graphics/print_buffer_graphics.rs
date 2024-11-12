@@ -15,21 +15,22 @@ impl CommandHandler for Handler {
         if context.graphics.buffer_graphics.len() > 0 {
             for g in context.graphics.buffer_graphics.iter() {
                 match g {
-                    GraphicsCommand::Error(_) => { return Some(g.clone()) }
-                    GraphicsCommand::Image(img) => { layers.push(img.clone()) }
+                    GraphicsCommand::Error(_) => return Some(g.clone()),
+                    GraphicsCommand::Image(img) => layers.push(img.clone()),
                     _ => {}
                 }
             }
 
             if layers.is_empty() {
-                return None
+                return None;
             }
 
             if let Ok(merged) = merge_image_layers(&layers) {
-                println!("Merged Images");
                 return Some(GraphicsCommand::Image(merged));
             } else {
-                return Some(GraphicsCommand::Error("Could not merge image layers".to_string()));
+                return Some(GraphicsCommand::Error(
+                    "Could not merge image layers".to_string(),
+                ));
             }
         }
         None

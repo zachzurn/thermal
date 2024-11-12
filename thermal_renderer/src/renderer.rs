@@ -75,7 +75,10 @@ pub struct Renderer<'a, Output> {
 }
 
 impl<'a, Output> Renderer<'a, Output> {
-    pub fn new(renderer: &'a mut Box<(dyn OutputRenderer<Output> + 'static)>, debug_profile: DebugProfile) -> Self {
+    pub fn new(
+        renderer: &'a mut Box<(dyn OutputRenderer<Output> + 'static)>,
+        debug_profile: DebugProfile,
+    ) -> Self {
         Renderer {
             renderer,
             context: Context::new(),
@@ -86,26 +89,45 @@ impl<'a, Output> Renderer<'a, Output> {
         }
     }
 
+    fn log_debug_icon(&self, icon: &str, description: &str) {
+        if self.debug_profile.info {
+            println!("├─ \x1b[0;36m{}\x1b[0m {}", icon, description);
+        }
+    }
+
     fn log_debug(&self, description: &str) {
         if self.debug_profile.info {
-            println!("📃 {}", description);
+            println!("├─ {}", description);
+        }
+    }
+
+    fn log_debug_start(&self, description: &str) {
+        if self.debug_profile.info {
+            println!("┌─ \x1b[0;32m→\x1b[0m {}", description);
+        }
+    }
+
+    fn log_debug_end(&self, description: &str) {
+        if self.debug_profile.info {
+            println!("└─ {}", description);
         }
     }
 
     fn log_error(&mut self, kind: RenderErrorKind, description: String) {
-        self.error_buffer.push(RenderError {
-            kind,
-            description,
-        });
+        self.error_buffer.push(RenderError { kind, description });
     }
 
     pub fn render(&mut self, bytes: &Vec<u8>) -> RenderOutput<Output> {
         self.renderer.set_debug_profile(self.debug_profile);
-        self.log_debug("Parse Commands");
+        self.log_debug_start("Begin Render");
+
         let commands = thermal_parser::parse_esc_pos(bytes);
 
         for command in commands {
-            self.log_debug(&format!("Command {}", command.handler.debug(&command, &self.context)));
+            self.log_debug(&format!(
+                "{}",
+                command.handler.debug(&command, &self.context)
+            ));
             self.process_command(&command);
         }
 
@@ -115,6 +137,8 @@ impl<'a, Output> Renderer<'a, Output> {
         mem::swap(&mut output, &mut self.output_buffer);
         mem::swap(&mut errors, &mut self.error_buffer);
 
+        self.log_debug_end("End Render");
+
         RenderOutput { output, errors }
     }
 
@@ -123,7 +147,10 @@ impl<'a, Output> Renderer<'a, Output> {
         match command.kind {
             CommandType::Unknown => {
                 self.process_text();
-                self.log_error(RenderErrorKind::UnknownCommand, command.handler.debug(command, &self.context));
+                self.log_error(
+                    RenderErrorKind::UnknownCommand,
+                    command.handler.debug(command, &self.context),
+                );
             }
             CommandType::Text => {
                 let maybe_text = command.handler.get_text(command, &self.context);
@@ -165,6 +192,7 @@ impl<'a, Output> Renderer<'a, Output> {
                 self.process_text();
                 command.handler.apply_context(command, &mut self.context);
             }
+
             CommandType::ContextControl => {
                 self.process_text();
                 command.handler.apply_context(command, &mut self.context);
@@ -175,6 +203,17 @@ impl<'a, Output> Renderer<'a, Output> {
                 self.process_device_commands(device_commands);
             }
             CommandType::Control => {
+                let device_commands = &command
+                    .handler
+                    .get_device_command(command, &mut self.context);
+                self.process_text();
+                self.process_device_commands(device_commands);
+            }
+            //This is a ContextControl but with the additional
+            //fact that text is not collected
+            CommandType::TextStyle => {
+                command.handler.apply_context(command, &mut self.context);
+
                 let device_commands = &command
                     .handler
                     .get_device_command(command, &mut self.context);
@@ -190,12 +229,6 @@ impl<'a, Output> Renderer<'a, Output> {
                 self.renderer
                     .device_command(&mut self.context, device_command);
 
-                match device_command {
-                    //Some commands should not attempt to collect text
-                    DeviceCommand::SetTextHeight(_) | DeviceCommand::SetTextWidth(_) => {}
-                    _ => self.process_text()
-                }
-                
                 match device_command {
                     DeviceCommand::SetTextWidth(w) => {
                         self.context.text.width_mult = *w;
@@ -340,6 +373,7 @@ impl<'a, Output> Renderer<'a, Output> {
             self.context.offset_x(barcode.point_width as u32);
         }
 
+        self.log_debug_icon("║║", "Render Barcode");
         self.renderer.render_graphics(&mut self.context, &graphics);
 
         self.context.reset_x();
@@ -357,34 +391,36 @@ impl<'a, Output> Renderer<'a, Output> {
     }
 
     fn process_image(&mut self, image: &mut Image) {
-        let context = &mut self.context;
+        //let context = &mut self.context;
 
         match image.flow {
             ImageFlow::Inline => {
-                if image.w > context.get_available_width() {
-                    context.newline(1);
+                if image.w > self.context.get_available_width() {
+                    self.context.newline(1);
                 }
             }
             ImageFlow::Block => {
-                if !context.page_mode.enabled {
-                    context.set_x(context.calculate_justification(image.w));
+                if !self.context.page_mode.enabled {
+                    self.context
+                        .set_x(self.context.calculate_justification(image.w));
                 }
             }
             ImageFlow::None => {}
         }
 
-        image.x = context.get_x();
-        image.y = context.get_y();
-        self.renderer.render_image(context, image);
+        image.x = self.context.get_x();
+        image.y = self.context.get_y();
+        self.log_debug_icon("[§]", "Render Image");
+        self.renderer.render_image(&mut self.context, image);
 
         match image.flow {
             ImageFlow::Inline => {
-                context.offset_x(image.w);
+                self.context.offset_x(image.w);
             }
             ImageFlow::Block => {
-                if !context.page_mode.enabled {
-                    context.offset_y(image.h);
-                    context.reset_x();
+                if !self.context.page_mode.enabled {
+                    self.context.offset_y(image.h);
+                    self.context.reset_x();
                 }
             }
             _ => {}
@@ -532,7 +568,10 @@ impl<'a, Output> Renderer<'a, Output> {
                 _ => {}
             }
 
-            self.log_debug(&format!("Render Text {:?} at x offset = {}", line, line_offset));
+            self.log_debug_icon(
+                "🗚",
+                &format!("Render Text {:?} at x offset = {}", line, line_offset),
+            );
 
             self.renderer.render_text(
                 &mut self.context,
@@ -553,7 +592,7 @@ impl<'a, Output> Renderer<'a, Output> {
 pub trait OutputRenderer<Output> {
     /// Possibly use the debug profile
     fn set_debug_profile(&mut self, profile: DebugProfile);
-    
+
     /// Do setup steps here for each page output
     /// This can get called multiple times
     fn begin_render(&mut self, context: &mut Context);

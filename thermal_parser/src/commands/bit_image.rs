@@ -17,7 +17,6 @@ impl CommandHandler for Handler {
         let color = context.graphics.render_colors.color_1;
 
         if self.col_encoded {
-            println!("col_encoded={:?}", self.col_encoded);
             Some(GraphicsCommand::image_from_column_bytes_single_color(
                 self.width,
                 self.height,

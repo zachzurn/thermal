@@ -691,8 +691,6 @@ impl Context {
     pub fn offset_y_relative(&mut self, y: i16) {
         let adj_y = y.saturating_div(self.graphics.v_motion_unit as i16);
 
-        println!("Offset y {}", adj_y);
-
         if self.page_mode.enabled {
             self.page_mode.offset_y_relative(adj_y);
         } else {

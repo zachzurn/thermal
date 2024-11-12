@@ -17,7 +17,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Print Color to Alternate",
         vec![ESC, 'r' as u8],
-        CommandType::Context,
+        CommandType::TextStyle,
         DataType::Single,
         Box::new(Handler {}),
     )

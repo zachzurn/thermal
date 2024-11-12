@@ -26,7 +26,7 @@ pub fn new() -> Command {
     Command::new(
         "Enable Double Strike Through",
         vec![ESC, 'G' as u8],
-        CommandType::Context,
+        CommandType::TextStyle,
         DataType::Single,
         Box::new(Handler {}),
     )

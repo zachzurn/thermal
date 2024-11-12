@@ -14,7 +14,7 @@ pub fn new() -> Command {
     Command::new(
         "Set Font",
         vec![ESC, 'M' as u8],
-        CommandType::Context,
+        CommandType::TextStyle,
         DataType::Single,
         Box::new(Handler {}),
     )

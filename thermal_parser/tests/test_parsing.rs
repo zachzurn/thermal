@@ -1,5 +1,5 @@
 use std::path::PathBuf;
-use thermal_parser::thermal_file::{parse_str};
+use thermal_parser::thermal_file::parse_str;
 use thermal_parser::{context::*, parse_esc_pos};
 
 #[test]
@@ -29,12 +29,12 @@ fn receipt_with_barcode() {
 
 #[test]
 fn gs_images_column() {
-    test_sample("gs_images_column", "bin")
+    test_sample("gs_images_column", "thermal")
 }
 
 #[test]
 fn gs_images_raster() {
-    test_sample("gs_images_raster", "bin")
+    test_sample("gs_images_raster", "thermal")
 }
 
 #[test]
@@ -81,17 +81,21 @@ fn test_sample(name: &str, ext: &str) {
         std::fs::read(sample_file.to_str().unwrap()).unwrap()
     };
 
-    parse(&bytes, true);
+    parse(&bytes, true, name);
 }
 
-fn parse(bytes: &Vec<u8>, debug: bool) {
+fn parse(bytes: &Vec<u8>, debug: bool, name: &str) {
     let context = Context::new();
 
     let commands = parse_esc_pos(bytes);
 
-    for cmd in commands {
+    println!("┌─ PARSE {}", name);
+
+    for cmd in commands.iter() {
         if debug {
-            println!("{}", cmd.handler.debug(&cmd, &context));
+            println!("├─ {}", cmd.handler.debug(&cmd, &context));
         }
     }
+
+    println!("└─ End")
 }

@@ -14,12 +14,6 @@ impl CommandHandler for Handler {
         // Command is only applicable in page mode
         if context.page_mode.enabled {
             context.offset_y_relative(get_pos(&command.data));
-
-            println!("Set relative vert pos for page mode");
-            println!(
-                "New pos x{} y{}",
-                context.page_mode.render_area.x, context.page_mode.render_area.y
-            );
         }
     }
 

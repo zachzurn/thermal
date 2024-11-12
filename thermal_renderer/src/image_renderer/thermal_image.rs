@@ -340,11 +340,12 @@ impl ThermalImage {
         if self.debug_profile.text {
             self.draw_rect(
                 dimensions.x + x_offset,
-                (dimensions.y + y_offset + 1) + (span.character_height as f32 * baseline_ratio) as u32,
+                (dimensions.y + y_offset + 1)
+                    + (span.character_height as f32 * baseline_ratio) as u32,
                 dimensions.w,
                 1,
                 &self.baseline_debug_color.clone(),
-                false
+                false,
             )
         }
 
@@ -356,7 +357,7 @@ impl ThermalImage {
                 dimensions.w,
                 1,
                 &span.text_color,
-                true
+                true,
             )
         }
 
@@ -367,7 +368,7 @@ impl ThermalImage {
                 dimensions.w,
                 span.strikethrough,
                 &span.text_color,
-                true
+                true,
             )
         }
 
@@ -454,7 +455,14 @@ impl ThermalImage {
     }
 
     pub fn put_rect(&mut self, rectangle: &Rectangle, color: &RGBA) {
-        self.draw_rect(rectangle.x, rectangle.y, rectangle.w, rectangle.h, color, true);
+        self.draw_rect(
+            rectangle.x,
+            rectangle.y,
+            rectangle.w,
+            rectangle.h,
+            color,
+            true,
+        );
     }
 
     pub fn put_render_img(&mut self, image: &Image) {

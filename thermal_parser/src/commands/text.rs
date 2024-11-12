@@ -10,7 +10,10 @@ impl CommandHandler for Handler {
         Some(TextSpan::new(decoded, context))
     }
     fn debug(&self, command: &Command, context: &Context) -> String {
-        context.text.decoder.decode_utf8(&command.data as &[u8])
+        format!(
+            "{:?}",
+            context.text.decoder.decode_utf8(&command.data as &[u8])
+        )
     }
 }
 

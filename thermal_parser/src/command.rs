@@ -60,6 +60,7 @@ impl DeviceCommand {
 pub enum CommandType {
     Control,
     Text,
+    TextStyle,
     Graphics,
     Context,
     ContextControl,

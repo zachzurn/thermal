@@ -68,9 +68,15 @@ impl HtmlRenderer {
     }
 
     /// This is the normal way to render bytes to an html
-    pub fn render(bytes: &Vec<u8>, debug_profile: Option<DebugProfile>) -> RenderOutput<ReceiptHtml> {
+    pub fn render(
+        bytes: &Vec<u8>,
+        debug_profile: Option<DebugProfile>,
+    ) -> RenderOutput<ReceiptHtml> {
         let mut child_renderer: Box<dyn OutputRenderer<_>> = Box::new(HtmlRenderer::new());
-        let mut renderer = Renderer::new(&mut child_renderer, debug_profile.unwrap_or(DebugProfile::default()));
+        let mut renderer = Renderer::new(
+            &mut child_renderer,
+            debug_profile.unwrap_or(DebugProfile::default()),
+        );
         renderer.render(bytes)
     }
 
@@ -89,7 +95,7 @@ impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
     fn set_debug_profile(&mut self, profile: DebugProfile) {
         self.debug_profile = profile;
     }
-    
+
     fn begin_render(&mut self, context: &mut Context) {
         self.page_image.debug_profile = self.debug_profile;
         self.page_image.paper_color = context.graphics.render_colors.paper_color;
@@ -222,14 +228,37 @@ impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
                 }
             }
         } else {
-            self.push_row(spans_to_html(spans, x_offset, max_height, 0.78));
+            self.push_row(spans_to_html(
+                spans,
+                x_offset,
+                max_height,
+                0.78,
+                &context.graphics.render_colors,
+            ));
         }
     }
 
     fn end_render(&mut self, context: &mut Context) -> ReceiptHtml {
         let padding_bottom = context.get_y().saturating_sub(self.last_y);
+
         let content = self
             .template
+            .replace(
+                "{{color-0}}",
+                &*context.graphics.render_colors.paper_color.as_hex(),
+            )
+            .replace(
+                "{{color-1}}",
+                &*context.graphics.render_colors.color_1.as_hex(),
+            )
+            .replace(
+                "{{color-2}}",
+                &*context.graphics.render_colors.color_2.as_hex(),
+            )
+            .replace(
+                "{{color-3}}",
+                &*context.graphics.render_colors.color_3.as_hex(),
+            )
             .replace("{{content}}", &self.content.join(""))
             .replace(
                 "{{receipt-style}}",

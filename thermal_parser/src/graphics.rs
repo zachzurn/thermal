@@ -9,6 +9,12 @@ pub struct RGBA {
     pub a: u8,
 }
 
+impl PartialEq for RGBA {
+    fn eq(&self, other: &Self) -> bool {
+        self.r == other.r && self.g == other.g && self.b == other.b && self.a == other.a
+    }
+}
+
 impl RGBA {
     pub fn blank() -> Self {
         RGBA {
@@ -17,6 +23,10 @@ impl RGBA {
             b: 0,
             a: 0,
         }
+    }
+
+    pub fn as_hex(&self) -> String {
+        format!("#{:02X}{:02X}{:02X}{:02X}", self.r, self.g, self.b, self.a)
     }
 
     /// Get a copy of this color with a new alpha
@@ -129,13 +139,14 @@ pub struct Image {
 impl Image {
     /// Creates a vec with rgb data encoded as a contiguous
     /// vec of bytes. Useful for external libraries like png.
-    pub fn as_rgb_u8(&self) -> Vec<u8> {
-        let mut rgb_bytes = Vec::with_capacity(self.pixels.len() * 3);
+    pub fn as_rgba_u8(&self) -> Vec<u8> {
+        let mut rgb_bytes = Vec::with_capacity(self.pixels.len() * 4);
 
         for pixel in self.pixels.iter() {
             rgb_bytes.push(pixel.r);
             rgb_bytes.push(pixel.g);
             rgb_bytes.push(pixel.b);
+            rgb_bytes.push(pixel.a);
         }
 
         rgb_bytes

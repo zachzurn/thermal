@@ -40,9 +40,15 @@ impl ImageRenderer {
     }
 
     /// This is the normal way to render bytes to an image
-    pub fn render(bytes: &Vec<u8>, debug_profile: Option<DebugProfile>) -> RenderOutput<ReceiptImage> {
+    pub fn render(
+        bytes: &Vec<u8>,
+        debug_profile: Option<DebugProfile>,
+    ) -> RenderOutput<ReceiptImage> {
         let mut child_renderer: Box<dyn OutputRenderer<_>> = Box::new(ImageRenderer::new());
-        let mut renderer = Renderer::new(&mut child_renderer, debug_profile.unwrap_or(DebugProfile::default()));
+        let mut renderer = Renderer::new(
+            &mut child_renderer,
+            debug_profile.unwrap_or(DebugProfile::default()),
+        );
         renderer.render(bytes)
     }
 }
@@ -58,7 +64,7 @@ impl OutputRenderer<ReceiptImage> for ImageRenderer {
     fn set_debug_profile(&mut self, profile: DebugProfile) {
         self.debug_profile = profile;
     }
-    
+
     fn begin_render(&mut self, context: &mut Context) {
         self.paper_image.debug_profile = self.debug_profile;
         self.page_image.debug_profile = self.debug_profile;
