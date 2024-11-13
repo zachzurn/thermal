@@ -1,10 +1,9 @@
 use crate::decoder::{get_codepage, Codepage};
 use crate::graphics;
+use crate::graphics::{GraphicsCommand, ImageRef, RGBA};
+use crate::text::TextSpan;
 use std::collections::HashMap;
 use std::mem;
-
-use crate::graphics::{Image, ImageRef};
-use crate::text::TextSpan;
 
 #[derive(Clone, PartialEq, Debug)]
 pub enum TextJustify {
@@ -51,20 +50,23 @@ impl Font {
             _ => Font::A,
         }
     }
+    //Currently the rest of the fonts default to font b
+    //We don't have enough information on C D E or the special fonts
+    pub fn to_size(&self) -> (u8, u8) {
+        if self == &Font::A {
+            (12, 24)
+        } else {
+            (9, 17)
+        }
+    }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub enum HumanReadableInterface {
     None,
     Above,
     Below,
     Both,
-}
-
-#[derive(Clone)]
-pub enum Color {
-    Black,
-    Red,
 }
 
 #[derive(Clone)]
@@ -96,15 +98,40 @@ pub struct TextContext {
     pub height_mult: u8,
     pub upside_down: bool,
     pub line_spacing: u8,
-    pub color: Color,
+    pub color: RGBA,
+    pub background_color: RGBA,
+    pub shadow_color: RGBA,
+    pub shadow: bool,
     pub smoothing: bool,
     pub tabs: Vec<u8>,
+}
+
+#[derive(Clone, Debug)]
+pub struct RenderColors {
+    pub paper_color: RGBA,
+    pub color_1: RGBA,
+    pub color_2: RGBA,
+    pub color_3: RGBA,
+}
+
+impl RenderColors {
+    pub fn color_for_number(&self, number: u8) -> &RGBA {
+        match number {
+            0 => &self.paper_color,
+            1 | 49 => &self.color_1,
+            2 | 50 => &self.color_2,
+            3 | 51 => &self.color_3,
+            _ => &self.color_1,
+        }
+    }
 }
 
 #[derive(Clone)]
 pub struct GraphicsContext {
     //Main rendering area
     pub render_area: RenderArea,
+
+    pub render_colors: RenderColors,
 
     //Paper area (unprintable paper margins)
     //x and y represent left and right margins
@@ -114,8 +141,8 @@ pub struct GraphicsContext {
     pub v_motion_unit: u8,
     pub h_motion_unit: u8,
     pub graphics_count: u16,
-    pub stored_graphics: HashMap<ImageRef, Image>,
-    pub buffer_graphics: Option<Image>,
+    pub stored_graphics: HashMap<ImageRef, GraphicsCommand>,
+    pub buffer_graphics: Vec<GraphicsCommand>,
 }
 
 #[derive(Clone)]
@@ -184,7 +211,7 @@ pub enum PrintDirection {
     BottomLeft2Top,
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RenderArea {
     pub x: u32,
     pub y: u32,
@@ -214,6 +241,7 @@ pub struct PageModeContext {
     pub previous_direction: PrintDirection,
 }
 
+#[derive(Debug)]
 pub enum Rotation {
     R0,
     R90,
@@ -256,6 +284,66 @@ impl PageModeContext {
         (rotation, self.page_area.w, self.page_area.h)
     }
 
+    pub fn set_x(&mut self, x: u32) {
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+        r.x = p.x + x;
+    }
+
+    pub fn set_y(&mut self, y: u32) {
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+        r.y = p.y + y;
+    }
+
+    //Absolute x and y are always from the 0,0 top left position
+    pub fn set_x_absolute(&mut self, x: u32) {
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+        match self.direction {
+            PrintDirection::TopLeft2Right => r.x = p.x + x, //g
+            PrintDirection::BottomRight2Left => r.x = (p.x + r.w).saturating_sub(x), //g
+            PrintDirection::TopRight2Bottom => r.y = r.h.saturating_sub(x), //?
+            PrintDirection::BottomLeft2Top => r.y = p.y + x, //g
+        }
+    }
+
+    //Absolute x and y are always from the 0,0 top left position
+    pub fn set_y_absolute(&mut self, y: u32) {
+        let r = &mut self.render_area;
+        let p = &mut self.page_area;
+        match self.direction {
+            PrintDirection::TopLeft2Right => r.y = p.y + y, //g
+            PrintDirection::BottomRight2Left => r.y = p.y + r.h.saturating_sub(y), //g
+            PrintDirection::TopRight2Bottom => r.x = p.x + y, //g
+            PrintDirection::BottomLeft2Top => r.x = p.x + r.w.saturating_sub(y), //g
+        }
+    }
+
+    pub fn offset_x(&mut self, x: u32) {
+        self.render_area.x += x;
+    }
+
+    pub fn offset_y(&mut self, y: u32) {
+        self.render_area.y += y;
+    }
+
+    pub fn offset_x_relative(&mut self, x: i16) {
+        let mut new_x = self.render_area.x as i32 + x as i32;
+        if new_x < 0 {
+            new_x = 0;
+        }
+        self.render_area.x = new_x as u32;
+    }
+
+    pub fn offset_y_relative(&mut self, y: i16) {
+        let mut new_y = self.render_area.y as i32 + y as i32;
+        if new_y < 0 {
+            new_y = 0;
+        }
+        self.render_area.y = new_y as u32;
+    }
+
     fn should_dimension_swap(direction: &PrintDirection) -> bool {
         match direction {
             PrintDirection::TopLeft2Right | PrintDirection::BottomRight2Left => false,
@@ -281,7 +369,7 @@ impl PageModeContext {
         r.w = l.w;
         r.h = l.h;
         r.y = l.y;
-        r.x = p.w - (l.x + l.w);
+        r.x = p.w.saturating_sub(l.x + l.w);
     }
 
     fn translate_top_right_to_bottom(&mut self) {
@@ -291,8 +379,8 @@ impl PageModeContext {
 
         r.w = l.h;
         r.h = l.w;
-        r.x = p.w - (l.y + l.h);
-        r.y = p.h - (l.x + l.w);
+        r.x = p.w.saturating_sub(l.y + l.h);
+        r.y = p.h.saturating_sub(l.x + l.w);
     }
 
     fn translate_bottom_left_to_top(&mut self) {
@@ -302,7 +390,7 @@ impl PageModeContext {
 
         r.w = l.h;
         r.h = l.w;
-        r.x = p.w - (l.y + l.h);
+        r.x = p.w.saturating_sub(l.y + l.h);
         r.y = l.x;
     }
 
@@ -346,6 +434,32 @@ impl Context {
         let paper_right_margin = (dots_per_inch as f32 * 0.1f32) as u32;
         let paper_width = (dots_per_inch as f32 * 3.2f32) as u32;
         let render_width = paper_width - (paper_left_margin + paper_right_margin);
+        let render_colors = RenderColors {
+            paper_color: RGBA {
+                r: 255,
+                g: 255,
+                b: 255,
+                a: 255,
+            }, //White
+            color_1: RGBA {
+                r: 0,
+                g: 0,
+                b: 0,
+                a: 255,
+            }, //Black
+            color_2: RGBA {
+                r: 158,
+                g: 22,
+                b: 22,
+                a: 255,
+            }, //Red
+            color_3: RGBA {
+                r: 27,
+                g: 57,
+                b: 169,
+                a: 255,
+            }, //Blue
+        };
 
         Context {
             default: None,
@@ -367,7 +481,10 @@ impl Context {
                 height_mult: 1,
                 upside_down: false,
                 line_spacing: 24, //pixels
-                color: Color::Black,
+                color: render_colors.color_1,
+                background_color: render_colors.paper_color,
+                shadow: false,
+                shadow_color: render_colors.color_1,
                 smoothing: false,
                 tabs: vec![8; 32], //Every 8 character widths is a tab stop
             },
@@ -404,6 +521,8 @@ impl Context {
                 datamatrix_width: 0,
             },
             graphics: GraphicsContext {
+                render_colors,
+
                 render_area: RenderArea {
                     x: 0,
                     y: paper_left_margin * 3,
@@ -417,11 +536,14 @@ impl Context {
                     h: 0,
                 },
                 dots_per_inch,
-                v_motion_unit: 1, //Pixels
-                h_motion_unit: 1, //Pixels
+                //Both of these motion units are used for
+                //Various positioning commands in standard mode
+                //and in page mode.
+                v_motion_unit: 1, //Pixels per unit
+                h_motion_unit: 1, //Pixels per unit
                 graphics_count: 0,
-                stored_graphics: HashMap::<ImageRef, Image>::new(),
-                buffer_graphics: None,
+                stored_graphics: HashMap::<ImageRef, GraphicsCommand>::new(),
+                buffer_graphics: vec![],
             },
             page_mode: PageModeContext {
                 enabled: false,
@@ -492,11 +614,27 @@ impl Context {
         }
     }
 
+    pub fn reset_y(&mut self) {
+        if self.page_mode.enabled {
+            self.page_mode.render_area.y = self.get_base_y();
+        } else {
+            self.graphics.render_area.y = self.get_base_y();
+        }
+    }
+
     //The base x value, which is the furthest left
     //of the render area
     pub fn get_base_x(&self) -> u32 {
         if self.page_mode.enabled {
             self.page_mode.page_area.x
+        } else {
+            0
+        }
+    }
+
+    pub fn get_base_y(&self) -> u32 {
+        if self.page_mode.enabled {
+            self.page_mode.page_area.y
         } else {
             0
         }
@@ -520,7 +658,7 @@ impl Context {
 
     pub fn offset_x(&mut self, x: u32) {
         if self.page_mode.enabled {
-            self.page_mode.render_area.x += x;
+            self.page_mode.offset_x(x);
         } else {
             self.graphics.render_area.x += x;
         }
@@ -528,9 +666,39 @@ impl Context {
 
     pub fn offset_y(&mut self, y: u32) {
         if self.page_mode.enabled {
-            self.page_mode.render_area.y += y;
+            self.page_mode.offset_y(y);
         } else {
             self.graphics.render_area.y += y;
+        }
+    }
+
+    //Uses motion units
+    pub fn offset_x_relative(&mut self, x: i16) {
+        let adj_x = x.saturating_div(self.graphics.h_motion_unit as i16);
+
+        if self.page_mode.enabled {
+            self.page_mode.offset_x_relative(adj_x);
+        } else {
+            let mut new_x = self.graphics.render_area.x as i32 + adj_x as i32;
+            if new_x < 0 {
+                new_x = 0;
+            }
+            self.graphics.render_area.x = new_x as u32;
+        }
+    }
+
+    //Uses motion units
+    pub fn offset_y_relative(&mut self, y: i16) {
+        let adj_y = y.saturating_div(self.graphics.v_motion_unit as i16);
+
+        if self.page_mode.enabled {
+            self.page_mode.offset_y_relative(adj_y);
+        } else {
+            let mut new_y = self.graphics.render_area.y as i32 + adj_y as i32;
+            if new_y < 0 {
+                new_y = 0;
+            }
+            self.graphics.render_area.y = new_y as u32;
         }
     }
 
@@ -540,13 +708,13 @@ impl Context {
     }
 
     pub fn newline(&mut self, count: u32) {
-        let line_height = self.text.line_spacing as u32 * self.graphics.v_motion_unit as u32;
+        let line_height = self.text.line_spacing as u32;
         self.reset_x();
         self.offset_y(line_height * count);
     }
 
     pub fn newline_for_spans(&mut self, spans: &Vec<TextSpan>) {
-        let mut line_height = self.text.line_spacing as u32 * self.graphics.v_motion_unit as u32;
+        let mut line_height = self.text.line_spacing as u32;
 
         for span in spans {
             line_height = line_height.max(span.character_height);
@@ -556,9 +724,16 @@ impl Context {
         self.offset_y(line_height);
     }
 
+    pub fn set_font(&mut self, font: Font) {
+        let size = font.to_size();
+        self.text.font = font;
+        self.text.character_width = size.0;
+        self.text.character_height = size.1;
+    }
+
     pub fn set_x(&mut self, x: u32) {
         if self.page_mode.enabled {
-            self.page_mode.render_area.x = self.page_mode.page_area.x + x;
+            self.page_mode.set_x(x);
         } else {
             self.graphics.render_area.x = x;
         }
@@ -566,10 +741,50 @@ impl Context {
 
     pub fn set_y(&mut self, y: u32) {
         if self.page_mode.enabled {
-            self.page_mode.render_area.y = y;
+            self.page_mode.set_y(y);
         } else {
             self.graphics.render_area.y = y;
         }
+    }
+
+    //Uses motion units
+    pub fn set_x_absolute(&mut self, x: u32) {
+        let adj_x = x.saturating_div(self.graphics.h_motion_unit as u32);
+        if self.page_mode.enabled {
+            self.page_mode.set_x_absolute(adj_x);
+        } else {
+            self.graphics.render_area.x = adj_x;
+        }
+    }
+
+    //Uses motion units
+    pub fn set_y_absolute(&mut self, y: u32) {
+        let adj_y = y.saturating_div(self.graphics.v_motion_unit as u32);
+        if self.page_mode.enabled {
+            self.page_mode.set_y_absolute(adj_y);
+        } else {
+            self.graphics.render_area.y = adj_y;
+        }
+    }
+
+    pub fn set_page_area(&mut self, area: RenderArea) {
+        let mut adj_area = area.clone();
+
+        //Area needs to be adjusted based on motion units
+        adj_area.x = adj_area
+            .x
+            .saturating_div(self.graphics.h_motion_unit as u32);
+        adj_area.y = adj_area
+            .y
+            .saturating_div(self.graphics.v_motion_unit as u32);
+        adj_area.w = adj_area
+            .w
+            .saturating_div(self.graphics.h_motion_unit as u32);
+        adj_area.h = adj_area
+            .h
+            .saturating_div(self.graphics.v_motion_unit as u32);
+
+        self.page_mode.logical_area = adj_area;
     }
 
     pub fn get_width(&self) -> u32 {
@@ -633,16 +848,8 @@ impl Context {
         }
     }
 
-    pub fn motion_unit_y_pixels(&self) -> u32 {
-        self.graphics.v_motion_unit as u32
-    }
-
-    pub fn motion_unit_x_pixels(&self) -> u32 {
-        self.graphics.h_motion_unit as u32
-    }
-
     pub fn line_height_pixels(&self) -> u32 {
-        self.text.line_spacing as u32 * self.motion_unit_y_pixels()
+        self.text.line_spacing as u32
     }
 
     pub fn update_decoder(&mut self) {

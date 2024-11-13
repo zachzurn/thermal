@@ -11,7 +11,7 @@
         }
 
         section {
-            background: white;
+            background: #FFFFFFFF;
             font-family: monospace;
             font-size: 21.8px;
             line-height: 24px;
@@ -40,20 +40,35 @@
         span {
             display: block;
             vertical-align: text-bottom;
+            white-space: pre;
+            color: #000000FF;
+            background-color: transparent;
         }
+
+        .fg_0 { color: #FFFFFFFF; }
+        .fg_1 { color: #000000FF; }
+        .fg_2 { color: #9E1616FF; }
+        .fg_3 { color: #1B39A9FF; }
+
+        .bg_0 { background-color: #FFFFFFFF; }
+        .bg_1 { background-color: #000000FF; }
+        .bg_2 { background-color: #9E1616FF; }
+        .bg_3 { background-color: #1B39A9FF; }
+
+        .fb{ font-size: .8em; line-height: .8; }
+        .fc{ font-size: .65em; line-height: .65; }
 
         .b{ font-weight: bold; }
         .i{ font-style: italic; }
         .u{ text-decoration: underline; }
         .s{ text-decoration: line-through; }
-        .in{ background: black; color: white; }
         .s, .sd{ text-decoration: line-through; }
 
         /* Conflicts with scaling, need to figure out a solution */
         .upd { transform: scale(1, -1); }
 
         .str { transform-origin: top left; }
-        
+
         .w2{ transform: scaleX(2); }
         .h2{ transform: scaleY(2); }
         .w2.h2{ transform: scale(2); }
@@ -86,7 +101,7 @@
     </style>
 </head>
 <body>
-    <main><section style="width: 649px; padding-left: 20px; padding-right: 20px; padding-bottom: 78px;"><article><p style='height: 108px; margin-top: 0px'></p><p style='height: 40px; margin-top: 0px'><img style='left: 184px;' class='img' width='240' src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAPAAAAAoCAAAAADlUygMAAAFh0lEQVR4Ae3gAZAkSZIkSRKLqpm7R0REZmZmVlVVVVV3d3d3d/fMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMdHd3d3dXV1VVVVVmZkZGRIS7m5kKz0xmV3d1d3dPz8zMzMxMovj/BfH/CwLz/4cQmP8/hMD8/yEE5v8PITD/fwiBeSZhnk2YK8QV5gphnk0YEA9gnpt4AHOZeE7mCnGFuUI8JwMIwADiAQwA4jmZZxIC80zCPJswl4n7mcuEeTZhQDyQeS7igQyAeE7mMnE/c5l4TgYQgAHEAxkA8ZzMMwmBuZ8w9xPmMoEBEBgAYZ5NGBDmfgLznIS5n8AAwjwvgQEQGABhnpcwlwlzP4F5NmGekxCY+wlzP2EuE+YKYQCEeTZhQJhnEZjnIMyzCAwI87yEuUJgAGGelzCXCfMsAvMswjwnITDPIswVwlwmMFcIDCDMswkDwjybMM9BmGcTBoR5HgLzTMIAwjwvYS4T5tmEeRZhnpMQmGcR5gphLhPmfsIAwjybMCDMswnzHIR5NmFAmOchzLMIA8I8L2EuE+bZhHkWYZ6TEJhnEwZAmCuEuZ8wgDDPJgwI82zCPAdhnk0YEOa5CcyzCAPCPC9hLhPm2YR5FmGekxCYZxMGQJjLhHk2YUCYZxMGhHk2YZ6DMM8mDAjz3IR5bsI8L2EuE+bZhHkWYZ6TEJgHEAaEuUKYZxMGhHk2YUCYZxPmOQjzbMKAMM9NmOcmzPMS5jJhnk2YZxHmOQmBeQBhQJgrhHk2YUCYZxMGhHkWgXkOwjyLwIAwz02Y5ybM8xLmMmGeRWCeRZjnJATmgYQR5pmEeTZhQJhnEwaEuZ/APCdh7icwgDDPTZjnJszzEuYyYe4nMM8mzHMSAvNAwgjzTMI8mzAgzLMJA+KBzHMRD2QAhHluwjw3YZ6XMJeJBzIPIMxzEgLzHASY+wnzbMKAMM8mDIgHMM9NPIC5TDwHAwjz3MRzMJcJc5l4APNAwjwnITDPQYC5nzDPJgwI82zCgDCAMM+PMIAwzyKegwGEeW7iOZjLhLlMmBdAmOckBOY5CfMswjybMCDMswkDwgAI83wIAyDM/YR5bsI8N2GelzCXCfMCCPOchMA8J2GeRZhnEwaEeTZhQBgAYZ4PYQCEuZ8wz02Y5ybM8xLmMmFeAGGekxCY5yTMswjzbMKAMM8mDAhzmTDPS5jLhHkmYZ6bMM9NmOclzGXCvADCPCchMM9JmGcR5tmEAWGeTRgQ5jJhnpcwlwnzTMI8N2GemzDPS5jLhHkBhHlOQmCekzDPIsyzCQPCPJswIMwVwjwPYa4Q5gphnpswz02Y5yXMZcK8AMI8JyEwz0mYZxPmfsIAwjybMCDMFcI8D2GuEOYKYZ6HMM8iDAjzvIS5TJgXQJjnJATmOQnzbMLcTxhAYO4nMCDMMwnz3IR5JmEuE+Z5CPMswoAwz0uYy4R5AYR5TkJgnpMwzyYwVwgMgDD3EwYQ5pmEeW7CPJMwlwnzPATmmYQBhHlewlwmzAsgzHMSAvOchHkAYa4Q5jKBuUJgAGHuJ8xzEeZ+wgAI87yEuUJgAGGelzCXCfMCCPOchMA8J2EeQGAABOYKgQEQGABh7icwz0mY+wkMIMzzEhgAgQEQ5nkJc5kwL4Awz0kIzHMS5oHE/cz9xP3MZcI8i8A8B2GeRWBAPCdzmbifuUw8JwMIwADCvADCPCchMM9JmOcgrjDPJq4wVwjzLALzHIR5FoEB8ZzMFeIKc4V4TgYQgAGEeQGEeU5CYP7/EALz/4cQmP8/hMD8/yEE5v8PIf5/Qfz/wj8CiGG7OJ7SDEcAAAAASUVORK5CYII' /></p><p style='height: 24px; margin-top: 32px'><span style='left: 250px; top: 0px' class=''>Thank </span>
+    <main><section style="width: 649px; padding-left: 20px; padding-right: 20px; padding-bottom: 78px;"><article><p style='height: 108px; margin-top: 0px'></p><p style='height: 40px; margin-top: 0px'><img style='left: 184px;' class='img' width='240' src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAPAAAAAoCAYAAADAOHfQAAAI/klEQVR4Ae3gAZAkSZIkSRKLqpm7R0REZmZmVlVVVVV3d3d3d/fMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMdHd3d3dXV1VVVVVmZkZGRIS7m5kKz0xmV3d1d3dPz8zMzMxMogBz1VVX/W+EAHPVVVf9b4QAc4W46qqr/rcwgABzhbjqqqv+tzCAAHOFuOqqq/63MIAAc4W46qqr/rcwgABzhbjqqqv+tzCAAHOF+JeZK8S/jrlCvHDmhRMvnLlC/OuYK8RzMv964j+G+dcTL5j59xEvnHnhxAtn/n3E8zLPSzwv868nXjDz7yP+ZQYQYK4Q/zJzhfjXMVeIF8y8aMQLZq4Q/zrmCvGczL+N+Pcz/zbi+TP/PuIFMy8a8YKZfx/xvMzzEs/L/NuI58/8+4h/mQEEmCvEi8ZcIV405grxgplnE8+feTbx/JkrxL+OuUI8J3OFeNGYZxP/PuYK8aIxzyael7lC/McyzyaeP/Ns4vkzV4j/WOYK8YKZK8SLxjyb+NcxV4h/HwMIMFeIF425QrxozBXiBTNXiBfOXCGeP3OF+NcxV4jnZK4QLzrzbOLfzlwhXnTm2cRzMleI/1jmCvHCmWcTz8tcIf5jmSvEC2auEC8682ziRWeuEP8+BhBgrhAvOnOFeOHMFeIFM88mXjjzbOJ5mSvEv465Qjwnc4X41zFXiH87c4X41zFXiOdkrhD/ccyziX+ZuUI8L3OF+I9lrhAvmLlC/OuYK8SLzlwh/n0MIMBcIV505grxwpkrxAtmrhAvGnOFeF7mCvGvY64Qz8lcIf51zBXi385cIf51zBXiOZkrxH8cc4V40ZkrxHMyV4j/WOYK8YKZK8S/jrlCvOjMFeLfxwACzBXiX8dcIZ4/c4V44cwV4kVjrhDPy1wh/nXMFeI5mSvEv465QvzbmSvEv465Qjwnc4X4j2GeTbzozBXiOZkrxH8sc4V4wcwV4l/HXCFedOYK8e9jAAHmCvGvY64Qz5+5Qrxg5grxr2OuEM/JXCH+dcwV4jmZK8S/jrlC/NuZK8S/jrlCPCdzhfiPYa4Q/zHMFeI/lrlCvGDmCvGvY64QLzpzhfj3MYAAc4X41zNXiOdkrhAvnLlC/OuYK8RzMleIfx1zhXhO5grxr2OuEP925grxr2OuEM/JXCH+Y5grxH8Mc4X4j2WuEC+YuUL865grxIvOXCH+fQwgwFwh/vXMFeI5mSvEC2euEP865grxnMwV4l/HXCGek7lCvOjMs4l/O3OFeNGZZxPPyVwh/mOYK8R/DHOF+I9lrhAvmLlCvOjMs4kXnblC/PsYQIC5QvzbmCvEFeYK8S8zV4h/HXOFeE7mCvGvY64Qz8lcIV405tnEv4+5QrxozLOJ52WuEP8xzBXiP4a5QvzHMleIF8xcIV405tnEv465Qvz7GECAuUL825grxBXmCvEvM1eIfx1zhXhO5grxr2OuEM/J/NuIfz/zbyOeP3OF+I9hrhD/McwV4j+WuUK8YObfRvzrmSvEv48BBJgrxL+deU7iRWOuEP865grxnMwV4l/HXCGek/nXE/8xzL+eeMHMv514XuYK8R/D/NuJF8xcIV4w868n/m3MFeLfxwACzBXi3848J/GiMVeIfx1zhXhO5grxr2OuEM/JXCGel7lC/OcwV4jnZa4QLzrzbyeel7lC/Mcw/3biBTNXiBfMXCH+85krxL+PAQSYK8S/j7lCvOjMFeJfx1whnpO5QvzrmCvEczJXiOfPXCH+45krxPNnrhAvGnOF+I9hrhD/McwV4j+WuUK8YOYK8Z/PXCH+fQwgwFwh/n3MFeJFZ64Q/zrmCvGczBXiX8dcIZ6TuUI8f+YK8R/PXCGeP3OFeNGYK8R/DHOF+I9hrhD/scwV4gUzV4j/fOYK8e9jAAHmCvHvY64QLzpzhfjXMVeI52SuEP865grxnMwV4gUzV4j/WOYK8YKZK8S/zFwh/mOYK8R/DHOF+I9lrhAvmLlC/OczV4h/HwMIMFeIfx9zhXjRmSvEv465Qjwnc4X41zFXiOdkrhAvmLlC/McyV4gXzFwh/mXmCvEfw1wh/mOYK8R/LHOFeMHMFeI/n7lC/PsYQIC5Qvz7mCvEi85cIf51zBXiOZkrxL+OuUI8J3OFeOHMFeI/jrlCvHDmCvHCmSvEfwxzhfiPYa4Q/7HMFeIFM1eI/3zmCvHvYwAB5grx72OuEP865grxojFXiOdlrhD/OuYK8ZzMFeKFM1eI/zjmCvHCmSvEC2euEP9xzBXiRWeuEM/JXCH+Y5krxAtmrhD/+cwV4t/HAALMFeLfx1wh/nXMFeJFY64Qz8s8m3jRmGcTz8lcIf5l5grxH8NcIf5l5grxgpkrxH8cc4V40ZkrxHMyV4j/WOYK8YKZK8R/PnOF+PcxgABzhfj3MVeIfx3zbOKFM88mnj9zhXjRmCvE8zJXiH+ZuUL8xzBXiH+ZuUK8YOYK8R/HPJv4l5krxPMyV4j/WOYK8YKZK8R/PnOF+PcxgABzhfj3MVeIfz1zhXjhzBXiBTPPJl4482zieZkrxIvGXCH+/cwV4kVjrhDPn7lC/McyV4gXzjybeF7mCvEfy1whXjBzhfjPZ64Q/z4GEGCuEP8+5grxr2eeTTx/5tnEC2eeTTx/5tnE82euEC8a82zi38dcIV405tnE8zJXiP9Y5tnE82eeTTx/5grxH8tcIV4wc4X4z2euEP8+BhBgrhD/PuYK8W9jXjTiRWNeNOIFM1eIF515NvFvZ64QLzrzbOI5mX8f8YKZF414wcy/j3he5nmJ52WuEP/5zBXi38cAAswV4t/HXCH+7cwLJ/51zAsnXjhzhXjRmWcT/3bmCvGiM88mnpP59xEvnHnhxAtn/n3E8zLPSzwvc4X4z2euEP8+BhBgrhBXXXXV/xYGEGCuEFddddX/FgYQYK4QV1111f8WBhBgrhBXXXXV/xYGEGCuEFddddX/FgYQYK666qr/jRBgrrrqqv+N+EeGhOMQ4g9vzgAAAABJRU5ErkJggg' /></p><p style='height: 24px; margin-top: 8px'><span style='left: 250px; top: 0px' class=''>Thank </span>
 <span style='left: 322px; top: 0px' class=''>you</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 172px; top: 0px' class=''>NOVEMBER </span>
 <span style='left: 280px; top: 0px' class=''>1, </span>
 <span style='left: 316px; top: 0px' class=''>2012 </span>
@@ -157,77 +172,6 @@
 <rect width='3' height='50' x='252' y='0' fill='black' />
 <rect width='3' height='50' x='258' y='0' fill='black' />
 <rect width='3' height='50' x='261' y='0' fill='black' />
-<rect width='3' height='50' x='267' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 262px; top: 0px' class=''>*00014*</span></p><p style='height: 40px; margin-top: 0px'><img style='left: 184px;' class='img' width='240' src='data:image/png;base64, iVBORw0KGgoAAAANSUhEUgAAAPAAAAAoCAAAAADlUygMAAAFh0lEQVR4Ae3gAZAkSZIkSRKLqpm7R0REZmZmVlVVVVV3d3d3d/fMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMdHd3d3dXV1VVVVVmZkZGRIS7m5kKz0xmV3d1d3dPz8zMzMxMovj/BfH/CwLz/4cQmP8/hMD8/yEE5v8PITD/fwiBeSZhnk2YK8QV5gphnk0YEA9gnpt4AHOZeE7mCnGFuUI8JwMIwADiAQwA4jmZZxIC80zCPJswl4n7mcuEeTZhQDyQeS7igQyAeE7mMnE/c5l4TgYQgAHEAxkA8ZzMMwmBuZ8w9xPmMoEBEBgAYZ5NGBDmfgLznIS5n8AAwjwvgQEQGABhnpcwlwlzP4F5NmGekxCY+wlzP2EuE+YKYQCEeTZhQJhnEZjnIMyzCAwI87yEuUJgAGGelzCXCfMsAvMswjwnITDPIswVwlwmMFcIDCDMswkDwjybMM9BmGcTBoR5HgLzTMIAwjwvYS4T5tmEeRZhnpMQmGcR5gphLhPmfsIAwjybMCDMswnzHIR5NmFAmOchzLMIA8I8L2EuE+bZhHkWYZ6TEJhnEwZAmCuEuZ8wgDDPJgwI82zCPAdhnk0YEOa5CcyzCAPCPC9hLhPm2YR5FmGekxCYZxMGQJjLhHk2YUCYZxMGhHk2YZ6DMM8mDAjz3IR5bsI8L2EuE+bZhHkWYZ6TEJgHEAaEuUKYZxMGhHk2YUCYZxPmOQjzbMKAMM9NmOcmzPMS5jJhnk2YZxHmOQmBeQBhQJgrhHk2YUCYZxMGhHkWgXkOwjyLwIAwz02Y5ybM8xLmMmGeRWCeRZjnJATmgYQR5pmEeTZhQJhnEwaEuZ/APCdh7icwgDDPTZjnJszzEuYyYe4nMM8mzHMSAvNAwgjzTMI8mzAgzLMJA+KBzHMRD2QAhHluwjw3YZ6XMJeJBzIPIMxzEgLzHASY+wnzbMKAMM8mDIgHMM9NPIC5TDwHAwjz3MRzMJcJc5l4APNAwjwnITDPQYC5nzDPJgwI82zCgDCAMM+PMIAwzyKegwGEeW7iOZjLhLlMmBdAmOckBOY5CfMswjybMCDMswkDwgAI83wIAyDM/YR5bsI8N2GelzCXCfMCCPOchMA8J2GeRZhnEwaEeTZhQBgAYZ4PYQCEuZ8wz02Y5ybM8xLmMmFeAGGekxCY5yTMswjzbMKAMM8mDAhzmTDPS5jLhHkmYZ6bMM9NmOclzGXCvADCPCchMM9JmGcR5tmEAWGeTRgQ5jJhnpcwlwnzTMI8N2GemzDPS5jLhHkBhHlOQmCekzDPIsyzCQPCPJswIMwVwjwPYa4Q5gphnpswz02Y5yXMZcK8AMI8JyEwz0mYZxPmfsIAwjybMCDMFcI8D2GuEOYKYZ6HMM8iDAjzvIS5TJgXQJjnJATmOQnzbMLcTxhAYO4nMCDMMwnz3IR5JmEuE+Z5CPMswoAwz0uYy4R5AYR5TkJgnpMwzyYwVwgMgDD3EwYQ5pmEeW7CPJMwlwnzPATmmYQBhHlewlwmzAsgzHMSAvOchHkAYa4Q5jKBuUJgAGHuJ8xzEeZ+wgAI87yEuUJgAGGelzCXCfMCCPOchMA8J2EeQGAABOYKgQEQGABh7icwz0mY+wkMIMzzEhgAgQEQ5nkJc5kwL4Awz0kIzHMS5oHE/cz9xP3MZcI8i8A8B2GeRWBAPCdzmbifuUw8JwMIwADCvADCPCchMM9JmOcgrjDPJq4wVwjzLALzHIR5FoEB8ZzMFeIKc4V4TgYQgAGEeQGEeU5CYP7/EALz/4cQmP8/hMD8/yEE5v8PIf5/Qfz/wj8CiGG7OJ7SDEcAAAAASUVORK5CYII' /></p><p style='height: 24px; margin-top: 32px'><span style='left: 250px; top: 0px' class=''>Thank </span>
-<span style='left: 322px; top: 0px' class=''>you</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 172px; top: 0px' class=''>NOVEMBER </span>
-<span style='left: 280px; top: 0px' class=''>1, </span>
-<span style='left: 316px; top: 0px' class=''>2012 </span>
-<span style='left: 376px; top: 0px' class=''>15:00</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 0px; top: 0px' class=''>TM-Hxxx</span>
-<span style='left: 420px; top: 0px' class=''> </span>
-<span style='left: 432px; top: 0px' class=''> </span>
-<span style='left: 444px; top: 0px' class=''>6.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PS-xxx</span>
-<span style='left: 420px; top: 0px' class=''> </span>
-<span style='left: 432px; top: 0px' class=''> </span>
-<span style='left: 444px; top: 0px' class=''>1.70</span></p><p style='height: 48px; margin-top: 24px'><span style='left: 0px; top: 0px' class='h2 str'>TOTAL</span>
-<span style='left: 420px; top: 0px' class='h2 str'> </span>
-<span style='left: 432px; top: 0px' class='h2 str'> </span>
-<span style='left: 444px; top: 0px' class='h2 str'>7.70</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>------------------------------------------</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>PAID</span>
-<span style='left: 420px; top: 0px' class=''> </span>
-<span style='left: 432px; top: 0px' class=''>10.00</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>CHANGE</span>
-<span style='left: 420px; top: 0px' class=''> </span>
-<span style='left: 432px; top: 0px' class=''> </span>
-<span style='left: 444px; top: 0px' class=''>2.30</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 166px; top: 0px' class=''><< </span>
-<span style='left: 202px; top: 0px' class=''>Bonus </span>
-<span style='left: 274px; top: 0px' class=''>points </span>
-<span style='left: 358px; top: 0px' class=''>: </span>
-<span style='left: 382px; top: 0px' class=''>14 </span>
-<span style='left: 418px; top: 0px' class=''>>></span></p><p style='height: 50px; margin-top: 11px'><svg style='left: 169px;' class='gfx' width='270' height='50'><rect width='3' height='50' x='0' y='0' fill='black' />
-<rect width='3' height='50' x='9' y='0' fill='black' />
-<rect width='3' height='50' x='15' y='0' fill='black' />
-<rect width='3' height='50' x='18' y='0' fill='black' />
-<rect width='3' height='50' x='24' y='0' fill='black' />
-<rect width='3' height='50' x='27' y='0' fill='black' />
-<rect width='3' height='50' x='33' y='0' fill='black' />
-<rect width='3' height='50' x='39' y='0' fill='black' />
-<rect width='3' height='50' x='45' y='0' fill='black' />
-<rect width='3' height='50' x='54' y='0' fill='black' />
-<rect width='3' height='50' x='57' y='0' fill='black' />
-<rect width='3' height='50' x='63' y='0' fill='black' />
-<rect width='3' height='50' x='66' y='0' fill='black' />
-<rect width='3' height='50' x='72' y='0' fill='black' />
-<rect width='3' height='50' x='78' y='0' fill='black' />
-<rect width='3' height='50' x='84' y='0' fill='black' />
-<rect width='3' height='50' x='93' y='0' fill='black' />
-<rect width='3' height='50' x='96' y='0' fill='black' />
-<rect width='3' height='50' x='102' y='0' fill='black' />
-<rect width='3' height='50' x='105' y='0' fill='black' />
-<rect width='3' height='50' x='111' y='0' fill='black' />
-<rect width='3' height='50' x='117' y='0' fill='black' />
-<rect width='3' height='50' x='123' y='0' fill='black' />
-<rect width='3' height='50' x='132' y='0' fill='black' />
-<rect width='3' height='50' x='135' y='0' fill='black' />
-<rect width='3' height='50' x='141' y='0' fill='black' />
-<rect width='3' height='50' x='144' y='0' fill='black' />
-<rect width='3' height='50' x='150' y='0' fill='black' />
-<rect width='3' height='50' x='156' y='0' fill='black' />
-<rect width='3' height='50' x='159' y='0' fill='black' />
-<rect width='3' height='50' x='165' y='0' fill='black' />
-<rect width='3' height='50' x='174' y='0' fill='black' />
-<rect width='3' height='50' x='180' y='0' fill='black' />
-<rect width='3' height='50' x='186' y='0' fill='black' />
-<rect width='3' height='50' x='189' y='0' fill='black' />
-<rect width='3' height='50' x='195' y='0' fill='black' />
-<rect width='3' height='50' x='201' y='0' fill='black' />
-<rect width='3' height='50' x='210' y='0' fill='black' />
-<rect width='3' height='50' x='213' y='0' fill='black' />
-<rect width='3' height='50' x='219' y='0' fill='black' />
-<rect width='3' height='50' x='225' y='0' fill='black' />
-<rect width='3' height='50' x='228' y='0' fill='black' />
-<rect width='3' height='50' x='234' y='0' fill='black' />
-<rect width='3' height='50' x='243' y='0' fill='black' />
-<rect width='3' height='50' x='249' y='0' fill='black' />
-<rect width='3' height='50' x='252' y='0' fill='black' />
-<rect width='3' height='50' x='258' y='0' fill='black' />
-<rect width='3' height='50' x='261' y='0' fill='black' />
-<rect width='3' height='50' x='267' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 262px; top: 0px' class=''>*00014*</span></p></article></section></main>
+<rect width='3' height='50' x='267' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 262px; top: 0px' class='fb'>*00014*</span></p></article></section></main>
 </body>
 </html>

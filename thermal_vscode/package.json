@@ -1,0 +1,25 @@
+{
+  "name": "thermal-vscode",
+  "displayName": "Thermal VsCode",
+  "description": "Syntax highlighting for the .thermal file format.",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.94.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "thermal",
+      "aliases": ["Thermal ESC/POS", "thermal"],
+      "extensions": [".thermal"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "thermal",
+      "scopeName": "source.thermal",
+      "path": "./syntaxes/thermal.tmLanguage.json"
+    }]
+  }
+}

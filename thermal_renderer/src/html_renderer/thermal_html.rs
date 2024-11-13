@@ -2,19 +2,21 @@ use crate::html_renderer::HtmlRow;
 use base64::engine::general_purpose;
 use base64::Engine;
 use png::{ColorType, Encoder};
-use thermal_parser::graphics::{Image, VectorGraphic};
+use thermal_parser::context::{Font, RenderColors};
+use thermal_parser::graphics::{Image, VectorGraphic, RGBA};
 use thermal_parser::text::TextSpan;
 
 pub fn encode_html_image(image: &Image) -> HtmlRow {
     // Create a buffer to hold the PNG image data
     let mut png_data: Vec<u8> = Vec::new();
+    let image_data: Vec<u8> = image.as_rgba_u8();
 
     let mut encoder = Encoder::new(&mut png_data, image.w, image.h);
-    encoder.set_color(ColorType::Grayscale);
+    encoder.set_color(ColorType::Rgba);
     encoder.set_depth(png::BitDepth::Eight);
     let mut writer = encoder.write_header().expect("Failed to write PNG header");
     writer
-        .write_image_data(&image.as_grayscale())
+        .write_image_data(&image_data)
         .expect("Failed to write PNG image data");
 
     writer.finish().expect("Error encoding png");
@@ -86,6 +88,7 @@ pub fn spans_to_html(
     x_offset: u32,
     max_height: u32,
     baseline_ratio: f32,
+    render_colors: &RenderColors,
 ) -> HtmlRow {
     if spans.is_empty() {
         return HtmlRow::empty();
@@ -94,13 +97,9 @@ pub fn spans_to_html(
     let mut height = 0;
     let mut min_y = u32::MAX;
 
-    //TODO get the min x and offset the top by it
-    //This way the spans are relatively aligned to the top
-    //of the html row element
-
     for span in spans {
         height = height.max(span.character_height);
-        let (y, content) = span_to_html(span, x_offset, max_height, baseline_ratio);
+        let (y, content) = span_to_html(span, x_offset, max_height, baseline_ratio, render_colors);
         min_y = min_y.min(y);
         spans_html.push(content);
     }
@@ -120,6 +119,7 @@ fn span_to_html(
     x_offset: u32,
     max_height: u32,
     baseline_ratio: f32,
+    render_colors: &RenderColors,
 ) -> (u32, String) {
     //All of this is to calculate the offset for smaller characters
     //When a larger character is in the same line.
@@ -185,10 +185,6 @@ fn span_to_html(
         class_list.push("str");
     }
 
-    if text.inverted {
-        class_list.push("in");
-    }
-
     if text.underline > 0 {
         class_list.push("u");
     }
@@ -201,6 +197,22 @@ fn span_to_html(
         class_list.push("upd");
     }
 
+    match text.font {
+        Font::B => class_list.push("fb"),
+        Font::C => class_list.push("fc"),
+        _ => {}
+    }
+
+    //Foreground and background color classes
+    let fg_class = color_to_class(text.text_color, render_colors, true);
+    let bg_class = color_to_class(text.background_color, render_colors, false);
+    if !fg_class.is_empty() {
+        class_list.push(fg_class);
+    }
+    if !bg_class.is_empty() {
+        class_list.push(bg_class);
+    }
+
     (
         y,
         format!(
@@ -211,4 +223,21 @@ fn span_to_html(
             text.text
         ),
     )
+}
+
+fn color_to_class(color: RGBA, render_colors: &RenderColors, fg: bool) -> &str {
+    //Most common color by far
+    if color == render_colors.color_1 {
+        return if fg { "" } else { "bg_1" };
+    }
+
+    if color == render_colors.color_2 {
+        return if fg { "fg_2" } else { "bg_2" };
+    }
+
+    if color == render_colors.color_3 {
+        return if fg { "fg_3" } else { "bg_3" };
+    }
+
+    return if fg { "fg_0" } else { "" };
 }

@@ -11,7 +11,7 @@
         }
 
         section {
-            background: white;
+            background: {{color-0}};
             font-family: monospace;
             font-size: 21.8px;
             line-height: 24px;
@@ -40,13 +40,28 @@
         span {
             display: block;
             vertical-align: text-bottom;
+            white-space: pre;
+            color: {{color-1}};
+            background-color: transparent;
         }
+
+        .fg_0 { color: {{color-0}}; }
+        .fg_1 { color: {{color-1}}; }
+        .fg_2 { color: {{color-2}}; }
+        .fg_3 { color: {{color-3}}; }
+
+        .bg_0 { background-color: {{color-0}}; }
+        .bg_1 { background-color: {{color-1}}; }
+        .bg_2 { background-color: {{color-2}}; }
+        .bg_3 { background-color: {{color-3}}; }
+
+        .fb{ font-size: .8em; line-height: .8; }
+        .fc{ font-size: .65em; line-height: .65; }
 
         .b{ font-weight: bold; }
         .i{ font-style: italic; }
         .u{ text-decoration: underline; }
         .s{ text-decoration: line-through; }
-        .in{ background: black; color: white; }
         .s, .sd{ text-decoration: line-through; }
 
         /* Conflicts with scaling, need to figure out a solution */

@@ -6,10 +6,16 @@ use thermal_parser::thermal_file::parse_str;
 use thermal_renderer::html_renderer::HtmlRenderer;
 // use thermal_renderer::html_renderer::HtmlRenderer;
 use thermal_renderer::image_renderer::ImageRenderer;
+use thermal_renderer::renderer::DebugProfile;
 
 #[test]
 fn typography() {
     test_sample("typography", "thermal")
+}
+
+#[test]
+fn retail() {
+    test_sample("retail", "bin")
 }
 
 #[test]
@@ -20,6 +26,11 @@ fn issuing_receipts() {
 #[test]
 fn page_mode() {
     test_sample("page_mode", "thermal")
+}
+
+#[test]
+fn page_mode_debug() {
+    test_sample("page_mode_debug", "thermal")
 }
 
 #[test]
@@ -34,12 +45,12 @@ fn receipt_with_barcode() {
 
 #[test]
 fn gs_images_column() {
-    test_sample("gs_images_column", "bin")
+    test_sample("gs_images_column", "thermal")
 }
 
 #[test]
 fn gs_images_raster() {
-    test_sample("gs_images_raster", "bin")
+    test_sample("gs_images_raster", "thermal")
 }
 
 #[test]
@@ -69,12 +80,7 @@ fn thick_barcode() {
 
 #[test]
 fn discount() {
-    test_sample("discount", "bin")
-}
-
-#[test]
-fn upce() {
-    test_sample("barcodes_upce", "bin")
+    test_sample("discount", "thermal")
 }
 
 fn test_sample(name: &str, ext: &str) {
@@ -105,20 +111,29 @@ fn test_sample(name: &str, ext: &str) {
         std::fs::read(sample_file.to_str().unwrap()).unwrap()
     };
 
+    let debug_profile = DebugProfile {
+        text: false,  //Should debug lines be rendered on text?
+        image: false, //Should debug borders be rendered around images?
+        page: false,  //Should debug borders be rendered around page images?
+        info: true,   //Should render info be output to the console?
+    };
+
     render_image(
         &bytes,
         format!("{}.png", img_out.to_str().unwrap().to_string()),
         name.to_string(),
+        debug_profile,
     );
     render_html(
         &bytes,
         format!("{}.html", html_out.to_str().unwrap().to_string()),
         name.to_string(),
+        debug_profile,
     );
 }
 
-fn render_html(bytes: &Vec<u8>, out_path: String, name: String) {
-    let renders = HtmlRenderer::render(bytes);
+fn render_html(bytes: &Vec<u8>, out_path: String, name: String, debug_profile: DebugProfile) {
+    let renders = HtmlRenderer::render(bytes, Some(debug_profile));
 
     if let Some(render) = renders.output.first() {
         let path = Path::new(&out_path);
@@ -140,8 +155,8 @@ fn render_html(bytes: &Vec<u8>, out_path: String, name: String) {
     }
 }
 
-fn render_image(bytes: &Vec<u8>, out_path: String, name: String) {
-    let renders = ImageRenderer::render(bytes);
+fn render_image(bytes: &Vec<u8>, out_path: String, name: String, debug_profile: DebugProfile) {
+    let renders = ImageRenderer::render(bytes, Some(debug_profile));
 
     if let Some(render) = renders.output.first() {
         save_image(&render.bytes, render.width, render.height, out_path);
@@ -170,7 +185,7 @@ fn save_image(bytes: &Vec<u8>, width: u32, height: u32, out_path: String) {
     let file = File::create(path).unwrap();
     let ref mut writer = BufWriter::new(file);
     let mut encoder = png::Encoder::new(writer, width, height);
-    encoder.set_color(png::ColorType::Grayscale);
+    encoder.set_color(png::ColorType::Rgb);
     encoder.set_depth(BitDepth::Eight);
 
     let mut writer = encoder.write_header().unwrap();

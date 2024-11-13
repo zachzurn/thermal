@@ -18,9 +18,9 @@ mod thermal_html;
 
 use crate::html_renderer::thermal_html::{encode_html_image, graphics_to_svg, spans_to_html};
 use crate::image_renderer::thermal_image::ThermalImage;
-use crate::renderer::{OutputRenderer, RenderOutput, Renderer};
+use crate::renderer::{DebugProfile, OutputRenderer, RenderOutput, Renderer};
 use thermal_parser::context::{Context, PrintDirection, Rotation, TextJustify};
-use thermal_parser::graphics::{Image, PixelType, VectorGraphic};
+use thermal_parser::graphics::{Image, ImageFlow, VectorGraphic};
 use thermal_parser::text::TextSpan;
 
 static TEMPLATE: &str = include_str!("../../resources/templates/thermal.html");
@@ -37,6 +37,7 @@ pub struct HtmlRenderer {
     pub content: Vec<String>,
     pub template: String,
     pub page_image: ThermalImage,
+    pub debug_profile: DebugProfile,
 }
 
 pub struct HtmlRow {
@@ -62,13 +63,20 @@ impl HtmlRenderer {
             content: vec![],
             template: TEMPLATE.to_string(),
             page_image: ThermalImage::new(0),
+            debug_profile: DebugProfile::default(),
         }
     }
 
     /// This is the normal way to render bytes to an html
-    pub fn render(bytes: &Vec<u8>) -> RenderOutput<ReceiptHtml> {
-        let mut html_renderer: Box<dyn OutputRenderer<_>> = Box::new(HtmlRenderer::new());
-        let mut renderer = Renderer::new(&mut html_renderer);
+    pub fn render(
+        bytes: &Vec<u8>,
+        debug_profile: Option<DebugProfile>,
+    ) -> RenderOutput<ReceiptHtml> {
+        let mut child_renderer: Box<dyn OutputRenderer<_>> = Box::new(HtmlRenderer::new());
+        let mut renderer = Renderer::new(
+            &mut child_renderer,
+            debug_profile.unwrap_or(DebugProfile::default()),
+        );
         renderer.render(bytes)
     }
 
@@ -84,13 +92,16 @@ impl HtmlRenderer {
 }
 
 impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
+    fn set_debug_profile(&mut self, profile: DebugProfile) {
+        self.debug_profile = profile;
+    }
+
     fn begin_render(&mut self, context: &mut Context) {
+        self.page_image.debug_profile = self.debug_profile;
+        self.page_image.paper_color = context.graphics.render_colors.paper_color;
+
         //Initialize image area for page mode
         self.page_image.set_width(0);
-        self.page_image.set_character_size(
-            context.text.character_width as u32,
-            context.text.character_height as u32,
-        );
 
         //Page images should not auto grow in either direction
         //Normally only the width is locked down, but for page mode
@@ -173,9 +184,7 @@ impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
             y: context.graphics.render_area.y,
             w,
             h,
-            pixel_type: PixelType::MonochromeByte,
-            stretch: (0, 0),
-            advances_y: false,
+            flow: ImageFlow::Block,
             upside_down: false,
         };
 
@@ -187,7 +196,7 @@ impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
             for graphic in graphics {
                 match graphic {
                     VectorGraphic::Rectangle(rectangle) => {
-                        self.page_image.put_rect(rectangle);
+                        self.page_image.put_rect(rectangle, &context.text.color);
                     }
                 }
             }
@@ -219,14 +228,37 @@ impl OutputRenderer<ReceiptHtml> for HtmlRenderer {
                 }
             }
         } else {
-            self.push_row(spans_to_html(spans, x_offset, max_height, 0.78));
+            self.push_row(spans_to_html(
+                spans,
+                x_offset,
+                max_height,
+                0.78,
+                &context.graphics.render_colors,
+            ));
         }
     }
 
     fn end_render(&mut self, context: &mut Context) -> ReceiptHtml {
         let padding_bottom = context.get_y().saturating_sub(self.last_y);
+
         let content = self
             .template
+            .replace(
+                "{{color-0}}",
+                &*context.graphics.render_colors.paper_color.as_hex(),
+            )
+            .replace(
+                "{{color-1}}",
+                &*context.graphics.render_colors.color_1.as_hex(),
+            )
+            .replace(
+                "{{color-2}}",
+                &*context.graphics.render_colors.color_2.as_hex(),
+            )
+            .replace(
+                "{{color-3}}",
+                &*context.graphics.render_colors.color_3.as_hex(),
+            )
             .replace("{{content}}", &self.content.join(""))
             .replace(
                 "{{receipt-style}}",

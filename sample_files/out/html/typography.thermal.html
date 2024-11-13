@@ -11,7 +11,7 @@
         }
 
         section {
-            background: white;
+            background: #FFFFFFFF;
             font-family: monospace;
             font-size: 21.8px;
             line-height: 24px;
@@ -40,20 +40,35 @@
         span {
             display: block;
             vertical-align: text-bottom;
+            white-space: pre;
+            color: #000000FF;
+            background-color: transparent;
         }
+
+        .fg_0 { color: #FFFFFFFF; }
+        .fg_1 { color: #000000FF; }
+        .fg_2 { color: #9E1616FF; }
+        .fg_3 { color: #1B39A9FF; }
+
+        .bg_0 { background-color: #FFFFFFFF; }
+        .bg_1 { background-color: #000000FF; }
+        .bg_2 { background-color: #9E1616FF; }
+        .bg_3 { background-color: #1B39A9FF; }
+
+        .fb{ font-size: .8em; line-height: .8; }
+        .fc{ font-size: .65em; line-height: .65; }
 
         .b{ font-weight: bold; }
         .i{ font-style: italic; }
         .u{ text-decoration: underline; }
         .s{ text-decoration: line-through; }
-        .in{ background: black; color: white; }
         .s, .sd{ text-decoration: line-through; }
 
         /* Conflicts with scaling, need to figure out a solution */
         .upd { transform: scale(1, -1); }
 
         .str { transform-origin: top left; }
-        
+
         .w2{ transform: scaleX(2); }
         .h2{ transform: scaleY(2); }
         .w2.h2{ transform: scale(2); }
@@ -92,19 +107,18 @@
 <span style='left: 192px; top: 0px' class=''>at </span>
 <span style='left: 228px; top: 0px' class=''>the </span>
 <span style='left: 276px; top: 0px' class=''>end</span>
-<span style='left: 540px; top: 0px' class=''>$2.00</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>6 </span>
+<span style='left: 360px; top: 0px' class=''>$2.00</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>6 </span>
 <span style='left: 24px; top: 0px' class=''>Columns:</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>COL </span>
 <span style='left: 48px; top: 0px' class=''>1</span>
-<span style='left: 108px; top: 0px' class=''>COL </span>
-<span style='left: 156px; top: 0px' class=''>2</span>
-<span style='left: 216px; top: 0px' class=''>COL </span>
-<span style='left: 264px; top: 0px' class=''>3</span>
-<span style='left: 324px; top: 0px' class=''>COL </span>
-<span style='left: 372px; top: 0px' class=''>4</span>
-<span style='left: 432px; top: 0px' class=''>COL </span>
-<span style='left: 480px; top: 0px' class=''>5</span>
+<span style='left: 180px; top: 0px' class=''>COL </span>
+<span style='left: 228px; top: 0px' class=''>2</span>
+<span style='left: 360px; top: 0px' class=''>COL </span>
+<span style='left: 408px; top: 0px' class=''>3</span>
 <span style='left: 540px; top: 0px' class=''>COL </span>
-<span style='left: 588px; top: 0px' class=''>6</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>4 </span>
+<span style='left: 588px; top: 0px' class=''>4</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>COL </span>
+<span style='left: 48px; top: 0px' class=''>5</span>
+<span style='left: 180px; top: 0px' class=''>COL </span>
+<span style='left: 228px; top: 0px' class=''>6</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>4 </span>
 <span style='left: 24px; top: 0px' class=''>Columns:</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>COL </span>
 <span style='left: 48px; top: 0px' class=''>1</span>
 <span style='left: 180px; top: 0px' class=''>COL </span>
@@ -173,7 +187,7 @@
 <span style='left: 60px; top: 0px' class=''>should </span>
 <span style='left: 144px; top: 0px' class=''>be </span>
 <span style='left: 180px; top: 0px' class=''>--> </span>
-<span style='left: 228px; top: 0px' class='in'>inverted</span>
+<span style='left: 228px; top: 0px' class='fg_0 bg_1'>inverted</span>
 <span style='left: 324px; top: 0px' class=''> </span>
 <span style='left: 336px; top: 0px' class=''><--</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>This </span>
 <span style='left: 60px; top: 0px' class=''>should </span>
@@ -224,17 +238,54 @@
 <span style='left: 60px; top: 0px' class=''>should </span>
 <span style='left: 144px; top: 0px' class=''>be </span>
 <span style='left: 180px; top: 0px' class=''>--> </span>
-<span style='left: 228px; top: 0px' class=''>Font </span>
-<span style='left: 288px; top: 0px' class=''>B</span>
-<span style='left: 300px; top: 0px' class=''> </span>
-<span style='left: 312px; top: 0px' class=''><--</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>This </span>
+<span style='left: 228px; top: 5px' class='fb'>Font </span>
+<span style='left: 273px; top: 5px' class='fb'>B</span>
+<span style='left: 282px; top: 0px' class=''> </span>
+<span style='left: 294px; top: 0px' class=''><--</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>This </span>
 <span style='left: 60px; top: 0px' class=''>should </span>
 <span style='left: 144px; top: 0px' class=''>be </span>
 <span style='left: 180px; top: 0px' class=''>--> </span>
-<span style='left: 228px; top: 0px' class=''>Font </span>
-<span style='left: 288px; top: 0px' class=''>C</span>
-<span style='left: 300px; top: 0px' class=''> </span>
-<span style='left: 312px; top: 0px' class=''><--</span></p><p style='height: 48px; margin-top: 72px'><span style='left: 0px; top: 0px' class='h2 str'>JUSTIFICATION</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 28px; top: 0px' class=''>This </span>
+<span style='left: 228px; top: 5px' class='fc'>Font </span>
+<span style='left: 273px; top: 5px' class='fc'>C</span>
+<span style='left: 282px; top: 0px' class=''> </span>
+<span style='left: 294px; top: 0px' class=''><--</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>This </span>
+<span style='left: 60px; top: 0px' class=''>should </span>
+<span style='left: 144px; top: 0px' class=''>be </span>
+<span style='left: 180px; top: 0px' class=''>--> </span>
+<span style='left: 228px; top: 0px' class='fg_2'>Red</span>
+<span style='left: 264px; top: 0px' class=''> </span>
+<span style='left: 276px; top: 0px' class=''><--</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>This </span>
+<span style='left: 60px; top: 0px' class=''>should </span>
+<span style='left: 144px; top: 0px' class=''>be </span>
+<span style='left: 180px; top: 0px' class=''>--> </span>
+<span style='left: 228px; top: 0px' class='fg_0 bg_2'> </span>
+<span style='left: 240px; top: 0px' class='fg_0 bg_2'>Red </span>
+<span style='left: 288px; top: 0px' class='fg_0 bg_2'>Block </span>
+<span style='left: 360px; top: 0px' class=''> </span>
+<span style='left: 372px; top: 0px' class=''><--</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>This </span>
+<span style='left: 60px; top: 0px' class=''>should </span>
+<span style='left: 144px; top: 0px' class=''>be </span>
+<span style='left: 180px; top: 0px' class=''>--> </span>
+<span style='left: 228px; top: 0px' class='fg_3'>Blue</span>
+<span style='left: 276px; top: 0px' class=''> </span>
+<span style='left: 288px; top: 0px' class=''><--</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>This </span>
+<span style='left: 60px; top: 0px' class=''>should </span>
+<span style='left: 144px; top: 0px' class=''>be </span>
+<span style='left: 180px; top: 0px' class=''>--> </span>
+<span style='left: 228px; top: 0px' class='fg_0 bg_3'> </span>
+<span style='left: 240px; top: 0px' class='fg_0 bg_3'>Blue </span>
+<span style='left: 300px; top: 0px' class='fg_0 bg_3'>Block </span>
+<span style='left: 372px; top: 0px' class=''> </span>
+<span style='left: 384px; top: 0px' class=''><--</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>This </span>
+<span style='left: 60px; top: 0px' class=''>should </span>
+<span style='left: 144px; top: 0px' class=''>be </span>
+<span style='left: 180px; top: 0px' class=''>--> </span>
+<span style='left: 228px; top: 0px' class='fg_2 bg_1'> </span>
+<span style='left: 240px; top: 0px' class='fg_2 bg_1'>Black </span>
+<span style='left: 312px; top: 0px' class='fg_2 bg_1'>/ </span>
+<span style='left: 336px; top: 0px' class='fg_2 bg_1'>Red </span>
+<span style='left: 384px; top: 0px' class=''> </span>
+<span style='left: 396px; top: 0px' class=''><--</span></p><p style='height: 48px; margin-top: 72px'><span style='left: 0px; top: 0px' class='h2 str'>JUSTIFICATION</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 28px; top: 0px' class=''>This </span>
 <span style='left: 88px; top: 0px' class=''>text </span>
 <span style='left: 148px; top: 0px' class=''>should </span>
 <span style='left: 232px; top: 0px' class=''>be </span>
@@ -267,14 +318,14 @@
 <span style='left: 516px; top: 0px' class='h2 str'>onto </span>
 <span style='left: 576px; top: 0px' class='h2 str'>a </span></p><p style='height: 48px; margin-top: 0px'><span style='left: 0px; top: 0px' class='h2 str'>newline</span></p><p style='height: 48px; margin-top: 24px'><span style='left: 0px; top: 0px' class='h2 str'>Small </span>
 <span style='left: 72px; top: 0px' class='h2 str'>to </span>
-<span style='left: 108px; top: 0px' class='h2 str'>big</span></p><p style='height: 168px; margin-top: 0px'><span style='left: 0px; top: 112px' class=''>1</span>
-<span style='left: 12px; top: 93px' class='w2 h2 str'>2</span>
-<span style='left: 36px; top: 74px' class='w3 h3 str'>3</span>
-<span style='left: 72px; top: 56px' class='w4 h4 str'>4</span>
-<span style='left: 120px; top: 37px' class='w5 h5 str'>5</span>
-<span style='left: 180px; top: 18px' class='w6 h6 str'>6</span>
-<span style='left: 252px; top: 0px' class='w7 h7 str'>7</span>
-<span style='left: 336px; top: 131px' class='w8 str'>8</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>Stretch </span>
+<span style='left: 108px; top: 0px' class='h2 str'>big</span></p><p style='height: 192px; margin-top: 0px'><span style='left: 0px; top: 131px' class=''>1</span>
+<span style='left: 12px; top: 112px' class='w2 h2 str'>2</span>
+<span style='left: 36px; top: 93px' class='w3 h3 str'>3</span>
+<span style='left: 72px; top: 74px' class='w4 h4 str'>4</span>
+<span style='left: 120px; top: 56px' class='w5 h5 str'>5</span>
+<span style='left: 180px; top: 37px' class='w6 h6 str'>6</span>
+<span style='left: 252px; top: 18px' class='w7 h7 str'>7</span>
+<span style='left: 336px; top: 0px' class='w8 h8 str'>8</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>Stretch </span>
 <span style='left: 96px; top: 0px' class=''>width </span>
 <span style='left: 168px; top: 0px' class=''>low </span>
 <span style='left: 216px; top: 0px' class=''>to </span>
@@ -289,14 +340,14 @@
 <span style='left: 96px; top: 0px' class=''>height </span>
 <span style='left: 180px; top: 0px' class=''>low </span>
 <span style='left: 228px; top: 0px' class=''>to </span>
-<span style='left: 264px; top: 0px' class=''>high</span></p><p style='height: 168px; margin-top: 0px'><span style='left: 0px; top: 112px' class=''>1</span>
-<span style='left: 12px; top: 93px' class='h2 str'>2</span>
-<span style='left: 24px; top: 74px' class='h3 str'>3</span>
-<span style='left: 36px; top: 56px' class='h4 str'>4</span>
-<span style='left: 48px; top: 37px' class='h5 str'>5</span>
-<span style='left: 60px; top: 18px' class='h6 str'>6</span>
-<span style='left: 72px; top: 0px' class='h7 str'>7</span>
-<span style='left: 84px; top: 131px' class=''>8</span></p><p style='height: 48px; margin-top: 0px'><span style='left: 0px; top: 0px' class='b w2 h2 str u ud'>2x </span>
+<span style='left: 264px; top: 0px' class=''>high</span></p><p style='height: 192px; margin-top: 0px'><span style='left: 0px; top: 131px' class=''>1</span>
+<span style='left: 12px; top: 112px' class='h2 str'>2</span>
+<span style='left: 24px; top: 93px' class='h3 str'>3</span>
+<span style='left: 36px; top: 74px' class='h4 str'>4</span>
+<span style='left: 48px; top: 56px' class='h5 str'>5</span>
+<span style='left: 60px; top: 37px' class='h6 str'>6</span>
+<span style='left: 72px; top: 18px' class='h7 str'>7</span>
+<span style='left: 84px; top: 0px' class='h8 str'>8</span></p><p style='height: 48px; margin-top: 0px'><span style='left: 0px; top: 0px' class='b w2 h2 str u ud'>2x </span>
 <span style='left: 72px; top: 0px' class='b w2 h2 str u ud'>Width </span>
 <span style='left: 216px; top: 0px' class='b w2 h2 str u ud'>and </span>
 <span style='left: 312px; top: 0px' class='b w2 h2 str u ud'>2x </span>

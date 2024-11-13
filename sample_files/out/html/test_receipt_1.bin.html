@@ -11,7 +11,7 @@
         }
 
         section {
-            background: white;
+            background: #FFFFFFFF;
             font-family: monospace;
             font-size: 21.8px;
             line-height: 24px;
@@ -40,20 +40,35 @@
         span {
             display: block;
             vertical-align: text-bottom;
+            white-space: pre;
+            color: #000000FF;
+            background-color: transparent;
         }
+
+        .fg_0 { color: #FFFFFFFF; }
+        .fg_1 { color: #000000FF; }
+        .fg_2 { color: #9E1616FF; }
+        .fg_3 { color: #1B39A9FF; }
+
+        .bg_0 { background-color: #FFFFFFFF; }
+        .bg_1 { background-color: #000000FF; }
+        .bg_2 { background-color: #9E1616FF; }
+        .bg_3 { background-color: #1B39A9FF; }
+
+        .fb{ font-size: .8em; line-height: .8; }
+        .fc{ font-size: .65em; line-height: .65; }
 
         .b{ font-weight: bold; }
         .i{ font-style: italic; }
         .u{ text-decoration: underline; }
         .s{ text-decoration: line-through; }
-        .in{ background: black; color: white; }
         .s, .sd{ text-decoration: line-through; }
 
         /* Conflicts with scaling, need to figure out a solution */
         .upd { transform: scale(1, -1); }
 
         .str { transform-origin: top left; }
-        
+
         .w2{ transform: scaleX(2); }
         .h2{ transform: scaleY(2); }
         .w2.h2{ transform: scale(2); }
@@ -86,7 +101,7 @@
     </style>
 </head>
 <body>
-    <main><section style="width: 649px; padding-left: 20px; padding-right: 20px; padding-bottom: 72px;"><article><p style='height: 108px; margin-top: 0px'></p><p style='height: 48px; margin-top: 0px'><span style='left: 0px; top: 0px' class='b h2 str'>Zebra </span>
+    <main><section style="width: 649px; padding-left: 20px; padding-right: 20px; padding-bottom: 79px;"><article><p style='height: 108px; margin-top: 0px'></p><p style='height: 48px; margin-top: 0px'><span style='left: 0px; top: 0px' class='b h2 str'>Zebra </span>
 <span style='left: 72px; top: 0px' class='b h2 str'>Farmer's </span>
 <span style='left: 180px; top: 0px' class='b h2 str'>Market</span></p><p style='height: 24px; margin-top: 0px'><span style='left: 0px; top: 0px' class=''>30601 </span>
 <span style='left: 72px; top: 0px' class=''>Agoura </span>
@@ -123,11 +138,11 @@
 <span style='left: 96px; top: 0px' class='b'> </span>
 <span style='left: 108px; top: 0px' class='b'> </span>
 <span style='left: 120px; top: 0px' class='b'> </span>
-<span style='left: 132px; top: 0px' class='b'>$2.25</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class='b in'>Total</span>
-<span style='left: 96px; top: 0px' class='b in'> </span>
-<span style='left: 108px; top: 0px' class='b in'> </span>
-<span style='left: 120px; top: 0px' class='b in'> </span>
-<span style='left: 132px; top: 0px' class='b in'>$27.20</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>********************</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>Thank </span>
+<span style='left: 132px; top: 0px' class='b'>$2.25</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class='b fg_0 bg_1'>Total</span>
+<span style='left: 96px; top: 0px' class='b fg_0 bg_1'> </span>
+<span style='left: 108px; top: 0px' class='b fg_0 bg_1'> </span>
+<span style='left: 120px; top: 0px' class='b fg_0 bg_1'> </span>
+<span style='left: 132px; top: 0px' class='b fg_0 bg_1'>$27.20</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>********************</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>Thank </span>
 <span style='left: 72px; top: 0px' class=''>you </span>
 <span style='left: 120px; top: 0px' class=''>for </span>
 <span style='left: 168px; top: 0px' class=''>shopping </span>
@@ -185,13 +200,13 @@
 <rect width='2' height='64' x='190' y='0' fill='black' />
 <rect width='2' height='64' x='194' y='0' fill='black' />
 <rect width='2' height='64' x='198' y='0' fill='black' />
-<rect width='2' height='64' x='200' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class=''>*No </span>
-<span style='left: 48px; top: 0px' class=''>refunds </span>
-<span style='left: 144px; top: 0px' class=''>or </span>
-<span style='left: 180px; top: 0px' class=''>exchanges </span>
-<span style='left: 300px; top: 0px' class=''>without </span>
-<span style='left: 396px; top: 0px' class=''>receipt*</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 0px; top: 0px' class='b'>++Zebra </span>
+<rect width='2' height='64' x='200' y='0' fill='black' /></svg></p><p style='height: 17px; margin-top: 24px'><span style='left: 0px; top: 0px' class='fb'>*No </span>
+<span style='left: 36px; top: 0px' class='fb'>refunds </span>
+<span style='left: 108px; top: 0px' class='fb'>or </span>
+<span style='left: 135px; top: 0px' class='fb'>exchanges </span>
+<span style='left: 225px; top: 0px' class='fb'>without </span>
+<span style='left: 297px; top: 0px' class='fb'>receipt*</span></p><p style='height: 24px; margin-top: 31px'><span style='left: 0px; top: 0px' class='b'>++Zebra </span>
 <span style='left: 96px; top: 0px' class='b'>Technical </span>
-<span style='left: 216px; top: 0px' class='b'>Support++</span></p><p style='height: 24px; margin-top: 24px'><span style='left: 226px; top: 0px' class='b upd'>www.zebra.com</span></p></article></section></main>
+<span style='left: 216px; top: 0px' class='b'>Support++</span></p><p style='height: 17px; margin-top: 24px'><span style='left: 246px; top: 0px' class='b upd fb'>www.zebra.com</span></p></article></section></main>
 </body>
 </html>

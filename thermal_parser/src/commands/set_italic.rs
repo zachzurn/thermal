@@ -14,7 +14,7 @@ pub fn new() -> Command {
     Command::new(
         "Enable Italic",
         vec![ESC, 0x34],
-        CommandType::Context,
+        CommandType::TextStyle,
         DataType::Single,
         Box::new(Handler {}),
     )
