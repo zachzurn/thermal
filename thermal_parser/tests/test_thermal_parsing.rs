@@ -42,7 +42,7 @@ fn it_parses_lines() {
 
 #[test]
 fn it_decompiles_binary() {
-    convert_binary_to_thermal("test_receipt_1")
+    convert_binary_to_thermal("barcodes_upce")
 }
 
 // Utility function for converting bin files

@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Thermal</title>
+
+    <style>
+        body {
+            margin: 0;
+            background: #f7f5f0;
+        }
+
+        section {
+            background: #FFFFFFFF;
+            font-family: monospace;
+            font-size: 21.8px;
+            line-height: 24px;
+            margin: 20px auto 20px auto;
+            text-align: left;
+            box-sizing: border-box;
+            transform: scale(0.7);
+            transform-origin: top;
+        }
+
+        @media print {
+            html, body { background: white; }
+            section { margin: 0 auto; }
+        }
+
+        p {
+            margin:0;
+            padding: 0;
+            position: relative;
+        }
+
+        p span, p .img, p .gfx {
+           position: absolute;
+        }
+
+        span {
+            display: block;
+            vertical-align: text-bottom;
+            white-space: pre;
+            color: #000000FF;
+            background-color: transparent;
+        }
+
+        .fg_0 { color: #FFFFFFFF; }
+        .fg_1 { color: #000000FF; }
+        .fg_2 { color: #9E1616FF; }
+        .fg_3 { color: #1B39A9FF; }
+
+        .bg_0 { background-color: #FFFFFFFF; }
+        .bg_1 { background-color: #000000FF; }
+        .bg_2 { background-color: #9E1616FF; }
+        .bg_3 { background-color: #1B39A9FF; }
+
+        .fb{ font-size: .8em; line-height: .8; }
+        .fc{ font-size: .65em; line-height: .65; }
+
+        .b{ font-weight: bold; }
+        .i{ font-style: italic; }
+        .u{ text-decoration: underline; }
+        .s{ text-decoration: line-through; }
+        .s, .sd{ text-decoration: line-through; }
+
+        /* Conflicts with scaling, need to figure out a solution */
+        .upd { transform: scale(1, -1); }
+
+        .str { transform-origin: top left; }
+
+        .w2{ transform: scaleX(2); }
+        .h2{ transform: scaleY(2); }
+        .w2.h2{ transform: scale(2); }
+
+        .w3{ transform: scaleX(3); }
+        .h3{ transform: scaleY(3); }
+        .w3.h3{ transform: scale(3); }
+
+        .w4{ transform: scaleX(4); }
+        .h4{ transform: scaleY(4); }
+        .w4.h4{ transform: scale(4); }
+
+        .w5{ transform: scaleX(5); }
+        .h5{ transform: scaleY(5); }
+        .w5.h5{ transform: scale(5); }
+
+        .w6{ transform: scaleX(6); }
+        .h6{ transform: scaleY(6); }
+        .w6.h6{ transform: scale(6); }
+
+        .w7{ transform: scaleX(7); }
+        .h7{ transform: scaleY(7); }
+        .w7.h7{ transform: scale(7); }
+
+        .w8{ transform: scaleX(8); }
+        .h8{ transform: scaleY(8); }
+        .w8.h8{ transform: scale(8); }
+
+        img { display: block; }
+    </style>
+</head>
+<body>
+    <main><section style="width: 649px; padding-left: 20px; padding-right: 20px; padding-bottom: 0px;"><article><p style='height: 108px; margin-top: 0px'></p><p style='height: 48px; margin-top: 48px'><span style='left: 130px; top: 0px' class='b h2 str'>DEMOS's </span>
+<span style='left: 226px; top: 0px' class='b h2 str'>barcode </span>
+<span style='left: 322px; top: 0px' class='b h2 str'>demonstration</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 184px; top: 0px' class=''>UPC-A </span>
+<span style='left: 256px; top: 0px' class=''>Barcode </span>
+<span style='left: 352px; top: 0px' class=''>System</span></p><p style='height: 100px; margin-top: 24px'><svg style='left: 162px;' class='gfx' width='285' height='100'><rect width='3' height='100' x='0' y='0' fill='black' />
+<rect width='3' height='100' x='6' y='0' fill='black' />
+<rect width='3' height='100' x='12' y='0' fill='black' />
+<rect width='3' height='100' x='18' y='0' fill='black' />
+<rect width='3' height='100' x='21' y='0' fill='black' />
+<rect width='3' height='100' x='24' y='0' fill='black' />
+<rect width='3' height='100' x='27' y='0' fill='black' />
+<rect width='3' height='100' x='39' y='0' fill='black' />
+<rect width='3' height='100' x='45' y='0' fill='black' />
+<rect width='3' height='100' x='48' y='0' fill='black' />
+<rect width='3' height='100' x='54' y='0' fill='black' />
+<rect width='3' height='100' x='57' y='0' fill='black' />
+<rect width='3' height='100' x='69' y='0' fill='black' />
+<rect width='3' height='100' x='75' y='0' fill='black' />
+<rect width='3' height='100' x='78' y='0' fill='black' />
+<rect width='3' height='100' x='84' y='0' fill='black' />
+<rect width='3' height='100' x='87' y='0' fill='black' />
+<rect width='3' height='100' x='90' y='0' fill='black' />
+<rect width='3' height='100' x='96' y='0' fill='black' />
+<rect width='3' height='100' x='99' y='0' fill='black' />
+<rect width='3' height='100' x='102' y='0' fill='black' />
+<rect width='3' height='100' x='108' y='0' fill='black' />
+<rect width='3' height='100' x='111' y='0' fill='black' />
+<rect width='3' height='100' x='117' y='0' fill='black' />
+<rect width='3' height='100' x='120' y='0' fill='black' />
+<rect width='3' height='100' x='126' y='0' fill='black' />
+<rect width='3' height='100' x='129' y='0' fill='black' />
+<rect width='3' height='100' x='132' y='0' fill='black' />
+<rect width='3' height='100' x='138' y='0' fill='black' />
+<rect width='3' height='100' x='144' y='0' fill='black' />
+<rect width='3' height='100' x='150' y='0' fill='black' />
+<rect width='3' height='100' x='153' y='0' fill='black' />
+<rect width='3' height='100' x='156' y='0' fill='black' />
+<rect width='3' height='100' x='162' y='0' fill='black' />
+<rect width='3' height='100' x='171' y='0' fill='black' />
+<rect width='3' height='100' x='177' y='0' fill='black' />
+<rect width='3' height='100' x='192' y='0' fill='black' />
+<rect width='3' height='100' x='207' y='0' fill='black' />
+<rect width='3' height='100' x='213' y='0' fill='black' />
+<rect width='3' height='100' x='222' y='0' fill='black' />
+<rect width='3' height='100' x='225' y='0' fill='black' />
+<rect width='3' height='100' x='228' y='0' fill='black' />
+<rect width='3' height='100' x='234' y='0' fill='black' />
+<rect width='3' height='100' x='237' y='0' fill='black' />
+<rect width='3' height='100' x='243' y='0' fill='black' />
+<rect width='3' height='100' x='246' y='0' fill='black' />
+<rect width='3' height='100' x='255' y='0' fill='black' />
+<rect width='3' height='100' x='264' y='0' fill='black' />
+<rect width='3' height='100' x='276' y='0' fill='black' />
+<rect width='3' height='100' x='282' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 232px; top: 0px' class=''>695878963521</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 184px; top: 0px' class=''>UPC-E </span>
+<span style='left: 256px; top: 0px' class=''>Barcode </span>
+<span style='left: 352px; top: 0px' class=''>System</span></p><p style='height: 100px; margin-top: 24px'><svg style='left: 291px;' class='gfx' width='27' height='100'><rect width='3' height='100' x='0' y='0' fill='black' />
+<rect width='3' height='100' x='6' y='0' fill='black' />
+<rect width='3' height='100' x='12' y='0' fill='black' />
+<rect width='3' height='100' x='18' y='0' fill='black' />
+<rect width='3' height='100' x='24' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 232px; top: 0px' class=''>012345678901</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 178px; top: 0px' class=''>EAN-13 </span>
+<span style='left: 262px; top: 0px' class=''>Barcode </span>
+<span style='left: 358px; top: 0px' class=''>System</span></p><p style='height: 100px; margin-top: 24px'><svg style='left: 162px;' class='gfx' width='285' height='100'><rect width='3' height='100' x='0' y='0' fill='black' />
+<rect width='3' height='100' x='6' y='0' fill='black' />
+<rect width='3' height='100' x='12' y='0' fill='black' />
+<rect width='3' height='100' x='15' y='0' fill='black' />
+<rect width='3' height='100' x='27' y='0' fill='black' />
+<rect width='3' height='100' x='36' y='0' fill='black' />
+<rect width='3' height='100' x='42' y='0' fill='black' />
+<rect width='3' height='100' x='45' y='0' fill='black' />
+<rect width='3' height='100' x='48' y='0' fill='black' />
+<rect width='3' height='100' x='54' y='0' fill='black' />
+<rect width='3' height='100' x='60' y='0' fill='black' />
+<rect width='3' height='100' x='63' y='0' fill='black' />
+<rect width='3' height='100' x='66' y='0' fill='black' />
+<rect width='3' height='100' x='69' y='0' fill='black' />
+<rect width='3' height='100' x='81' y='0' fill='black' />
+<rect width='3' height='100' x='87' y='0' fill='black' />
+<rect width='3' height='100' x='90' y='0' fill='black' />
+<rect width='3' height='100' x='99' y='0' fill='black' />
+<rect width='3' height='100' x='111' y='0' fill='black' />
+<rect width='3' height='100' x='120' y='0' fill='black' />
+<rect width='3' height='100' x='126' y='0' fill='black' />
+<rect width='3' height='100' x='129' y='0' fill='black' />
+<rect width='3' height='100' x='132' y='0' fill='black' />
+<rect width='3' height='100' x='138' y='0' fill='black' />
+<rect width='3' height='100' x='144' y='0' fill='black' />
+<rect width='3' height='100' x='150' y='0' fill='black' />
+<rect width='3' height='100' x='159' y='0' fill='black' />
+<rect width='3' height='100' x='171' y='0' fill='black' />
+<rect width='3' height='100' x='177' y='0' fill='black' />
+<rect width='3' height='100' x='192' y='0' fill='black' />
+<rect width='3' height='100' x='195' y='0' fill='black' />
+<rect width='3' height='100' x='198' y='0' fill='black' />
+<rect width='3' height='100' x='204' y='0' fill='black' />
+<rect width='3' height='100' x='213' y='0' fill='black' />
+<rect width='3' height='100' x='219' y='0' fill='black' />
+<rect width='3' height='100' x='234' y='0' fill='black' />
+<rect width='3' height='100' x='237' y='0' fill='black' />
+<rect width='3' height='100' x='240' y='0' fill='black' />
+<rect width='3' height='100' x='246' y='0' fill='black' />
+<rect width='3' height='100' x='255' y='0' fill='black' />
+<rect width='3' height='100' x='264' y='0' fill='black' />
+<rect width='3' height='100' x='267' y='0' fill='black' />
+<rect width='3' height='100' x='270' y='0' fill='black' />
+<rect width='3' height='100' x='276' y='0' fill='black' />
+<rect width='3' height='100' x='282' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 226px; top: 0px' class=''>4596979869696</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 184px; top: 0px' class=''>EAN-8 </span>
+<span style='left: 256px; top: 0px' class=''>Barcode </span>
+<span style='left: 352px; top: 0px' class=''>System</span></p><p style='height: 100px; margin-top: 24px'><svg style='left: 204px;' class='gfx' width='201' height='100'><rect width='3' height='100' x='0' y='0' fill='black' />
+<rect width='3' height='100' x='6' y='0' fill='black' />
+<rect width='3' height='100' x='12' y='0' fill='black' />
+<rect width='3' height='100' x='15' y='0' fill='black' />
+<rect width='3' height='100' x='21' y='0' fill='black' />
+<rect width='3' height='100' x='24' y='0' fill='black' />
+<rect width='3' height='100' x='27' y='0' fill='black' />
+<rect width='3' height='100' x='33' y='0' fill='black' />
+<rect width='3' height='100' x='36' y='0' fill='black' />
+<rect width='3' height='100' x='39' y='0' fill='black' />
+<rect width='3' height='100' x='45' y='0' fill='black' />
+<rect width='3' height='100' x='48' y='0' fill='black' />
+<rect width='3' height='100' x='60' y='0' fill='black' />
+<rect width='3' height='100' x='66' y='0' fill='black' />
+<rect width='3' height='100' x='69' y='0' fill='black' />
+<rect width='3' height='100' x='75' y='0' fill='black' />
+<rect width='3' height='100' x='81' y='0' fill='black' />
+<rect width='3' height='100' x='84' y='0' fill='black' />
+<rect width='3' height='100' x='87' y='0' fill='black' />
+<rect width='3' height='100' x='90' y='0' fill='black' />
+<rect width='3' height='100' x='96' y='0' fill='black' />
+<rect width='3' height='100' x='102' y='0' fill='black' />
+<rect width='3' height='100' x='108' y='0' fill='black' />
+<rect width='3' height='100' x='117' y='0' fill='black' />
+<rect width='3' height='100' x='129' y='0' fill='black' />
+<rect width='3' height='100' x='132' y='0' fill='black' />
+<rect width='3' height='100' x='135' y='0' fill='black' />
+<rect width='3' height='100' x='141' y='0' fill='black' />
+<rect width='3' height='100' x='150' y='0' fill='black' />
+<rect width='3' height='100' x='156' y='0' fill='black' />
+<rect width='3' height='100' x='171' y='0' fill='black' />
+<rect width='3' height='100' x='180' y='0' fill='black' />
+<rect width='3' height='100' x='183' y='0' fill='black' />
+<rect width='3' height='100' x='186' y='0' fill='black' />
+<rect width='3' height='100' x='192' y='0' fill='black' />
+<rect width='3' height='100' x='198' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 262px; top: 0px' class=''>8796896</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 166px; top: 0px' class=''>CODE-128 </span>
+<span style='left: 274px; top: 0px' class=''>Barcode </span>
+<span style='left: 370px; top: 0px' class=''>System</span></p><p style='height: 100px; margin-top: 24px'><svg style='left: 136px;' class='gfx' width='336' height='100'><rect width='3' height='100' x='0' y='0' fill='black' />
+<rect width='3' height='100' x='3' y='0' fill='black' />
+<rect width='3' height='100' x='9' y='0' fill='black' />
+<rect width='3' height='100' x='24' y='0' fill='black' />
+<rect width='3' height='100' x='33' y='0' fill='black' />
+<rect width='3' height='100' x='36' y='0' fill='black' />
+<rect width='3' height='100' x='45' y='0' fill='black' />
+<rect width='3' height='100' x='54' y='0' fill='black' />
+<rect width='3' height='100' x='57' y='0' fill='black' />
+<rect width='3' height='100' x='60' y='0' fill='black' />
+<rect width='3' height='100' x='66' y='0' fill='black' />
+<rect width='3' height='100' x='69' y='0' fill='black' />
+<rect width='3' height='100' x='75' y='0' fill='black' />
+<rect width='3' height='100' x='78' y='0' fill='black' />
+<rect width='3' height='100' x='81' y='0' fill='black' />
+<rect width='3' height='100' x='90' y='0' fill='black' />
+<rect width='3' height='100' x='99' y='0' fill='black' />
+<rect width='3' height='100' x='102' y='0' fill='black' />
+<rect width='3' height='100' x='105' y='0' fill='black' />
+<rect width='3' height='100' x='111' y='0' fill='black' />
+<rect width='3' height='100' x='120' y='0' fill='black' />
+<rect width='3' height='100' x='123' y='0' fill='black' />
+<rect width='3' height='100' x='132' y='0' fill='black' />
+<rect width='3' height='100' x='135' y='0' fill='black' />
+<rect width='3' height='100' x='138' y='0' fill='black' />
+<rect width='3' height='100' x='147' y='0' fill='black' />
+<rect width='3' height='100' x='153' y='0' fill='black' />
+<rect width='3' height='100' x='156' y='0' fill='black' />
+<rect width='3' height='100' x='165' y='0' fill='black' />
+<rect width='3' height='100' x='168' y='0' fill='black' />
+<rect width='3' height='100' x='177' y='0' fill='black' />
+<rect width='3' height='100' x='180' y='0' fill='black' />
+<rect width='3' height='100' x='183' y='0' fill='black' />
+<rect width='3' height='100' x='189' y='0' fill='black' />
+<rect width='3' height='100' x='198' y='0' fill='black' />
+<rect width='3' height='100' x='201' y='0' fill='black' />
+<rect width='3' height='100' x='204' y='0' fill='black' />
+<rect width='3' height='100' x='213' y='0' fill='black' />
+<rect width='3' height='100' x='219' y='0' fill='black' />
+<rect width='3' height='100' x='222' y='0' fill='black' />
+<rect width='3' height='100' x='231' y='0' fill='black' />
+<rect width='3' height='100' x='234' y='0' fill='black' />
+<rect width='3' height='100' x='243' y='0' fill='black' />
+<rect width='3' height='100' x='246' y='0' fill='black' />
+<rect width='3' height='100' x='249' y='0' fill='black' />
+<rect width='3' height='100' x='255' y='0' fill='black' />
+<rect width='3' height='100' x='264' y='0' fill='black' />
+<rect width='3' height='100' x='267' y='0' fill='black' />
+<rect width='3' height='100' x='273' y='0' fill='black' />
+<rect width='3' height='100' x='276' y='0' fill='black' />
+<rect width='3' height='100' x='282' y='0' fill='black' />
+<rect width='3' height='100' x='285' y='0' fill='black' />
+<rect width='3' height='100' x='297' y='0' fill='black' />
+<rect width='3' height='100' x='300' y='0' fill='black' />
+<rect width='3' height='100' x='312' y='0' fill='black' />
+<rect width='3' height='100' x='315' y='0' fill='black' />
+<rect width='3' height='100' x='318' y='0' fill='black' />
+<rect width='3' height='100' x='324' y='0' fill='black' />
+<rect width='3' height='100' x='330' y='0' fill='black' />
+<rect width='3' height='100' x='333' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 262px; top: 0px' class=''>4589696</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 154px; top: 0px' class=''>ITF( </span>
+<span style='left: 214px; top: 0px' class=''>Interlevead </span>
+<span style='left: 358px; top: 0px' class=''>2 </span>
+<span style='left: 382px; top: 0px' class=''>of </span>
+<span style='left: 418px; top: 0px' class=''>5 </span>
+<span style='left: 442px; top: 0px' class=''>)</span></p><p style='height: 100px; margin-top: 24px'><svg style='left: 103px;' class='gfx' width='402' height='100'><rect width='3' height='100' x='0' y='0' fill='black' />
+<rect width='3' height='100' x='6' y='0' fill='black' />
+<rect width='3' height='100' x='12' y='0' fill='black' />
+<rect width='3' height='100' x='15' y='0' fill='black' />
+<rect width='3' height='100' x='18' y='0' fill='black' />
+<rect width='3' height='100' x='24' y='0' fill='black' />
+<rect width='3' height='100' x='36' y='0' fill='black' />
+<rect width='3' height='100' x='42' y='0' fill='black' />
+<rect width='3' height='100' x='48' y='0' fill='black' />
+<rect width='3' height='100' x='51' y='0' fill='black' />
+<rect width='3' height='100' x='54' y='0' fill='black' />
+<rect width='3' height='100' x='66' y='0' fill='black' />
+<rect width='3' height='100' x='69' y='0' fill='black' />
+<rect width='3' height='100' x='72' y='0' fill='black' />
+<rect width='3' height='100' x='78' y='0' fill='black' />
+<rect width='3' height='100' x='81' y='0' fill='black' />
+<rect width='3' height='100' x='84' y='0' fill='black' />
+<rect width='3' height='100' x='90' y='0' fill='black' />
+<rect width='3' height='100' x='102' y='0' fill='black' />
+<rect width='3' height='100' x='108' y='0' fill='black' />
+<rect width='3' height='100' x='120' y='0' fill='black' />
+<rect width='3' height='100' x='123' y='0' fill='black' />
+<rect width='3' height='100' x='126' y='0' fill='black' />
+<rect width='3' height='100' x='132' y='0' fill='black' />
+<rect width='3' height='100' x='144' y='0' fill='black' />
+<rect width='3' height='100' x='147' y='0' fill='black' />
+<rect width='3' height='100' x='150' y='0' fill='black' />
+<rect width='3' height='100' x='162' y='0' fill='black' />
+<rect width='3' height='100' x='168' y='0' fill='black' />
+<rect width='3' height='100' x='174' y='0' fill='black' />
+<rect width='3' height='100' x='186' y='0' fill='black' />
+<rect width='3' height='100' x='192' y='0' fill='black' />
+<rect width='3' height='100' x='198' y='0' fill='black' />
+<rect width='3' height='100' x='201' y='0' fill='black' />
+<rect width='3' height='100' x='204' y='0' fill='black' />
+<rect width='3' height='100' x='216' y='0' fill='black' />
+<rect width='3' height='100' x='219' y='0' fill='black' />
+<rect width='3' height='100' x='222' y='0' fill='black' />
+<rect width='3' height='100' x='228' y='0' fill='black' />
+<rect width='3' height='100' x='234' y='0' fill='black' />
+<rect width='3' height='100' x='237' y='0' fill='black' />
+<rect width='3' height='100' x='240' y='0' fill='black' />
+<rect width='3' height='100' x='246' y='0' fill='black' />
+<rect width='3' height='100' x='258' y='0' fill='black' />
+<rect width='3' height='100' x='261' y='0' fill='black' />
+<rect width='3' height='100' x='264' y='0' fill='black' />
+<rect width='3' height='100' x='276' y='0' fill='black' />
+<rect width='3' height='100' x='282' y='0' fill='black' />
+<rect width='3' height='100' x='285' y='0' fill='black' />
+<rect width='3' height='100' x='288' y='0' fill='black' />
+<rect width='3' height='100' x='294' y='0' fill='black' />
+<rect width='3' height='100' x='306' y='0' fill='black' />
+<rect width='3' height='100' x='312' y='0' fill='black' />
+<rect width='3' height='100' x='318' y='0' fill='black' />
+<rect width='3' height='100' x='321' y='0' fill='black' />
+<rect width='3' height='100' x='324' y='0' fill='black' />
+<rect width='3' height='100' x='336' y='0' fill='black' />
+<rect width='3' height='100' x='339' y='0' fill='black' />
+<rect width='3' height='100' x='342' y='0' fill='black' />
+<rect width='3' height='100' x='348' y='0' fill='black' />
+<rect width='3' height='100' x='351' y='0' fill='black' />
+<rect width='3' height='100' x='354' y='0' fill='black' />
+<rect width='3' height='100' x='360' y='0' fill='black' />
+<rect width='3' height='100' x='372' y='0' fill='black' />
+<rect width='3' height='100' x='378' y='0' fill='black' />
+<rect width='3' height='100' x='390' y='0' fill='black' />
+<rect width='3' height='100' x='393' y='0' fill='black' />
+<rect width='3' height='100' x='399' y='0' fill='black' /></svg></p><p style='height: 24px; margin-top: 8px'><span style='left: 220px; top: 0px' class=''>12345678901234</span></p><p style='height: 24px; margin-top: 48px'><span style='left: 172px; top: 0px' class=''>PDF-417 </span>
+<span style='left: 268px; top: 0px' class=''>Barcode </span>
+<span style='left: 364px; top: 0px' class=''>System</span></p><p style='height: 24px; margin-top: 72px'><span style='left: 214px; top: 0px' class=''>QR </span>
+<span style='left: 250px; top: 0px' class=''>2-D </span>
+<span style='left: 298px; top: 0px' class=''>Barcode </span></p><p style='height: 87px; margin-top: 24px'><svg style='left: 261px;' class='gfx' width='87' height='87'><rect width='3' height='3' x='0' y='0' fill='black' />
+<rect width='3' height='3' x='3' y='0' fill='black' />
+<rect width='3' height='3' x='6' y='0' fill='black' />
+<rect width='3' height='3' x='9' y='0' fill='black' />
+<rect width='3' height='3' x='12' y='0' fill='black' />
+<rect width='3' height='3' x='15' y='0' fill='black' />
+<rect width='3' height='3' x='18' y='0' fill='black' />
+<rect width='3' height='3' x='24' y='0' fill='black' />
+<rect width='3' height='3' x='48' y='0' fill='black' />
+<rect width='3' height='3' x='51' y='0' fill='black' />
+<rect width='3' height='3' x='57' y='0' fill='black' />
+<rect width='3' height='3' x='66' y='0' fill='black' />
+<rect width='3' height='3' x='69' y='0' fill='black' />
+<rect width='3' height='3' x='72' y='0' fill='black' />
+<rect width='3' height='3' x='75' y='0' fill='black' />
+<rect width='3' height='3' x='78' y='0' fill='black' />
+<rect width='3' height='3' x='81' y='0' fill='black' />
+<rect width='3' height='3' x='84' y='0' fill='black' />
+<rect width='3' height='3' x='0' y='3' fill='black' />
+<rect width='3' height='3' x='18' y='3' fill='black' />
+<rect width='3' height='3' x='24' y='3' fill='black' />
+<rect width='3' height='3' x='33' y='3' fill='black' />
+<rect width='3' height='3' x='36' y='3' fill='black' />
+<rect width='3' height='3' x='42' y='3' fill='black' />
+<rect width='3' height='3' x='45' y='3' fill='black' />
+<rect width='3' height='3' x='51' y='3' fill='black' />
+<rect width='3' height='3' x='54' y='3' fill='black' />
+<rect width='3' height='3' x='57' y='3' fill='black' />
+<rect width='3' height='3' x='60' y='3' fill='black' />
+<rect width='3' height='3' x='66' y='3' fill='black' />
+<rect width='3' height='3' x='84' y='3' fill='black' />
+<rect width='3' height='3' x='0' y='6' fill='black' />
+<rect width='3' height='3' x='6' y='6' fill='black' />
+<rect width='3' height='3' x='9' y='6' fill='black' />
+<rect width='3' height='3' x='12' y='6' fill='black' />
+<rect width='3' height='3' x='18' y='6' fill='black' />
+<rect width='3' height='3' x='24' y='6' fill='black' />
+<rect width='3' height='3' x='27' y='6' fill='black' />
+<rect width='3' height='3' x='36' y='6' fill='black' />
+<rect width='3' height='3' x='39' y='6' fill='black' />
+<rect width='3' height='3' x='42' y='6' fill='black' />
+<rect width='3' height='3' x='45' y='6' fill='black' />
+<rect width='3' height='3' x='48' y='6' fill='black' />
+<rect width='3' height='3' x='54' y='6' fill='black' />
+<rect width='3' height='3' x='57' y='6' fill='black' />
+<rect width='3' height='3' x='66' y='6' fill='black' />
+<rect width='3' height='3' x='72' y='6' fill='black' />
+<rect width='3' height='3' x='75' y='6' fill='black' />
+<rect width='3' height='3' x='78' y='6' fill='black' />
+<rect width='3' height='3' x='84' y='6' fill='black' />
+<rect width='3' height='3' x='0' y='9' fill='black' />
+<rect width='3' height='3' x='6' y='9' fill='black' />
+<rect width='3' height='3' x='9' y='9' fill='black' />
+<rect width='3' height='3' x='12' y='9' fill='black' />
+<rect width='3' height='3' x='18' y='9' fill='black' />
+<rect width='3' height='3' x='24' y='9' fill='black' />
+<rect width='3' height='3' x='27' y='9' fill='black' />
+<rect width='3' height='3' x='30' y='9' fill='black' />
+<rect width='3' height='3' x='36' y='9' fill='black' />
+<rect width='3' height='3' x='42' y='9' fill='black' />
+<rect width='3' height='3' x='51' y='9' fill='black' />
+<rect width='3' height='3' x='54' y='9' fill='black' />
+<rect width='3' height='3' x='57' y='9' fill='black' />
+<rect width='3' height='3' x='60' y='9' fill='black' />
+<rect width='3' height='3' x='66' y='9' fill='black' />
+<rect width='3' height='3' x='72' y='9' fill='black' />
+<rect width='3' height='3' x='75' y='9' fill='black' />
+<rect width='3' height='3' x='78' y='9' fill='black' />
+<rect width='3' height='3' x='84' y='9' fill='black' />
+<rect width='3' height='3' x='0' y='12' fill='black' />
+<rect width='3' height='3' x='6' y='12' fill='black' />
+<rect width='3' height='3' x='9' y='12' fill='black' />
+<rect width='3' height='3' x='12' y='12' fill='black' />
+<rect width='3' height='3' x='18' y='12' fill='black' />
+<rect width='3' height='3' x='27' y='12' fill='black' />
+<rect width='3' height='3' x='30' y='12' fill='black' />
+<rect width='3' height='3' x='36' y='12' fill='black' />
+<rect width='3' height='3' x='51' y='12' fill='black' />
+<rect width='3' height='3' x='57' y='12' fill='black' />
+<rect width='3' height='3' x='66' y='12' fill='black' />
+<rect width='3' height='3' x='72' y='12' fill='black' />
+<rect width='3' height='3' x='75' y='12' fill='black' />
+<rect width='3' height='3' x='78' y='12' fill='black' />
+<rect width='3' height='3' x='84' y='12' fill='black' />
+<rect width='3' height='3' x='0' y='15' fill='black' />
+<rect width='3' height='3' x='18' y='15' fill='black' />
+<rect width='3' height='3' x='24' y='15' fill='black' />
+<rect width='3' height='3' x='27' y='15' fill='black' />
+<rect width='3' height='3' x='30' y='15' fill='black' />
+<rect width='3' height='3' x='42' y='15' fill='black' />
+<rect width='3' height='3' x='45' y='15' fill='black' />
+<rect width='3' height='3' x='48' y='15' fill='black' />
+<rect width='3' height='3' x='51' y='15' fill='black' />
+<rect width='3' height='3' x='54' y='15' fill='black' />
+<rect width='3' height='3' x='60' y='15' fill='black' />
+<rect width='3' height='3' x='66' y='15' fill='black' />
+<rect width='3' height='3' x='84' y='15' fill='black' />
+<rect width='3' height='3' x='0' y='18' fill='black' />
+<rect width='3' height='3' x='3' y='18' fill='black' />
+<rect width='3' height='3' x='6' y='18' fill='black' />
+<rect width='3' height='3' x='9' y='18' fill='black' />
+<rect width='3' height='3' x='12' y='18' fill='black' />
+<rect width='3' height='3' x='15' y='18' fill='black' />
+<rect width='3' height='3' x='18' y='18' fill='black' />
+<rect width='3' height='3' x='24' y='18' fill='black' />
+<rect width='3' height='3' x='30' y='18' fill='black' />
+<rect width='3' height='3' x='36' y='18' fill='black' />
+<rect width='3' height='3' x='42' y='18' fill='black' />
+<rect width='3' height='3' x='48' y='18' fill='black' />
+<rect width='3' height='3' x='54' y='18' fill='black' />
+<rect width='3' height='3' x='60' y='18' fill='black' />
+<rect width='3' height='3' x='66' y='18' fill='black' />
+<rect width='3' height='3' x='69' y='18' fill='black' />
+<rect width='3' height='3' x='72' y='18' fill='black' />
+<rect width='3' height='3' x='75' y='18' fill='black' />
+<rect width='3' height='3' x='78' y='18' fill='black' />
+<rect width='3' height='3' x='81' y='18' fill='black' />
+<rect width='3' height='3' x='84' y='18' fill='black' />
+<rect width='3' height='3' x='30' y='21' fill='black' />
+<rect width='3' height='3' x='33' y='21' fill='black' />
+<rect width='3' height='3' x='42' y='21' fill='black' />
+<rect width='3' height='3' x='48' y='21' fill='black' />
+<rect width='3' height='3' x='54' y='21' fill='black' />
+<rect width='3' height='3' x='60' y='21' fill='black' />
+<rect width='3' height='3' x='0' y='24' fill='black' />
+<rect width='3' height='3' x='3' y='24' fill='black' />
+<rect width='3' height='3' x='12' y='24' fill='black' />
+<rect width='3' height='3' x='15' y='24' fill='black' />
+<rect width='3' height='3' x='18' y='24' fill='black' />
+<rect width='3' height='3' x='30' y='24' fill='black' />
+<rect width='3' height='3' x='36' y='24' fill='black' />
+<rect width='3' height='3' x='39' y='24' fill='black' />
+<rect width='3' height='3' x='45' y='24' fill='black' />
+<rect width='3' height='3' x='54' y='24' fill='black' />
+<rect width='3' height='3' x='69' y='24' fill='black' />
+<rect width='3' height='3' x='75' y='24' fill='black' />
+<rect width='3' height='3' x='78' y='24' fill='black' />
+<rect width='3' height='3' x='81' y='24' fill='black' />
+<rect width='3' height='3' x='84' y='24' fill='black' />
+<rect width='3' height='3' x='6' y='27' fill='black' />
+<rect width='3' height='3' x='9' y='27' fill='black' />
+<rect width='3' height='3' x='15' y='27' fill='black' />
+<rect width='3' height='3' x='21' y='27' fill='black' />
+<rect width='3' height='3' x='24' y='27' fill='black' />
+<rect width='3' height='3' x='39' y='27' fill='black' />
+<rect width='3' height='3' x='42' y='27' fill='black' />
+<rect width='3' height='3' x='48' y='27' fill='black' />
+<rect width='3' height='3' x='51' y='27' fill='black' />
+<rect width='3' height='3' x='54' y='27' fill='black' />
+<rect width='3' height='3' x='57' y='27' fill='black' />
+<rect width='3' height='3' x='72' y='27' fill='black' />
+<rect width='3' height='3' x='78' y='27' fill='black' />
+<rect width='3' height='3' x='81' y='27' fill='black' />
+<rect width='3' height='3' x='0' y='30' fill='black' />
+<rect width='3' height='3' x='12' y='30' fill='black' />
+<rect width='3' height='3' x='18' y='30' fill='black' />
+<rect width='3' height='3' x='21' y='30' fill='black' />
+<rect width='3' height='3' x='24' y='30' fill='black' />
+<rect width='3' height='3' x='27' y='30' fill='black' />
+<rect width='3' height='3' x='30' y='30' fill='black' />
+<rect width='3' height='3' x='48' y='30' fill='black' />
+<rect width='3' height='3' x='51' y='30' fill='black' />
+<rect width='3' height='3' x='63' y='30' fill='black' />
+<rect width='3' height='3' x='75' y='30' fill='black' />
+<rect width='3' height='3' x='81' y='30' fill='black' />
+<rect width='3' height='3' x='84' y='30' fill='black' />
+<rect width='3' height='3' x='0' y='33' fill='black' />
+<rect width='3' height='3' x='3' y='33' fill='black' />
+<rect width='3' height='3' x='6' y='33' fill='black' />
+<rect width='3' height='3' x='15' y='33' fill='black' />
+<rect width='3' height='3' x='21' y='33' fill='black' />
+<rect width='3' height='3' x='24' y='33' fill='black' />
+<rect width='3' height='3' x='27' y='33' fill='black' />
+<rect width='3' height='3' x='36' y='33' fill='black' />
+<rect width='3' height='3' x='45' y='33' fill='black' />
+<rect width='3' height='3' x='51' y='33' fill='black' />
+<rect width='3' height='3' x='57' y='33' fill='black' />
+<rect width='3' height='3' x='63' y='33' fill='black' />
+<rect width='3' height='3' x='66' y='33' fill='black' />
+<rect width='3' height='3' x='69' y='33' fill='black' />
+<rect width='3' height='3' x='72' y='33' fill='black' />
+<rect width='3' height='3' x='84' y='33' fill='black' />
+<rect width='3' height='3' x='3' y='36' fill='black' />
+<rect width='3' height='3' x='6' y='36' fill='black' />
+<rect width='3' height='3' x='12' y='36' fill='black' />
+<rect width='3' height='3' x='15' y='36' fill='black' />
+<rect width='3' height='3' x='18' y='36' fill='black' />
+<rect width='3' height='3' x='21' y='36' fill='black' />
+<rect width='3' height='3' x='24' y='36' fill='black' />
+<rect width='3' height='3' x='33' y='36' fill='black' />
+<rect width='3' height='3' x='39' y='36' fill='black' />
+<rect width='3' height='3' x='42' y='36' fill='black' />
+<rect width='3' height='3' x='45' y='36' fill='black' />
+<rect width='3' height='3' x='48' y='36' fill='black' />
+<rect width='3' height='3' x='54' y='36' fill='black' />
+<rect width='3' height='3' x='69' y='36' fill='black' />
+<rect width='3' height='3' x='72' y='36' fill='black' />
+<rect width='3' height='3' x='84' y='36' fill='black' />
+<rect width='3' height='3' x='3' y='39' fill='black' />
+<rect width='3' height='3' x='6' y='39' fill='black' />
+<rect width='3' height='3' x='9' y='39' fill='black' />
+<rect width='3' height='3' x='15' y='39' fill='black' />
+<rect width='3' height='3' x='24' y='39' fill='black' />
+<rect width='3' height='3' x='30' y='39' fill='black' />
+<rect width='3' height='3' x='36' y='39' fill='black' />
+<rect width='3' height='3' x='42' y='39' fill='black' />
+<rect width='3' height='3' x='48' y='39' fill='black' />
+<rect width='3' height='3' x='51' y='39' fill='black' />
+<rect width='3' height='3' x='57' y='39' fill='black' />
+<rect width='3' height='3' x='60' y='39' fill='black' />
+<rect width='3' height='3' x='63' y='39' fill='black' />
+<rect width='3' height='3' x='69' y='39' fill='black' />
+<rect width='3' height='3' x='75' y='39' fill='black' />
+<rect width='3' height='3' x='78' y='39' fill='black' />
+<rect width='3' height='3' x='81' y='39' fill='black' />
+<rect width='3' height='3' x='9' y='42' fill='black' />
+<rect width='3' height='3' x='15' y='42' fill='black' />
+<rect width='3' height='3' x='18' y='42' fill='black' />
+<rect width='3' height='3' x='21' y='42' fill='black' />
+<rect width='3' height='3' x='24' y='42' fill='black' />
+<rect width='3' height='3' x='33' y='42' fill='black' />
+<rect width='3' height='3' x='36' y='42' fill='black' />
+<rect width='3' height='3' x='39' y='42' fill='black' />
+<rect width='3' height='3' x='42' y='42' fill='black' />
+<rect width='3' height='3' x='51' y='42' fill='black' />
+<rect width='3' height='3' x='54' y='42' fill='black' />
+<rect width='3' height='3' x='57' y='42' fill='black' />
+<rect width='3' height='3' x='60' y='42' fill='black' />
+<rect width='3' height='3' x='63' y='42' fill='black' />
+<rect width='3' height='3' x='69' y='42' fill='black' />
+<rect width='3' height='3' x='72' y='42' fill='black' />
+<rect width='3' height='3' x='75' y='42' fill='black' />
+<rect width='3' height='3' x='78' y='42' fill='black' />
+<rect width='3' height='3' x='81' y='42' fill='black' />
+<rect width='3' height='3' x='84' y='42' fill='black' />
+<rect width='3' height='3' x='0' y='45' fill='black' />
+<rect width='3' height='3' x='3' y='45' fill='black' />
+<rect width='3' height='3' x='9' y='45' fill='black' />
+<rect width='3' height='3' x='12' y='45' fill='black' />
+<rect width='3' height='3' x='15' y='45' fill='black' />
+<rect width='3' height='3' x='21' y='45' fill='black' />
+<rect width='3' height='3' x='24' y='45' fill='black' />
+<rect width='3' height='3' x='27' y='45' fill='black' />
+<rect width='3' height='3' x='30' y='45' fill='black' />
+<rect width='3' height='3' x='33' y='45' fill='black' />
+<rect width='3' height='3' x='39' y='45' fill='black' />
+<rect width='3' height='3' x='48' y='45' fill='black' />
+<rect width='3' height='3' x='54' y='45' fill='black' />
+<rect width='3' height='3' x='60' y='45' fill='black' />
+<rect width='3' height='3' x='66' y='45' fill='black' />
+<rect width='3' height='3' x='75' y='45' fill='black' />
+<rect width='3' height='3' x='78' y='45' fill='black' />
+<rect width='3' height='3' x='84' y='45' fill='black' />
+<rect width='3' height='3' x='3' y='48' fill='black' />
+<rect width='3' height='3' x='12' y='48' fill='black' />
+<rect width='3' height='3' x='18' y='48' fill='black' />
+<rect width='3' height='3' x='27' y='48' fill='black' />
+<rect width='3' height='3' x='30' y='48' fill='black' />
+<rect width='3' height='3' x='36' y='48' fill='black' />
+<rect width='3' height='3' x='39' y='48' fill='black' />
+<rect width='3' height='3' x='45' y='48' fill='black' />
+<rect width='3' height='3' x='48' y='48' fill='black' />
+<rect width='3' height='3' x='72' y='48' fill='black' />
+<rect width='3' height='3' x='75' y='48' fill='black' />
+<rect width='3' height='3' x='81' y='48' fill='black' />
+<rect width='3' height='3' x='0' y='51' fill='black' />
+<rect width='3' height='3' x='6' y='51' fill='black' />
+<rect width='3' height='3' x='9' y='51' fill='black' />
+<rect width='3' height='3' x='15' y='51' fill='black' />
+<rect width='3' height='3' x='21' y='51' fill='black' />
+<rect width='3' height='3' x='27' y='51' fill='black' />
+<rect width='3' height='3' x='39' y='51' fill='black' />
+<rect width='3' height='3' x='42' y='51' fill='black' />
+<rect width='3' height='3' x='48' y='51' fill='black' />
+<rect width='3' height='3' x='51' y='51' fill='black' />
+<rect width='3' height='3' x='57' y='51' fill='black' />
+<rect width='3' height='3' x='60' y='51' fill='black' />
+<rect width='3' height='3' x='63' y='51' fill='black' />
+<rect width='3' height='3' x='72' y='51' fill='black' />
+<rect width='3' height='3' x='81' y='51' fill='black' />
+<rect width='3' height='3' x='12' y='54' fill='black' />
+<rect width='3' height='3' x='15' y='54' fill='black' />
+<rect width='3' height='3' x='18' y='54' fill='black' />
+<rect width='3' height='3' x='21' y='54' fill='black' />
+<rect width='3' height='3' x='24' y='54' fill='black' />
+<rect width='3' height='3' x='30' y='54' fill='black' />
+<rect width='3' height='3' x='45' y='54' fill='black' />
+<rect width='3' height='3' x='51' y='54' fill='black' />
+<rect width='3' height='3' x='54' y='54' fill='black' />
+<rect width='3' height='3' x='63' y='54' fill='black' />
+<rect width='3' height='3' x='78' y='54' fill='black' />
+<rect width='3' height='3' x='9' y='57' fill='black' />
+<rect width='3' height='3' x='21' y='57' fill='black' />
+<rect width='3' height='3' x='27' y='57' fill='black' />
+<rect width='3' height='3' x='36' y='57' fill='black' />
+<rect width='3' height='3' x='42' y='57' fill='black' />
+<rect width='3' height='3' x='48' y='57' fill='black' />
+<rect width='3' height='3' x='54' y='57' fill='black' />
+<rect width='3' height='3' x='66' y='57' fill='black' />
+<rect width='3' height='3' x='69' y='57' fill='black' />
+<rect width='3' height='3' x='75' y='57' fill='black' />
+<rect width='3' height='3' x='81' y='57' fill='black' />
+<rect width='3' height='3' x='84' y='57' fill='black' />
+<rect width='3' height='3' x='0' y='60' fill='black' />
+<rect width='3' height='3' x='3' y='60' fill='black' />
+<rect width='3' height='3' x='9' y='60' fill='black' />
+<rect width='3' height='3' x='18' y='60' fill='black' />
+<rect width='3' height='3' x='30' y='60' fill='black' />
+<rect width='3' height='3' x='33' y='60' fill='black' />
+<rect width='3' height='3' x='39' y='60' fill='black' />
+<rect width='3' height='3' x='42' y='60' fill='black' />
+<rect width='3' height='3' x='45' y='60' fill='black' />
+<rect width='3' height='3' x='48' y='60' fill='black' />
+<rect width='3' height='3' x='60' y='60' fill='black' />
+<rect width='3' height='3' x='63' y='60' fill='black' />
+<rect width='3' height='3' x='66' y='60' fill='black' />
+<rect width='3' height='3' x='69' y='60' fill='black' />
+<rect width='3' height='3' x='72' y='60' fill='black' />
+<rect width='3' height='3' x='75' y='60' fill='black' />
+<rect width='3' height='3' x='24' y='63' fill='black' />
+<rect width='3' height='3' x='36' y='63' fill='black' />
+<rect width='3' height='3' x='48' y='63' fill='black' />
+<rect width='3' height='3' x='51' y='63' fill='black' />
+<rect width='3' height='3' x='57' y='63' fill='black' />
+<rect width='3' height='3' x='60' y='63' fill='black' />
+<rect width='3' height='3' x='72' y='63' fill='black' />
+<rect width='3' height='3' x='75' y='63' fill='black' />
+<rect width='3' height='3' x='78' y='63' fill='black' />
+<rect width='3' height='3' x='0' y='66' fill='black' />
+<rect width='3' height='3' x='3' y='66' fill='black' />
+<rect width='3' height='3' x='6' y='66' fill='black' />
+<rect width='3' height='3' x='9' y='66' fill='black' />
+<rect width='3' height='3' x='12' y='66' fill='black' />
+<rect width='3' height='3' x='15' y='66' fill='black' />
+<rect width='3' height='3' x='18' y='66' fill='black' />
+<rect width='3' height='3' x='30' y='66' fill='black' />
+<rect width='3' height='3' x='33' y='66' fill='black' />
+<rect width='3' height='3' x='36' y='66' fill='black' />
+<rect width='3' height='3' x='39' y='66' fill='black' />
+<rect width='3' height='3' x='42' y='66' fill='black' />
+<rect width='3' height='3' x='45' y='66' fill='black' />
+<rect width='3' height='3' x='51' y='66' fill='black' />
+<rect width='3' height='3' x='54' y='66' fill='black' />
+<rect width='3' height='3' x='60' y='66' fill='black' />
+<rect width='3' height='3' x='66' y='66' fill='black' />
+<rect width='3' height='3' x='72' y='66' fill='black' />
+<rect width='3' height='3' x='75' y='66' fill='black' />
+<rect width='3' height='3' x='81' y='66' fill='black' />
+<rect width='3' height='3' x='84' y='66' fill='black' />
+<rect width='3' height='3' x='0' y='69' fill='black' />
+<rect width='3' height='3' x='18' y='69' fill='black' />
+<rect width='3' height='3' x='24' y='69' fill='black' />
+<rect width='3' height='3' x='27' y='69' fill='black' />
+<rect width='3' height='3' x='30' y='69' fill='black' />
+<rect width='3' height='3' x='33' y='69' fill='black' />
+<rect width='3' height='3' x='39' y='69' fill='black' />
+<rect width='3' height='3' x='45' y='69' fill='black' />
+<rect width='3' height='3' x='48' y='69' fill='black' />
+<rect width='3' height='3' x='54' y='69' fill='black' />
+<rect width='3' height='3' x='57' y='69' fill='black' />
+<rect width='3' height='3' x='60' y='69' fill='black' />
+<rect width='3' height='3' x='72' y='69' fill='black' />
+<rect width='3' height='3' x='75' y='69' fill='black' />
+<rect width='3' height='3' x='0' y='72' fill='black' />
+<rect width='3' height='3' x='6' y='72' fill='black' />
+<rect width='3' height='3' x='9' y='72' fill='black' />
+<rect width='3' height='3' x='12' y='72' fill='black' />
+<rect width='3' height='3' x='18' y='72' fill='black' />
+<rect width='3' height='3' x='24' y='72' fill='black' />
+<rect width='3' height='3' x='30' y='72' fill='black' />
+<rect width='3' height='3' x='36' y='72' fill='black' />
+<rect width='3' height='3' x='39' y='72' fill='black' />
+<rect width='3' height='3' x='45' y='72' fill='black' />
+<rect width='3' height='3' x='48' y='72' fill='black' />
+<rect width='3' height='3' x='60' y='72' fill='black' />
+<rect width='3' height='3' x='63' y='72' fill='black' />
+<rect width='3' height='3' x='66' y='72' fill='black' />
+<rect width='3' height='3' x='69' y='72' fill='black' />
+<rect width='3' height='3' x='72' y='72' fill='black' />
+<rect width='3' height='3' x='78' y='72' fill='black' />
+<rect width='3' height='3' x='81' y='72' fill='black' />
+<rect width='3' height='3' x='0' y='75' fill='black' />
+<rect width='3' height='3' x='6' y='75' fill='black' />
+<rect width='3' height='3' x='9' y='75' fill='black' />
+<rect width='3' height='3' x='12' y='75' fill='black' />
+<rect width='3' height='3' x='18' y='75' fill='black' />
+<rect width='3' height='3' x='27' y='75' fill='black' />
+<rect width='3' height='3' x='39' y='75' fill='black' />
+<rect width='3' height='3' x='42' y='75' fill='black' />
+<rect width='3' height='3' x='51' y='75' fill='black' />
+<rect width='3' height='3' x='54' y='75' fill='black' />
+<rect width='3' height='3' x='63' y='75' fill='black' />
+<rect width='3' height='3' x='69' y='75' fill='black' />
+<rect width='3' height='3' x='72' y='75' fill='black' />
+<rect width='3' height='3' x='75' y='75' fill='black' />
+<rect width='3' height='3' x='78' y='75' fill='black' />
+<rect width='3' height='3' x='0' y='78' fill='black' />
+<rect width='3' height='3' x='6' y='78' fill='black' />
+<rect width='3' height='3' x='9' y='78' fill='black' />
+<rect width='3' height='3' x='12' y='78' fill='black' />
+<rect width='3' height='3' x='18' y='78' fill='black' />
+<rect width='3' height='3' x='45' y='78' fill='black' />
+<rect width='3' height='3' x='60' y='78' fill='black' />
+<rect width='3' height='3' x='66' y='78' fill='black' />
+<rect width='3' height='3' x='75' y='78' fill='black' />
+<rect width='3' height='3' x='81' y='78' fill='black' />
+<rect width='3' height='3' x='84' y='78' fill='black' />
+<rect width='3' height='3' x='0' y='81' fill='black' />
+<rect width='3' height='3' x='18' y='81' fill='black' />
+<rect width='3' height='3' x='24' y='81' fill='black' />
+<rect width='3' height='3' x='27' y='81' fill='black' />
+<rect width='3' height='3' x='30' y='81' fill='black' />
+<rect width='3' height='3' x='36' y='81' fill='black' />
+<rect width='3' height='3' x='42' y='81' fill='black' />
+<rect width='3' height='3' x='45' y='81' fill='black' />
+<rect width='3' height='3' x='48' y='81' fill='black' />
+<rect width='3' height='3' x='54' y='81' fill='black' />
+<rect width='3' height='3' x='57' y='81' fill='black' />
+<rect width='3' height='3' x='63' y='81' fill='black' />
+<rect width='3' height='3' x='78' y='81' fill='black' />
+<rect width='3' height='3' x='81' y='81' fill='black' />
+<rect width='3' height='3' x='0' y='84' fill='black' />
+<rect width='3' height='3' x='3' y='84' fill='black' />
+<rect width='3' height='3' x='6' y='84' fill='black' />
+<rect width='3' height='3' x='9' y='84' fill='black' />
+<rect width='3' height='3' x='12' y='84' fill='black' />
+<rect width='3' height='3' x='15' y='84' fill='black' />
+<rect width='3' height='3' x='18' y='84' fill='black' />
+<rect width='3' height='3' x='24' y='84' fill='black' />
+<rect width='3' height='3' x='27' y='84' fill='black' />
+<rect width='3' height='3' x='33' y='84' fill='black' />
+<rect width='3' height='3' x='39' y='84' fill='black' />
+<rect width='3' height='3' x='42' y='84' fill='black' />
+<rect width='3' height='3' x='45' y='84' fill='black' />
+<rect width='3' height='3' x='48' y='84' fill='black' />
+<rect width='3' height='3' x='54' y='84' fill='black' />
+<rect width='3' height='3' x='60' y='84' fill='black' />
+<rect width='3' height='3' x='63' y='84' fill='black' />
+<rect width='3' height='3' x='66' y='84' fill='black' />
+<rect width='3' height='3' x='72' y='84' fill='black' />
+<rect width='3' height='3' x='78' y='84' fill='black' /></svg></p></article></section></main>
+</body>
+</html>

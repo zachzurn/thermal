@@ -1,5 +1,6 @@
 extern crate barcoders;
 
+use std::cmp::PartialEq;
 use std::str::from_utf8;
 
 use barcoders::sym::codabar::Codabar;
@@ -35,7 +36,7 @@ enum BarcodeType {
     Unknown,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 enum EncodingFunction {
     NulTerminated,
     ExplicitSize,
@@ -50,6 +51,7 @@ struct BarcodeHandler {
     capacity: u8,
     has_capacity: bool,
     accept_data: bool,
+    raw_params: Vec<u8>,
 }
 
 impl BarcodeHandler {
@@ -268,11 +270,24 @@ impl CommandHandler for BarcodeHandler {
         )
     }
 
+    fn get_command_bytes(&self, command: &Command) -> (Vec<u8>, Vec<u8>) {
+        let mut params = command.commands.to_vec();
+        params.extend(self.raw_params.clone());
+        let mut data = command.data.to_vec();
+        
+        if self.encoding == EncodingFunction::NulTerminated {
+            data.push(NUL);
+        }
+        
+        (params,data)
+    }
+    
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
         let data_len = data.len();
 
         //Gather metadata
         if !self.accept_data {
+            self.raw_params.push(byte);
             self.kind_id = byte;
             self.kind = match self.kind_id {
                 0 | 65 => BarcodeType::UpcA,
@@ -317,6 +332,7 @@ impl CommandHandler for BarcodeHandler {
             }
             EncodingFunction::ExplicitSize => {
                 if !self.has_capacity {
+                    self.raw_params.push(byte);
                     self.capacity = byte;
                     self.has_capacity = true;
                     return true;
@@ -344,6 +360,7 @@ pub fn new() -> Command {
             capacity: 0,
             has_capacity: false,
             accept_data: false,
+            raw_params: vec![],
         }),
     )
 }

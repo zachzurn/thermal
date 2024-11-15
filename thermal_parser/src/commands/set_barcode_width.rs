@@ -11,13 +11,20 @@ struct Handler;
 
 impl CommandHandler for Handler {
     fn apply_context(&self, command: &Command, context: &mut Context) {
-        let mut n = *command.data.get(0).unwrap_or(&0u8);
+        let mut n = *command.data.get(0).unwrap_or(&2u8);
         if n < 2 {
             n = 2
         };
+        
+        // Not sure what the expected behavior is when 
+        // the width is set to higher than the max of 6. 
+        // 
+        // For now we ignore and leave the default, 
+        // which seems to produce expected output.
         if n > 6 {
-            n = 6
+            return
         };
+        
         context.barcode.width = n;
     }
 }

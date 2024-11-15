@@ -11,7 +11,7 @@ impl CommandHandler for Handler {
 
 pub fn new() -> Command {
     Command::new(
-        "PDF417 Sets the Column Width",
+        "PDF417 Sets the Module Width",
         vec![48, 67],
         CommandType::Context,
         DataType::Subcommand,
