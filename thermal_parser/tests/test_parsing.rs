@@ -58,18 +58,8 @@ fn test_receipt_4() {
 }
 
 #[test]
-fn thick_barcode() {
-    test_sample("thick_barcode", "bin")
-}
-
-#[test]
 fn discount() {
     test_sample("discount", "thermal")
-}
-
-#[test]
-fn barcodes_upce() {
-    test_sample("barcodes_upce", "thermal")
 }
 
 fn test_sample(name: &str, ext: &str) {

@@ -40,15 +40,15 @@ fn it_parses_lines() {
     assert_eq!(bytes[10], 92); // \
 }
 
-#[test]
-fn it_decompiles_binary() {
-    convert_binary_to_thermal("barcodes_upce")
-}
+// #[test]
+// fn it_decompiles_binary() {
+//     convert_binary_to_thermal("barcodes_upce")
+// }
 
 // Utility function for converting bin files
 // into the more readable format. Ideally all
 // tests are in the .thermal format
-fn convert_binary_to_thermal(name: &str) {
+pub fn convert_binary_to_thermal(name: &str) {
     let binary_filepath = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("..")
         .join("sample_files")

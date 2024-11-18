@@ -31,6 +31,11 @@ ESC "a" 1
     GS "k" 4 "*00014*" NUL 
     LF LF
 
+'// --- EAN 8 --->>>
+    "Ean 8" LF LF
+    GS "k" "D" 7 "9031101"
+    LF LF
+
 '// --- EAN 13 --->>>
     "Ean 13" LF LF
     GS "k" 2 "4596979869696" NUL 
@@ -47,58 +52,19 @@ ESC "a" 1
     GS "k" 0 "695878963521" NUL 
     LF LF
 
+'// --- UPC E --->>>
+    "UPC E" LF LF
+    GS "k" "B" 12 "042100005264"
+    LF LF
+
+'// --- ITF --->>>
+    "ITF( Interlevead 2 of 5 )" LF LF
+    GS "k" "F" 14 "98765432109213"
+    LF LF
 
 '// End Center
 ESC "a" 0
 
-
-'// BARCODE HRI
-GS "!" 0x01 "HUMAN READABLE INTERFACE" GS "!" 0x00 LF 
-"-------------------------------------------------" LF LF
-    
-'// Center
-ESC "a" 1
-
-'// --- CODE 39 --->>>
-"Code 39 HRI Below" LF LF
-'// Set barcode height: in case TM-T20, 6.25 mm (50/203 inches)
-    GS "h" 50
-'// Select print position of HRI characters: Print position, below the barcode
-    GS "H" 2
-'// Select font for HRI characters: Font B
-    GS "f" 1
-'// Print barcode: (A) format, barcode system = CODE39
-    GS "k" 4 "*00014*" NUL
-
-LF LF "Code 39 HRI Above" LF LF
-
-'// Select print position of HRI characters: Print position, above the barcode
-    GS "H" 1
-    
-'// Print barcode: (A) format, barcode system = CODE39
-    GS "k" 4 "*00015*" NUL
-
-LF LF "Code 39 HRI Both" LF LF
-
-'// Select print position of HRI characters: Print position, above the barcode
-    GS "H" 3
-    
-'// Print barcode: (A) format, barcode system = CODE39
-    GS "k" 4 "*00016*" NUL
-    
-    
-LF LF "Code 39 no HRI" LF LF
-
-'// Select print position of HRI characters: Print position, above the barcode
-    GS "H" 0
-    
-'// Print barcode: (A) format, barcode system = CODE39
-    GS "k" 4 "*00017*" NUL
-
-'// --- CODE 39 ---<<<
-
-'// End Center
-ESC "a" 0
 
 '// CODE 2D
 LF LF  GS "!" 0x01 "CODE 2D" GS "!" 0x00 LF
@@ -106,6 +72,34 @@ LF LF  GS "!" 0x01 "CODE 2D" GS "!" 0x00 LF
 
 '// Center
 ESC "a" 1
+
+LF LF "PDF 417 (Not implemented)" LF LF
+
+'// PDF417 Sets the Column Width
+GS "(" "k" 3 0 "0" "A"  0
+
+'// PDF417 Sets the row width
+GS "(" "k" 3 0 "0" "B"  0
+
+'// PDF417 Sets the Column Width
+GS "(" "k" 3 0 "0" "C"  3
+
+'// PDF417 Set Error Correction Level
+GS "(" "k" 4 0 "0" "E"  48 0
+
+'// PDF417 Set Options
+GS "(" "k" 3 0 "0" "F"  0
+
+'// PDF417 Store the Code2D data
+GS "(" "k" 146 0 "0" "P"
+0x30 0x31 0x32 0x31 0x32 0x33 0x34 0x31 0x32 0x33 0x34 0x31 0x32 0x33 0x34 0x37 0x38 0x39 0x31 0x33 0x34 0x37 0x38 0x36 0x31 0x32 0x33 0x37 0x38 0x34 0x36 0x31
+0x32 0x37 0x38 0x33 0x34 0x36 0x64 0x73 0x67 0x68 0x66 0x75 0x63 0x67 0x32 0x62 0x33 0x34 0x37 0x38 0x39 0x63 0x67 0x72 0x34 0x6E 0x74 0x36 0x38 0x39 0x30 0x76
+0x31 0x6E 0x32 0x67 0x74 0x36 0x38 0x63 0x6D 0x74 0x36 0x38 0x6D 0x38 0x30 0x37 0x32 0x33 0x6F 0x74 0x76 0x63 0x31 0x32 0x62 0x37 0x38 0x34 0x39 0x78 0x35 0x6E
+0x31 0x33 0x74 0x36 0x30 0x72 0x6D 0x31 0x67 0x72 0x36 0x31 0x67 0x72 0x35 0x6D 0x31 0x33 0x34 0x36 0x38 0x67 0x72 0x6D 0x7A 0x62 0x36 0x31 0x63 0x67 0x6F 0x76
+0x20 0x32 0x31 0x32 0x34 0x31 0x32 0x33 0x34 0x31 0x32 0x33 0x34 0x31 0x32 0x33
+
+LF LF
+
 
 LF LF "QR Code Model 1:" LF "\"123456789\"" LF LF
 
@@ -138,4 +132,79 @@ GS "(k" 3  0  49  81  0
 '// End center
 ESC "a" 0
 
-LF LF
+LF LF LF
+
+
+'// BARCODE HRI
+GS "!" 0x01 "HUMAN READABLE INTERFACE TEST" GS "!" 0x00 LF
+"-------------------------------------------------" LF LF
+
+'// Center
+ESC "a" 1
+
+'// --- CODE 39 --->>>
+"Code 39 HRI Below" LF LF
+'// Set barcode height: in case TM-T20, 6.25 mm (50/203 inches)
+    GS "h" 50
+'// Select print position of HRI characters: Print position, below the barcode
+    GS "H" 2
+'// Select font for HRI characters: Font B
+    GS "f" 1
+'// Print barcode: (A) format, barcode system = CODE39
+    GS "k" 4 "*00014*" NUL
+
+LF LF "Code 39 HRI Above" LF LF
+
+'// Select print position of HRI characters: Print position, above the barcode
+    GS "H" 1
+
+'// Print barcode: (A) format, barcode system = CODE39
+    GS "k" 4 "*00015*" NUL
+
+LF LF "Code 39 HRI Both" LF LF
+
+'// Select print position of HRI characters: Print position, above the barcode
+    GS "H" 3
+
+'// Print barcode: (A) format, barcode system = CODE39
+    GS "k" 4 "*00016*" NUL
+
+
+LF LF "Code 39 no HRI" LF LF
+
+'// Select print position of HRI characters: Print position, above the barcode
+    GS "H" 0
+
+'// Print barcode: (A) format, barcode system = CODE39
+    GS "k" 4 "*00017*" NUL
+
+'// --- CODE 39 ---<<<
+
+'// End Center
+ESC "a" 0
+
+'// UPC E Conversion tests
+LF LF  GS "!" 0x01 "UPC E TEST" GS "!" 0x00 LF
+"-------------------------------------------------" LF LF
+
+    ESC "a" 1 GS "h" 70 GS "H" 2 GS "f" 1
+
+'// --- UPC E --->>>
+    "All Barcode graphics should match" LF LF
+
+'// UPC E Barcode with UPC A 12 digit
+    GS "k" "B" 12 "042100005264" LF LF
+
+'// UPC E Barcode with UPC A 11 digit
+    GS "k" "B" 11 "04210000526" LF LF
+
+'// UPC E Barcode 8 digit
+    GS "k" "B" 8 "04252614" LF LF
+
+'// UPC E Barcode 7 digit
+    GS "k" "B" 7 "0425261" LF LF
+
+'// UPC E Barcode 6 digit
+    GS "k" "B" 6 "425261" LF
+
+    LF LF
