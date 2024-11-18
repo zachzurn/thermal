@@ -11,7 +11,7 @@ impl CommandHandler for Handler {
 
 pub fn new() -> Command {
     Command::new(
-        "PDF417 Sets the row width",
+        "PDF417 Sets the number of rows",
         vec![48, 66],
         CommandType::Context,
         DataType::Subcommand,

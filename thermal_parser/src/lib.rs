@@ -10,6 +10,7 @@ pub mod graphics;
 pub mod parser;
 pub mod subcommands;
 pub mod thermal_file;
+pub mod utils;
 pub mod util;
 pub mod text;
 

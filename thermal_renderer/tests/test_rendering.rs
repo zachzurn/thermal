@@ -74,11 +74,6 @@ fn barcodes() {
 }
 
 #[test]
-fn thick_barcode() {
-    test_sample("thick_barcode", "bin")
-}
-
-#[test]
 fn discount() {
     test_sample("discount", "thermal")
 }

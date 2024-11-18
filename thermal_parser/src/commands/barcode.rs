@@ -1,5 +1,6 @@
 extern crate barcoders;
 
+use std::cmp::PartialEq;
 use std::str::from_utf8;
 
 use barcoders::sym::codabar::Codabar;
@@ -12,6 +13,7 @@ use barcoders::sym::ean8::EAN8;
 use barcoders::sym::tf::TF;
 
 use crate::text::TextSpan;
+use crate::utils::barcodes::upce::UPCE;
 use crate::{command::*, constants::*, context::*, graphics::*};
 
 #[derive(Clone)]
@@ -34,7 +36,7 @@ enum BarcodeType {
     Unknown,
 }
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 enum EncodingFunction {
     NulTerminated,
     ExplicitSize,
@@ -49,6 +51,7 @@ struct BarcodeHandler {
     capacity: u8,
     has_capacity: bool,
     accept_data: bool,
+    raw_params: Vec<u8>,
 }
 
 impl BarcodeHandler {
@@ -81,6 +84,31 @@ impl BarcodeHandler {
             BarcodeType::Unknown => "Unknown",
         }
     }
+
+    fn validate_data_length(&self, length: usize) -> bool {
+        if length > 255 {
+            return false;
+        }
+
+        match self.kind {
+            BarcodeType::UpcA => length == 11 || length == 12,
+            BarcodeType::UpcE => {
+                length == 6 || length == 7 || length == 8 || length == 11 || length == 12
+            }
+            BarcodeType::Ean13 => length == 12 || length == 13,
+            BarcodeType::Ean8 => length == 7 || length == 8,
+            BarcodeType::Code39 => length > 0,
+            BarcodeType::Nw7Codabar | BarcodeType::Itf => length > 2,
+            BarcodeType::Gs1DatabarLimited
+            | BarcodeType::Gs1DatabarTruncated
+            | BarcodeType::Gs1DatabarOmni => length == 13,
+            BarcodeType::Code128 | BarcodeType::Gs1128 | BarcodeType::Gs1DatabarExpanded => {
+                length > 1
+            }
+            BarcodeType::Code128Auto => length > 0,
+            _ => length > 0,
+        }
+    }
 }
 
 impl CommandHandler for BarcodeHandler {
@@ -91,6 +119,11 @@ impl CommandHandler for BarcodeHandler {
         let point_height = context.barcode.height;
         let hri = context.barcode.human_readable.clone();
 
+        //Invalid data length
+        if !self.validate_data_length(data.len()) {
+            return self.decorate_error("Invalid data length".to_string(), command);
+        }
+
         match self.kind {
             BarcodeType::Code128 => {
                 //all code128 data has two bytes that set the type, we are converting this to the barcoders format
@@ -99,13 +132,9 @@ impl CommandHandler for BarcodeHandler {
                     .replace("{B", "Ɓ")
                     .replace("{C", "Ć");
 
-                let hri_data: String = data
-                    .replace("{A", "")
-                    .replace("{B", "")
-                    .replace("{C", "");
+                let hri_data: String = data.replace("{A", "").replace("{B", "").replace("{C", "");
 
                 return match Code128::new(adjusted_data.to_string()) {
-
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
                         text: TextSpan::new_for_barcode(hri_data.to_string(), context),
@@ -160,11 +189,6 @@ impl CommandHandler for BarcodeHandler {
                 };
             }
             BarcodeType::Ean13 => {
-                //Prevent a panic and instead return a graphics error
-                if data.len() < 12 {
-                    return self.decorate_error("Too few digits provided for EAN 13".to_string(), command);     
-                }
-                
                 let data_sp = &data[..12];
                 return match EAN13::new(data_sp.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
@@ -178,24 +202,19 @@ impl CommandHandler for BarcodeHandler {
                 };
             }
             BarcodeType::UpcA => {
-                let mut data_sp = data.to_string();
-                let data_len = data.len();
-
-                match data_len {
-                    11 => {
-                        if let Some(first_char) = data.chars().next() {
-                            if first_char != '0' {
-                                data_sp = format!("0{}", &data[..11]);
-                            }
-                        }
-                    }
-                    12 => {
-                        data_sp = format!("0{}", &data[..11]);
-                    }
-                    _ => {}
-                }
-
-                return match UPCA::new(data_sp) {
+                return match UPCA::new(data.to_string()) {
+                    Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
+                        points: barcode.encode(),
+                        text: TextSpan::new_for_barcode(data.to_string(), context),
+                        point_width,
+                        point_height,
+                        hri,
+                    })),
+                    Err(error) => self.decorate_error(error.to_string(), command),
+                };
+            }
+            BarcodeType::UpcE => {
+                return match UPCE::new(data.to_string()) {
                     Ok(barcode) => Some(GraphicsCommand::Barcode(Barcode {
                         points: barcode.encode(),
                         text: TextSpan::new_for_barcode(data.to_string(), context),
@@ -255,11 +274,27 @@ impl CommandHandler for BarcodeHandler {
         )
     }
 
+    fn get_command_bytes(&self, command: &Command) -> (Vec<u8>, Vec<u8>) {
+        let mut params = command.commands.to_vec();
+        params.extend(self.raw_params.clone());
+        let mut data = command.data.to_vec();
+
+        if self.encoding == EncodingFunction::NulTerminated {
+            data.push(NUL);
+        }
+
+        (params, data)
+    }
+
+    /// Barcode data is collected based on function a or b
+    /// m = 0 - 6: data is NUL terminated
+    /// m = 65 - 79: data length is defined by 1 byte (max 255)
     fn push(&mut self, data: &mut Vec<u8>, byte: u8) -> bool {
         let data_len = data.len();
 
         //Gather metadata
         if !self.accept_data {
+            self.raw_params.push(byte);
             self.kind_id = byte;
             self.kind = match self.kind_id {
                 0 | 65 => BarcodeType::UpcA,
@@ -280,9 +315,10 @@ impl CommandHandler for BarcodeHandler {
                 _ => BarcodeType::Unknown,
             };
 
-            //I'm seeing some conflicting implementations for function definitions
+            // 0 - 6 are NUL terminated
             if byte <= 6 {
                 self.encoding = EncodingFunction::NulTerminated;
+            // 65 - 79 use a defined size 1 byte capacity max 255
             } else if byte >= 65 && byte <= 79 {
                 self.encoding = EncodingFunction::ExplicitSize;
             } else {
@@ -304,6 +340,7 @@ impl CommandHandler for BarcodeHandler {
             }
             EncodingFunction::ExplicitSize => {
                 if !self.has_capacity {
+                    self.raw_params.push(byte);
                     self.capacity = byte;
                     self.has_capacity = true;
                     return true;
@@ -331,6 +368,7 @@ pub fn new() -> Command {
             capacity: 0,
             has_capacity: false,
             accept_data: false,
+            raw_params: vec![],
         }),
     )
 }
