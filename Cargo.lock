@@ -225,6 +225,7 @@ dependencies = [
 name = "thermal-wasm"
 version = "0.0.1"
 dependencies = [
+ "js-sys",
  "thermal_parser",
  "thermal_renderer",
  "wasm-bindgen",

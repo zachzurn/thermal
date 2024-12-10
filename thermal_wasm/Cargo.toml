@@ -12,4 +12,5 @@ crate-type = ["cdylib"]
 thermal_renderer = { path = "../thermal_renderer" }
 thermal_parser = { path = "../thermal_parser" }
 wasm-bindgen = "0.2.95"
-web-sys = { version = "0.3", features = ["CanvasRenderingContext2d", "HtmlCanvasElement", "Window", "Document", "ImageData"] }
+web-sys = { version = "0.3", features = ["CanvasRenderingContext2d", "WebGlRenderingContext", "HtmlCanvasElement", "Window", "Document", "ImageData", "WebGlTexture", "WebGlProgram", "WebGlBuffer", "WebGlShader"] }
+js-sys = "0.3.72"
